@@ -38,12 +38,30 @@
 *                                                                              *
 *******************************************************************************/
 
+
+/*
+ * CS -> HX notes:
+ * 		move some statics from ClipperBase to Clipper
+ * 		find a way to fix Int128 and Slopes...
+ * 		fix multi declarations
+ * 		fix internal
+ * 		check capacity
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
+
 package hxClipper;
 
+import haxe.ds.ArraySort;
 import haxe.Int32;
 import haxe.Int64;
 import hxClipper.Clipper.DoublePoint;
 import hxClipper.Clipper.IntPoint;
+
+using hxClipper.Clipper.ArrayTools;
 
 //use_int32: When enabled 32bit ints are used instead of 64bit ints. This
 //improve performance but coordinate values are limited to the range +/- 46340
@@ -68,8 +86,8 @@ typedef CInt = Int32;
 typedef CInt = Int64;
 #end
 
-typedef Path = List<IntPoint>;
-typedef Paths = List<List<IntPoint>>;
+typedef Path = Array<IntPoint>;
+typedef Paths = Array<Array<IntPoint>>;
 
 class DoublePoint 
 {
@@ -101,13 +119,13 @@ class DoublePoint
 
 class PolyTree extends PolyNode 
 {
-	/*internal*/ public var m_AllPolys:List<PolyNode> = new List<PolyNode>();
+	/*internal*/ public var m_AllPolys:Array<PolyNode> = new Array<PolyNode>();
 
 	//The GC probably handles this cleanup more efficiently ...
 	//~PolyTree(){Clear();}
 
 	public function Clear():Void {
-		for (i in 0...m_AllPolys.Count) {
+		for (i in 0...m_AllPolys.length) {
 			m_AllPolys[i] = null;
 		}
 		m_AllPolys.Clear();
@@ -115,13 +133,13 @@ class PolyTree extends PolyNode
 	}
 
 	public function GetFirst():PolyNode {
-		if (m_Childs.Count > 0) return m_Childs[0];
+		if (m_Childs.length > 0) return m_Childs[0];
 		else return null;
 	}
 
 	public var Total(get, never):Int;
 	function get_Total():Int {
-		var result = m_AllPolys.Count;
+		var result = m_AllPolys.length;
 		//with negative offsets, ignore the hidden outer polygon ...
 		if (result > 0 && m_Childs[0] != m_AllPolys[0]) result--;
 		return result;
@@ -136,7 +154,7 @@ class PolyNode
 	/*internal*/ public var m_Index:Int;
 	/*internal*/ public var m_jointype:JoinType;
 	/*internal*/ public var m_endtype:EndType;
-	/*internal*/ public var m_Childs:List<PolyNode> = new List<PolyNode>();
+	/*internal*/ public var m_Childs:Array<PolyNode> = new Array<PolyNode>();
 
 	function IsHoleNode():Bool {
 		var result = true;
@@ -150,7 +168,7 @@ class PolyNode
 
 	public var ChildCount(get, never):Int;
 	function get_ChildCount():Int {
-		return m_Childs.Count;
+		return m_Childs.length;
 	}
 
 	public var Contour(get, never):Path;
@@ -159,25 +177,25 @@ class PolyNode
 	}
 
 	/*internal*/ public function AddChild(Child:PolyNode):Void {
-		var cnt = m_Childs.Count;
-		m_Childs.Add(Child);
+		var cnt = m_Childs.length;
+		m_Childs.push(Child);
 		Child.m_Parent = this;
 		Child.m_Index = cnt;
 	}
 
 	public function GetNext():PolyNode {
-		if (m_Childs.Count > 0) return m_Childs[0];
+		if (m_Childs.length > 0) return m_Childs[0];
 		else return GetNextSiblingUp();
 	}
 
 	/*internal*/ public function GetNextSiblingUp():PolyNode {
 		if (m_Parent == null) return null;
-		else if (m_Index == m_Parent.m_Childs.Count - 1) return m_Parent.GetNextSiblingUp();
+		else if (m_Index == m_Parent.m_Childs.length - 1) return m_Parent.GetNextSiblingUp();
 		else return m_Parent.m_Childs[m_Index + 1];
 	}
 
-	public var Childs(get, never):List<PolyNode>;
-	function get_Childs():List<PolyNode> {
+	public var Childs(get, never):Array<PolyNode>;
+	function get_Childs():Array<PolyNode> {
 		return m_Childs;
 	}
 
@@ -356,7 +374,7 @@ class IntPoint
 	}
 	
 	static public function fromFloats(x:Float, y:Float) {
-		return new IntPoint(Std.int(x), Std.int(z));
+		return new IntPoint(Std.int(x), Std.int(y));
 	}
 
 	static public function fromDoublePoint(dp:DoublePoint) {
@@ -469,6 +487,8 @@ enum EndType {
 	/*internal*/ public var PrevInAEL:TEdge;
 	/*internal*/ public var NextInSEL:TEdge;
 	/*internal*/ public var PrevInSEL:TEdge;
+	
+	/*internal*/ public function new() { };
 }
 
 class IntersectNode 
@@ -476,6 +496,8 @@ class IntersectNode
 	/*internal*/ public var Edge1:TEdge;
 	/*internal*/ public var Edge2:TEdge;
 	/*internal*/ public var Pt:IntPoint;
+	
+	/*internal*/ public function new() { };
 }
 
 /* TODO: fix the comparer (look into ListSort, or change List with Array
@@ -494,12 +516,16 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ public var LeftBound:TEdge;
 	/*internal*/ public var RightBound:TEdge;
 	/*internal*/ public var Next:LocalMinima;
+	
+	/*internal*/ public function new() { };
 }
 
 /*internal*/ class Scanbeam 
 {
 	/*internal*/ public var Y:CInt;
 	/*internal*/ public var Next:Scanbeam;
+	
+	/*internal*/ public function new() { };
 }
 
 /*internal*/ class OutRec 
@@ -511,6 +537,8 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ public var Pts:OutPt;
 	/*internal*/ public var BottomPt:OutPt;
 	/*internal*/ public var PolyNode:PolyNode; //TODO: check name here
+	
+	/*internal*/ public function new() { };
 }
 
 /*internal*/ class OutPt 
@@ -519,6 +547,8 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ public var Pt:IntPoint;
 	/*internal*/ public var Next:OutPt;
 	/*internal*/ public var Prev:OutPt;
+	
+	/*internal*/ public function new() { };
 }
 
 /*internal*/ class Join 
@@ -526,6 +556,8 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ public var OutPt1:OutPt;
 	/*internal*/ public var OutPt2:OutPt;
 	/*internal*/ public var OffPt:IntPoint;
+	
+	/*internal*/ public function new() { };
 }
 
 class ClipperBase 
@@ -551,7 +583,7 @@ class ClipperBase
 
 	/*internal*/ public var m_MinimaList:LocalMinima;
 	/*internal*/ public var m_CurrentLM:LocalMinima;
-	/*internal*/ public var m_edges:List<List<TEdge>> = new List<List<TEdge>>();
+	/*internal*/ public var m_edges:Array<Array<TEdge>> = new Array<Array<TEdge>>();
 	/*internal*/ public var m_UseFullRange:Bool;
 	/*internal*/ public var m_HasOpenPaths:Bool;
 
@@ -633,8 +665,8 @@ class ClipperBase
 
 	public function Clear():Void {
 		DisposeLocalMinimaList();
-		for (i in 0...m_edges.Count) {
-			for (j in 0...m_edges[i].Count) {
+		for (i in 0...m_edges.length) {
+			for (j in 0...m_edges[i].length) {
 				m_edges[i][j] = null;
 			}
 			m_edges[i].Clear();
@@ -803,14 +835,14 @@ class ClipperBase
 		if (!Closed) throw new ClipperException("AddPath: Open paths have been disabled.");
 	#end
 		//TODO: why the cast
-		var highI = /*(int)*/ pg.Count - 1;
+		var highI = /*(int)*/ pg.length - 1;
 		if (Closed) while (highI > 0 && (pg[highI] == pg[0])) --highI;
 		while (highI > 0 && (pg[highI] == pg[highI - 1])) --highI;
 		if ((Closed && highI < 2) || (!Closed && highI < 1)) return false;
 
 		//create a new edge array ...
-		var edges = new List<TEdge>(highI + 1);
-		for (i in 0...highI + 1) edges.Add(new TEdge());
+		var edges = new Array<TEdge>(highI + 1);
+		for (i in 0...highI + 1) edges.push(new TEdge());
 
 		var IsFlat = true;
 
@@ -894,11 +926,11 @@ class ClipperBase
 				E = E.Next;
 			}
 			InsertLocalMinima(locMin);
-			m_edges.Add(edges);
+			m_edges.push(edges);
 			return true;
 		}
 
-		m_edges.Add(edges);
+		m_edges.push(edges);
 		var leftBoundIsForward:Bool;
 		var EMin:TEdge = null;
 
@@ -951,7 +983,7 @@ class ClipperBase
 
 	public function AddPaths(ppg:Paths, polyType:PolyType, closed:Bool):Bool {
 		var result = false;
-		for (i = 0...ppg.Count) {
+		for (i = 0...ppg.length) {
 			if (AddPath(ppg[i], polyType, closed)) result = true;
 		}
 		return result;
@@ -1047,17 +1079,17 @@ class ClipperBase
 	//------------------------------------------------------------------------------
 
 	static public function GetBounds(paths:Paths):IntRect {
-		var i:Int = 0, cnt:Int = paths.Count;
-		while (i < cnt && paths[i].Count == 0) i++;
+		var i:Int = 0, cnt:Int = paths.length;
+		while (i < cnt && paths[i].length == 0) i++;
 		if (i == cnt) return new IntRect(0, 0, 0, 0);
-		var result = new IntRect();
+		var result = new IntRect(0, 0, 0, 0);
 		result.left = paths[i][0].X;
 		result.right = result.left;
 		result.top = paths[i][0].Y;
 		result.bottom = result.top;
 		// TODO: check nested loops
 		while (i < cnt) {
-			for (j in 0...paths[i].Count) {
+			for (j in 0...paths[i].length) {
 				if (paths[i][j].X < result.left) result.left = paths[i][j].X;
 				else if (paths[i][j].X > result.right) result.right = paths[i][j].X;
 				if (paths[i][j].Y < result.top) result.top = paths[i][j].Y;
@@ -1070,26 +1102,28 @@ class ClipperBase
 
 } //end ClipperBase
 
+typedef IntersectNodeComparer = IntersectNode->IntersectNode->Int;
+
 class Clipper extends ClipperBase 
 {
 	//InitOptions that can be passed to the constructor ...
 	//TODO: check constants and constructor behaviour (maybe turn into enum)
-	inline public var ioReverseSolution:Int = 1;
-	inline public var ioStrictlySimple:Int = 2;
-	inline public var ioPreserveCollinear:Int = 4;
+	inline static public var ioReverseSolution:Int = 1;
+	inline static public var ioStrictlySimple:Int = 2;
+	inline static public var ioPreserveCollinear:Int = 4;
 
-	var m_PolyOuts:List<OutRec>;
+	var m_PolyOuts:Array<OutRec>;
 	var m_ClipType:ClipType;
 	var m_Scanbeam:Scanbeam;
 	var m_ActiveEdges:TEdge;
 	var m_SortedEdges:TEdge;
-	var m_IntersectList:List<IntersectNode>;
-	var m_IntersectNodeComparer:IComparer<IntersectNode>;
+	var m_IntersectList:Array<IntersectNode>;
+	var m_IntersectNodeComparer:IntersectNodeComparer;
 	var m_ExecuteLocked:Bool;
 	var m_ClipFillType:PolyFillType;
 	var m_SubjFillType:PolyFillType;
-	var m_Joins:List<Join>;
-	var m_GhostJoins:List<Join>;
+	var m_Joins:Array<Join>;
+	var m_GhostJoins:Array<Join>;
 	var m_UsingPolyTree:Bool;
 #if use_xyz 
 	// TODO: ref here
@@ -1105,13 +1139,13 @@ class Clipper extends ClipperBase
 		m_Scanbeam = null;
 		m_ActiveEdges = null;
 		m_SortedEdges = null;
-		m_IntersectList = new List<IntersectNode>();
-		m_IntersectNodeComparer = new MyIntersectNodeSort();
+		m_IntersectList = new Array<IntersectNode>();
+		m_IntersectNodeComparer = compare;
 		m_ExecuteLocked = false;
 		m_UsingPolyTree = false;
-		m_PolyOuts = new List<OutRec>();
-		m_Joins = new List<Join>();
-		m_GhostJoins = new List<Join>();
+		m_PolyOuts = new Array<OutRec>();
+		m_Joins = new Array<Join>();
+		m_GhostJoins = new Array<Join>();
 		ReverseSolution = (ioReverseSolution & InitOptions) != 0;
 		StrictlySimple = (ioStrictlySimple & InitOptions) != 0;
 		PreserveCollinear = (ioPreserveCollinear & InitOptions) != 0;
@@ -1121,6 +1155,13 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	static function compare(node1:IntersectNode, node2:IntersectNode):Int {
+		var i:CInt = node2.Pt.Y - node1.Pt.Y;
+		if (i > 0) return 1;
+		else if (i < 0) return -1;
+		else return 0;
+	}
+	
 	function DisposeScanbeamList():Void {
 		while (m_Scanbeam != null) {
 			var sb2:Scanbeam = m_Scanbeam.Next;
@@ -1260,15 +1301,15 @@ class Clipper extends ClipperBase
 			} while (m_Scanbeam != null || m_CurrentLM != null);
 
 			//fix orientations ...
-			for (i = 0...m_PolyOuts.Count) {
+			for (i in 0...m_PolyOuts.length) {
 				var outRec:OutRec = m_PolyOuts[i];
 				if (outRec.Pts == null || outRec.IsOpen) continue;
-				if ((outRec.IsHole ^ ReverseSolution) == (Area(outRec) > 0)) ReversePolyPtLinks(outRec.Pts);
+				if ((outRec.IsHole ^ ReverseSolution) == (AreaOfOutRec(outRec) > 0)) ReversePolyPtLinks(outRec.Pts);
 			}
 
 			JoinCommonEdges();
 
-			for (i in 0...m_PolyOuts.Count) {
+			for (i in 0...m_PolyOuts.length) {
 				var outRec:OutRec = m_PolyOuts[i];
 				if (outRec.Pts != null && !outRec.IsOpen) FixupOutPolygon(outRec);
 			}
@@ -1293,7 +1334,7 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function DisposeAllPolyPts():Void {
-		for (i in 0...m_PolyOuts.Count) DisposeOutRec(i);
+		for (i in 0...m_PolyOuts.length) DisposeOutRec(i);
 		m_PolyOuts.Clear();
 	}
 	//------------------------------------------------------------------------------
@@ -1311,7 +1352,7 @@ class Clipper extends ClipperBase
 		j.OutPt1 = Op1;
 		j.OutPt2 = Op2;
 		j.OffPt = OffPt;
-		m_Joins.Add(j);
+		m_Joins.push(j);
 	}
 	//------------------------------------------------------------------------------
 
@@ -1319,7 +1360,7 @@ class Clipper extends ClipperBase
 		var j = new Join();
 		j.OutPt1 = Op;
 		j.OffPt = OffPt;
-		m_GhostJoins.Add(j);
+		m_GhostJoins.push(j);
 	}
 	//------------------------------------------------------------------------------
 
@@ -1363,15 +1404,15 @@ class Clipper extends ClipperBase
 			}
 
 			if (rb != null) {
-				if (IsHorizontal(rb)) AddEdgeToSEL(rb);
+				if (ClipperBase.IsHorizontal(rb)) AddEdgeToSEL(rb);
 				else InsertScanbeam(rb.Top.Y);
 			}
 
 			if (lb == null || rb == null) continue;
 
 			//if output polygons share an Edge with a horizontal rb, they'll need joining later ...
-			if (Op1 != null && IsHorizontal(rb) && m_GhostJoins.Count > 0 && rb.WindDelta != 0) {
-				for (i in 0...m_GhostJoins.Count) {
+			if (Op1 != null && ClipperBase.IsHorizontal(rb) && m_GhostJoins.length > 0 && rb.WindDelta != 0) {
+				for (i in 0...m_GhostJoins.length) {
 					//if the horizontal Rb and a 'ghost' horizontal overlap, then convert
 					//the 'ghost' join to a real join ready for later ...
 					var j:Join = m_GhostJoins[i];
@@ -1461,7 +1502,7 @@ class Clipper extends ClipperBase
 				if (edge.WindDelta == 0 && edge.WindCnt != 1) return false;
 				break;
 			case PolyFillType.pftNonZero:
-				if (Math.Abs(edge.WindCnt) != 1) return false;
+				if (Math.abs(edge.WindCnt) != 1) return false;
 				break;
 			case PolyFillType.pftPositive:
 				if (edge.WindCnt != 1) return false;
@@ -1560,7 +1601,7 @@ class Clipper extends ClipperBase
 			if (e.WindCnt * e.WindDelta < 0) {
 				//prev edge is 'decreasing' WindCount (WC) toward zero
 				//so we're outside the previous polygon ...
-				if (Math.Abs(e.WindCnt) > 1) {
+				if (Math.abs(e.WindCnt) > 1) {
 					//outside prev poly but still inside another.
 					//when reversing direction of prev poly use the same WC 
 					if (e.WindDelta * edge.WindDelta < 0) edge.WindCnt = e.WindCnt;
@@ -1711,8 +1752,8 @@ class Clipper extends ClipperBase
 		AddOutPt(e1, pt);
 		if (e2.WindDelta == 0) AddOutPt(e2, pt);
 		if (e1.OutIdx == e2.OutIdx) {
-			e1.OutIdx = Unassigned;
-			e2.OutIdx = Unassigned;
+			e1.OutIdx = ClipperBase.Unassigned;
+			e2.OutIdx = ClipperBase.Unassigned;
 		} else if (e1.OutIdx < e2.OutIdx) AppendPolygon(e1, e2);
 		else AppendPolygon(e2, e1);
 	}
@@ -1721,7 +1762,7 @@ class Clipper extends ClipperBase
 	function AddLocalMinPoly(e1:TEdge, e2:TEdge, pt:IntPoint):OutPt {
 		var result:OutPt;
 		var e:TEdge, prevE:TEdge;
-		if (IsHorizontal(e2) || (e1.Dx > e2.Dx)) {
+		if (ClipperBase.IsHorizontal(e2) || (e1.Dx > e2.Dx)) {
 			result = AddOutPt(e1, pt);
 			e2.OutIdx = e1.OutIdx;
 			e1.Side = EdgeSide.esLeft;
@@ -1739,7 +1780,7 @@ class Clipper extends ClipperBase
 			else prevE = e.PrevInAEL;
 		}
 
-		if (prevE != null && prevE.OutIdx >= 0 && (TopX(prevE, pt.Y) == TopX(e, pt.Y)) && SlopesEqual(e, prevE, m_UseFullRange) && (e.WindDelta != 0) && (prevE.WindDelta != 0)) {
+		if (prevE != null && prevE.OutIdx >= 0 && (TopX(prevE, pt.Y) == TopX(e, pt.Y)) && ClipperBase.SlopesEqual(e, prevE, m_UseFullRange) && (e.WindDelta != 0) && (prevE.WindDelta != 0)) {
 			var outPt:OutPt = AddOutPt(prevE, pt);
 			AddJoin(result, outPt, e.Top);
 		}
@@ -1749,15 +1790,15 @@ class Clipper extends ClipperBase
 
 	function CreateOutRec():OutRec {
 		var result = new OutRec();
-		result.Idx = Unassigned;
+		result.Idx = ClipperBase.Unassigned;
 		result.IsHole = false;
 		result.IsOpen = false;
 		result.FirstLeft = null;
 		result.Pts = null;
 		result.BottomPt = null;
 		result.PolyNode = null;
-		m_PolyOuts.Add(result);
-		result.Idx = m_PolyOuts.Count - 1;
+		m_PolyOuts.push(result);
+		result.Idx = m_PolyOuts.length - 1;
 		return result;
 	}
 	//------------------------------------------------------------------------------
@@ -1827,8 +1868,12 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function GetDx(pt1:IntPoint, pt2:IntPoint):Float {
-		if (pt1.Y == pt2.Y) return horizontal;
-		else return (double)(pt2.X - pt1.X) / (pt2.Y - pt1.Y);
+		if (pt1.Y == pt2.Y) return ClipperBase.horizontal;
+		else {
+			var dx:Float = (pt2.X - pt1.X);
+			var dy:Float = (pt2.Y - pt1.Y);
+			return dy / dy;
+		}
 	}
 	//---------------------------------------------------------------------------
 
@@ -1979,8 +2024,8 @@ class Clipper extends ClipperBase
 		var OKIdx:Int = e1.OutIdx;
 		var ObsoleteIdx:Int = e2.OutIdx;
 
-		e1.OutIdx = Unassigned; //nb: safe because we only get here via AddLocalMaxPoly
-		e2.OutIdx = Unassigned;
+		e1.OutIdx = ClipperBase.Unassigned; //nb: safe because we only get here via AddLocalMaxPoly
+		e2.OutIdx = ClipperBase.Unassigned;
 
 		var e:TEdge = m_ActiveEdges;
 		while (e != null) {
@@ -2112,7 +2157,7 @@ class Clipper extends ClipperBase
 				e1Wc = -e1.WindCnt;
 				break;
 			default:
-				e1Wc = Math.Abs(e1.WindCnt);
+				e1Wc = Std.int(Math.abs(e1.WindCnt));
 				break;
 		}
 		switch (e2FillType) {
@@ -2123,7 +2168,7 @@ class Clipper extends ClipperBase
 				e2Wc = -e2.WindCnt;
 				break;
 			default:
-				e2Wc = Math.Abs(e2.WindCnt);
+				e2Wc = Std.int(Math.abs(e2.WindCnt));
 				break;
 		}
 
@@ -2151,7 +2196,7 @@ class Clipper extends ClipperBase
 			}
 		} else if ((e1Wc == 0 || e1Wc == 1) && (e2Wc == 0 || e2Wc == 1)) {
 			//neither edge is currently contributing ...
-			// TODO: check double def of these ints
+			// TODO: check double def of these ints, and Math.abs cast
 			var e1Wc2:CInt, e2Wc2:CInt;
 			switch (e1FillType2) {
 				case PolyFillType.pftPositive:
@@ -2161,7 +2206,7 @@ class Clipper extends ClipperBase
 					e1Wc2 = -e1.WindCnt2;
 					break;
 				default:
-					e1Wc2 = Math.Abs(e1.WindCnt2);
+					e1Wc2 = Std.int(Math.abs(e1.WindCnt2));
 					break;
 			}
 			switch (e2FillType2) {
@@ -2172,7 +2217,7 @@ class Clipper extends ClipperBase
 					e2Wc2 = -e2.WindCnt2;
 					break;
 				default:
-					e2Wc2 = Math.Abs(e2.WindCnt2);
+					e2Wc2 = Std.int(Math.abs(e2.WindCnt2));
 					break;
 			}
 
@@ -2237,7 +2282,7 @@ class Clipper extends ClipperBase
 		e.Curr = e.Bot;
 		e.PrevInAEL = AelPrev;
 		e.NextInAEL = AelNext;
-		if (!IsHorizontal(e)) InsertScanbeam(e.Top.Y);
+		if (!ClipperBase.IsHorizontal(e)) InsertScanbeam(e.Top.Y);
 	}
 	//------------------------------------------------------------------------------
 
@@ -2273,7 +2318,7 @@ class Clipper extends ClipperBase
 		GetHorzDirection(horzEdge, /*out*/ dir, /*out*/ horzLeft, /*out*/ horzRight);
 
 		var eLastHorz:TEdge = horzEdge, eMaxPair:TEdge = null;
-		while (eLastHorz.NextInLML != null && IsHorizontal(eLastHorz.NextInLML)) eLastHorz = eLastHorz.NextInLML;
+		while (eLastHorz.NextInLML != null && ClipperBase.IsHorizontal(eLastHorz.NextInLML)) eLastHorz = eLastHorz.NextInLML;
 		if (eLastHorz.NextInLML == null) eMaxPair = GetMaximaPair(eLastHorz);
 
 		while (true) {
@@ -2319,7 +2364,7 @@ class Clipper extends ClipperBase
 				e = eNext;
 			} //end while
 
-			if (horzEdge.NextInLML != null && IsHorizontal(horzEdge.NextInLML)) {
+			if (horzEdge.NextInLML != null && ClipperBase.IsHorizontal(horzEdge.NextInLML)) {
 				// TODO: ref
 				UpdateEdgeIntoAEL(/*ref*/ horzEdge);
 				if (horzEdge.OutIdx >= 0) AddOutPt(horzEdge, horzEdge.Bot);
@@ -2379,7 +2424,7 @@ class Clipper extends ClipperBase
 		var result:TEdge = null;
 		if ((e.Next.Top == e.Top) && e.Next.NextInLML == null) result = e.Next;
 		else if ((e.Prev.Top == e.Top) && e.Prev.NextInLML == null) result = e.Prev;
-		if (result != null && (result.OutIdx == Skip || (result.NextInAEL == result.PrevInAEL && !IsHorizontal(result)))) return null;
+		if (result != null && (result.OutIdx == ClipperBase.Skip || (result.NextInAEL == result.PrevInAEL && !ClipperBase.IsHorizontal(result)))) return null;
 		return result;
 	}
 	//------------------------------------------------------------------------------
@@ -2388,8 +2433,8 @@ class Clipper extends ClipperBase
 		if (m_ActiveEdges == null) return true;
 		try {
 			BuildIntersectList(topY);
-			if (m_IntersectList.Count == 0) return true;
-			if (m_IntersectList.Count == 1 || FixupIntersectionOrder()) ProcessIntersectList();
+			if (m_IntersectList.length == 0) return true;
+			if (m_IntersectList.length == 1 || FixupIntersectionOrder()) ProcessIntersectList();
 			else return false;
 		} catch (e:Dynamic) {
 			m_SortedEdges = null;
@@ -2429,7 +2474,7 @@ class Clipper extends ClipperBase
 					newNode.Edge1 = e;
 					newNode.Edge2 = eNext;
 					newNode.Pt = pt;
-					m_IntersectList.Add(newNode);
+					m_IntersectList.push(newNode);
 
 					SwapPositionsInSEL(e, eNext);
 					isModified = true;
@@ -2459,10 +2504,10 @@ class Clipper extends ClipperBase
 		//pre-condition: intersections are sorted bottom-most first.
 		//Now it's crucial that intersections are made only between adjacent edges,
 		//so to ensure this the order of intersections may need adjusting ...
-		m_IntersectList.Sort(m_IntersectNodeComparer);
+		ArraySort.sort(m_IntersectList, m_IntersectNodeComparer);
 
 		CopyAELToSEL();
-		var cnt:Int = m_IntersectList.Count;
+		var cnt:Int = m_IntersectList.length;
 		for (i in 0...cnt) {
 			if (!EdgesAdjacent(m_IntersectList[i])) {
 				var j = i + 1;
@@ -2481,7 +2526,7 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function ProcessIntersectList():Void {
-		for (i in 0...m_IntersectList.Count) {
+		for (i in 0...m_IntersectList.length) {
 			var iNode:IntersectNode = m_IntersectList[i]; {
 				IntersectEdges(iNode.Edge1, iNode.Edge2, iNode.Pt);
 				SwapPositionsInAEL(iNode.Edge1, iNode.Edge2);
@@ -2505,7 +2550,8 @@ class Clipper extends ClipperBase
 
 	// TODO: check out
 	function IntersectPoint(edge1:TEdge, edge2:TEdge, /*out*/ ip:IntPoint):Void {
-		ip = new IntPoint();
+		// TODO: check this ip and the out ip
+		//ip = new IntPoint();
 		var b1:Float, b2:Float;
 		//nb: with very large coordinate values, it's possible for SlopesEqual() to 
 		//return false but for the edge.Dx value be equal due to double precision rounding.
@@ -2517,7 +2563,7 @@ class Clipper extends ClipperBase
 
 		if (edge1.Delta.X == 0) {
 			ip.X = edge1.Bot.X;
-			if (IsHorizontal(edge2)) {
+			if (ClipperBase.IsHorizontal(edge2)) {
 				ip.Y = edge2.Bot.Y;
 			} else {
 				b2 = edge2.Bot.Y - (edge2.Bot.X / edge2.Dx);
@@ -2525,7 +2571,7 @@ class Clipper extends ClipperBase
 			}
 		} else if (edge2.Delta.X == 0) {
 			ip.X = edge2.Bot.X;
-			if (IsHorizontal(edge1)) {
+			if (ClipperBase.IsHorizontal(edge1)) {
 				ip.Y = edge1.Bot.Y;
 			} else {
 				b1 = edge1.Bot.Y - (edge1.Bot.X / edge1.Dx);
@@ -2543,14 +2589,14 @@ class Clipper extends ClipperBase
 		if (ip.Y < edge1.Top.Y || ip.Y < edge2.Top.Y) {
 			if (edge1.Top.Y > edge2.Top.Y) ip.Y = edge1.Top.Y;
 			else ip.Y = edge2.Top.Y;
-			if (Math.Abs(edge1.Dx) < Math.Abs(edge2.Dx)) ip.X = TopX(edge1, ip.Y);
+			if (Math.abs(edge1.Dx) < Math.abs(edge2.Dx)) ip.X = TopX(edge1, ip.Y);
 			else ip.X = TopX(edge2, ip.Y);
 		}
 		//finally, don't allow 'ip' to be BELOW curr.Y (ie bottom of scanbeam) ...
 		if (ip.Y > edge1.Curr.Y) {
 			ip.Y = edge1.Curr.Y;
 			//better to use the more vertical edge to derive X ...
-			if (Math.Abs(edge1.Dx) > Math.Abs(edge2.Dx)) ip.X = TopX(edge2, ip.Y);
+			if (Math.abs(edge1.Dx) > Math.abs(edge2.Dx)) ip.X = TopX(edge2, ip.Y);
 			else ip.X = TopX(edge1, ip.Y);
 		}
 	}
@@ -2565,7 +2611,7 @@ class Clipper extends ClipperBase
 
 			if (IsMaximaEdge) {
 				var eMaxPair:TEdge = GetMaximaPair(e);
-				IsMaximaEdge = (eMaxPair == null || !IsHorizontal(eMaxPair));
+				IsMaximaEdge = (eMaxPair == null || !ClipperBase.IsHorizontal(eMaxPair));
 			}
 
 			if (IsMaximaEdge) {
@@ -2575,7 +2621,7 @@ class Clipper extends ClipperBase
 				else e = ePrev.NextInAEL;
 			} else {
 				//2. promote horizontal edges, otherwise update Curr.X and Curr.Y ...
-				if (IsIntermediate(e, topY) && IsHorizontal(e.NextInLML)) {
+				if (IsIntermediate(e, topY) && ClipperBase.IsHorizontal(e.NextInLML)) {
 					// TODO: ref
 					UpdateEdgeIntoAEL(/*ref*/ e);
 					if (e.OutIdx >= 0) AddOutPt(e, e.Bot);
@@ -2589,7 +2635,7 @@ class Clipper extends ClipperBase
 					var ePrev:TEdge = e.PrevInAEL;
 					if ((e.OutIdx >= 0) && (e.WindDelta != 0) && ePrev != null && (ePrev.OutIdx >= 0) && (ePrev.Curr.X == e.Curr.X) && (ePrev.WindDelta != 0)) {
 						// TODO: I foresee a compiler error here
-						var ip = new IntPoint(e.Curr);
+						var ip = e.Curr.clone();
 					#if use_xyz 
 						SetZ(ref ip, ePrev, e);
 					#end 
@@ -2646,7 +2692,7 @@ class Clipper extends ClipperBase
 			eNext = e.NextInAEL;
 		}
 
-		if (e.OutIdx == Unassigned && eMaxPair.OutIdx == Unassigned) {
+		if (e.OutIdx == ClipperBase.Unassigned && eMaxPair.OutIdx == ClipperBase.Unassigned) {
 			DeleteFromAEL(e);
 			DeleteFromAEL(eMaxPair);
 		} else if (e.OutIdx >= 0 && eMaxPair.OutIdx >= 0) {
@@ -2675,7 +2721,7 @@ class Clipper extends ClipperBase
 
 	static public function ReversePaths(polys:Paths):Void {
 		for (poly in polys) {
-			poly.Reverse();
+			poly.reverse();
 		}
 	}
 	//------------------------------------------------------------------------------
@@ -2700,19 +2746,19 @@ class Clipper extends ClipperBase
 
 	function BuildResult(polyg:Paths):Void {
 		polyg.Clear();
-		polyg.Capacity = m_PolyOuts.Count;
-		for (i in 0...m_PolyOuts.Count) {
+		//TODO:polyg.Capacity = m_PolyOuts.length;
+		for (i in 0...m_PolyOuts.length) {
 			var outRec:OutRec = m_PolyOuts[i];
 			if (outRec.Pts == null) continue;
 			var p:OutPt = outRec.Pts.Prev;
 			var cnt:Int = PointCount(p);
 			if (cnt < 2) continue;
-			var pg = new Path(cnt);
+			var pg = new Path(/*TODO:cnt*/);
 			for (j in 0...cnt) {
-				pg.Add(p.Pt);
+				pg.push(p.Pt);
 				p = p.Prev;
 			}
-			polyg.Add(pg);
+			polyg.push(pg);
 		}
 	}
 	//------------------------------------------------------------------------------
@@ -2721,26 +2767,26 @@ class Clipper extends ClipperBase
 		polytree.Clear();
 
 		//add each output polygon/contour to polytree ...
-		polytree.m_AllPolys.Capacity = m_PolyOuts.Count;
-		for (i in 0...m_PolyOuts.Count) {
+		//TODO:polytree.m_AllPolys.Capacity = m_PolyOuts.length;
+		for (i in 0...m_PolyOuts.length) {
 			var outRec:OutRec = m_PolyOuts[i];
 			var cnt:Int = PointCount(outRec.Pts);
 			if ((outRec.IsOpen && cnt < 2) || (!outRec.IsOpen && cnt < 3)) continue;
 			FixHoleLinkage(outRec);
 			var pn = new PolyNode();
-			polytree.m_AllPolys.Add(pn);
+			polytree.m_AllPolys.push(pn);
 			outRec.PolyNode = pn;
-			pn.m_polygon.Capacity = cnt;
+			//TODO:pn.m_polygon.Capacity = cnt;
 			var op:OutPt = outRec.Pts.Prev;
 			for (j in 0...cnt) {
-				pn.m_polygon.Add(op.Pt);
+				pn.m_polygon.push(op.Pt);
 				op = op.Prev;
 			}
 		}
 
 		//fixup PolyNode links etc ...
-		polytree.m_Childs.Capacity = m_PolyOuts.Count;
-		for (i in 0...m_PolyOuts.Count) {
+		//TODO:polytree.m_Childs.Capacity = m_PolyOuts.length;
+		for (i in 0...m_PolyOuts.length) {
 			var outRec:OutRec = m_PolyOuts[i];
 			if (outRec.PolyNode == null) continue;
 			else if (outRec.IsOpen) {
@@ -2801,20 +2847,21 @@ class Clipper extends ClipperBase
 	// TODO: out
 	function GetOverlap(a1:CInt, a2:CInt, b1:CInt, b2:CInt, /*out*/ Left:CInt, /*out*/ Right:CInt):Bool {
 		if (a1 < a2) {
+			// TODO: check casts to CInt
 			if (b1 < b2) {
-				Left = Math.max(a1, b1);
-				Right = Math.min(a2, b2);
+				Left = Std.int(Math.max(a1, b1));
+				Right = Std.int(Math.min(a2, b2));
 			} else {
-				Left = Math.max(a1, b2);
-				Right = Math.min(a2, b1);
+				Left = Std.int(Math.max(a1, b2));
+				Right = Std.int(Math.min(a2, b1));
 			}
 		} else {
 			if (b1 < b2) {
-				Left = Math.max(a2, b1);
-				Right = Math.min(a1, b2);
+				Left = Std.int(Math.max(a2, b1));
+				Right = Std.int(Math.min(a1, b2));
 			} else {
-				Left = Math.max(a2, b2);
-				Right = Math.min(a1, b1);
+				Left = Std.int(Math.max(a2, b2));
+				Right = Std.int(Math.min(a1, b1));
 			}
 		}
 		return Left < Right;
@@ -3033,7 +3080,7 @@ class Clipper extends ClipperBase
 		//returns 0 if false, +1 if true, -1 if pt ON polygon boundary
 		//See "The Point in Polygon Problem for Arbitrary Polygons" by Hormann & Agathos
 		//http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.5498&rep=rep1&type=pdf
-		var result:Int = 0, cnt:Int = path.Count;
+		var result:Int = 0, cnt:Int = path.length;
 		if (cnt < 3) return 0;
 		var ip:IntPoint = path[0];
 		// TODO: check loop and casts
@@ -3068,7 +3115,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	static function PointInPolygon(pt:IntPoint, op:OutPt):Int {
+	static function PointInOutPt(pt:IntPoint, op:OutPt):Int {
 		//returns 0 if false, +1 if true, -1 if pt ON polygon boundary
 		//See "The Point in Polygon Problem for Arbitrary Polygons" by Hormann & Agathos
 		//http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.5498&rep=rep1&type=pdf
@@ -3115,7 +3162,8 @@ class Clipper extends ClipperBase
 		var op:OutPt = outPt1;
 		do {
 			//nb: PointInPolygon returns 0 if false, +1 if true, -1 if pt on polygon
-			var res:Int = PointInPolygon(op.Pt, outPt2);
+			// TODO: rename two versions of PointInPolygon
+			var res:Int = PointInOutPt(op.Pt, outPt2);
 			if (res >= 0) return res > 0;
 			op = op.Next;
 		}
@@ -3125,7 +3173,7 @@ class Clipper extends ClipperBase
 	//----------------------------------------------------------------------
 
 	function FixupFirstLefts1(OldOutRec:OutRec, NewOutRec:OutRec):Void {
-		for (i in 0...m_PolyOuts.Count) {
+		for (i in 0...m_PolyOuts.length) {
 			var outRec:OutRec = m_PolyOuts[i];
 			if (outRec.Pts == null || outRec.FirstLeft == null) continue;
 			var firstLeft:OutRec = ParseFirstLeft(outRec.FirstLeft);
@@ -3149,7 +3197,7 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function JoinCommonEdges():Void {
-		for (i in 0...m_Joins.Count) {
+		for (i in 0...m_Joins.length) {
 			var join:Join = m_Joins[i];
 
 			var outRec1:OutRec = GetOutRec(join.OutPt1.Idx);
@@ -3180,7 +3228,7 @@ class Clipper extends ClipperBase
 
 				//We now need to check every OutRec.FirstLeft pointer. If it points
 				//to OutRec1 it may need to point to OutRec2 instead ...
-				if (m_UsingPolyTree) for (j in 0...m_PolyOuts.Count - 1) {
+				if (m_UsingPolyTree) for (j in 0...m_PolyOuts.length - 1) {
 					var oRec:OutRec = m_PolyOuts[j];
 					if (oRec.Pts == null || ParseFirstLeft(oRec.FirstLeft) != outRec1 || oRec.IsHole == outRec1.IsHole) continue;
 					if (Poly2ContainsPoly1(oRec.Pts, join.OutPt2)) oRec.FirstLeft = outRec2;
@@ -3194,7 +3242,7 @@ class Clipper extends ClipperBase
 					//fixup FirstLeft pointers that may need reassigning to OutRec1
 					if (m_UsingPolyTree) FixupFirstLefts2(outRec2, outRec1);
 
-					if ((outRec2.IsHole ^ ReverseSolution) == (Area(outRec2) > 0)) ReversePolyPtLinks(outRec2.Pts);
+					if ((outRec2.IsHole ^ ReverseSolution) == (AreaOfOutRec(outRec2) > 0)) ReversePolyPtLinks(outRec2.Pts);
 
 				} else if (Poly2ContainsPoly1(outRec1.Pts, outRec2.Pts)) {
 					//outRec1 is contained by outRec2 ...
@@ -3206,7 +3254,7 @@ class Clipper extends ClipperBase
 					//fixup FirstLeft pointers that may need reassigning to OutRec1
 					if (m_UsingPolyTree) FixupFirstLefts2(outRec1, outRec2);
 
-					if ((outRec1.IsHole ^ ReverseSolution) == (Area(outRec1) > 0)) ReversePolyPtLinks(outRec1.Pts);
+					if ((outRec1.IsHole ^ ReverseSolution) == (AreaOfOutRec(outRec1) > 0)) ReversePolyPtLinks(outRec1.Pts);
 				} else {
 					//the 2 polygons are completely separate ...
 					outRec2.IsHole = outRec1.IsHole;
@@ -3246,7 +3294,7 @@ class Clipper extends ClipperBase
 
 	function DoSimplePolygons():Void {
 		var i:Int = 0;
-		while (i < m_PolyOuts.Count) {
+		while (i < m_PolyOuts.length) {
 			var outrec:OutRec = m_PolyOuts[i++];
 			var op:OutPt = outrec.Pts;
 			if (op == null || outrec.IsOpen) continue;
@@ -3264,7 +3312,7 @@ class Clipper extends ClipperBase
 						op3.Next = op2;
 
 						outrec.Pts = op;
-						var outrec2:OutPt = CreateOutRec();
+						var outrec2:OutRec = CreateOutRec();
 						outrec2.Pts = op2;
 						UpdateOutPtIdxs(outrec2);
 						if (Poly2ContainsPoly1(outrec2.Pts, outrec.Pts)) {
@@ -3298,7 +3346,7 @@ class Clipper extends ClipperBase
 
 	static public function Area(poly:Path):Float {
 		// TODO: unneeded cast, right?
-		var cnt:Int = /*(int)*/ poly.Count;
+		var cnt:Int = /*(int)*/ poly.length;
 		if (cnt < 3) return 0;
 		var a:Float = 0;
 		// TODO: check loop and casts, but should be fine
@@ -3313,14 +3361,14 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function Area(outRec:OutRec):Float {
+	function AreaOfOutRec(outRec:OutRec):Float {
 		var op:OutPt = outRec.Pts;
 		if (op == null) return 0;
 		var a:Float = 0;
 		do {
 			// TODO: casts
-			var dx:Float = (double)(op.Prev.Pt.X + op.Pt.X);
-			var dy:Float = (double)(op.Prev.Pt.Y - op.Pt.Y);
+			var dx:Float = /*(double)*/(op.Prev.Pt.X + op.Pt.X);
+			var dy:Float = /*(double)*/(op.Prev.Pt.Y - op.Pt.Y);
 			a += dx * dy;
 			op = op.Next;
 		} while (op != outRec.Pts);
@@ -3332,7 +3380,8 @@ class Clipper extends ClipperBase
 	// Convert self-intersecting polygons into simple polygons
 	//------------------------------------------------------------------------------
 
-	static public function SimplifyPolygon(poly:Path, fillType:PolyFillType = PolyFillType.pftEvenOdd):Paths {
+	static public function SimplifyPolygon(poly:Path, fillType:PolyFillType = null):Paths {
+		if (fillType == null) fillType = PolyFillType.pftEvenOdd;
 		var result = new Paths();
 		var c = new Clipper();
 		c.StrictlySimple = true;
@@ -3342,7 +3391,8 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	static public function SimplifyPolygons(polys:Paths, fillType:PolyFillType = PolyFillType.pftEvenOdd):Paths {
+	static public function SimplifyPolygons(polys:Paths, fillType:PolyFillType = null):Paths {
+		if (fillType == null) fillType = PolyFillType.pftEvenOdd;
 		var result = new Paths();
 		var c = new Clipper();
 		c.StrictlySimple = true;
@@ -3413,7 +3463,7 @@ class Clipper extends ClipperBase
 		//Default ~= sqrt(2) so when adjacent vertices or semi-adjacent vertices have 
 		//both x & y coords within 1 unit, then the second vertex will be stripped.
 
-		var cnt:Int = path.Count;
+		var cnt:Int = path.length;
 
 		if (cnt == 0) return new Path();
 
@@ -3447,9 +3497,9 @@ class Clipper extends ClipperBase
 		}
 
 		if (cnt < 3) cnt = 0;
-		var result = new Path(cnt);
+		var result = new Path(/*TODO:cnt*/);
 		for (i in 0...cnt) {
-			result.Add(op.Pt);
+			result.push(op.Pt);
 			op = op.Next;
 		}
 		outPts = null;
@@ -3458,40 +3508,40 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	static public function CleanPolygons(polys:Paths, distance:Float = 1.415):Paths {
-		var result = new Paths(polys.Count);
-		for (i in 0...polys.Count)
-			result.Add(CleanPolygon(polys[i], distance));
+		var result = new Paths(/*TODO:polys.length*/);
+		for (i in 0...polys.length)
+			result.push(CleanPolygon(polys[i], distance));
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
 	/*internal*/ static public function Minkowski(pattern:Path, path:Path, IsSum:Bool, IsClosed:Bool):Paths {
 		var delta:Int = (IsClosed ? 1 : 0);
-		var polyCnt:Int = pattern.Count;
-		var pathCnt:Int = path.Count;
-		var result = new Paths(pathCnt);
+		var polyCnt:Int = pattern.length;
+		var pathCnt:Int = path.length;
+		var result = new Paths(/*TODO:pathCnt*/);
 		if (IsSum) for (i in 0...pathCnt) {
-			var p = new Path(polyCnt);
+			var p = new Path(/*TODO:polyCnt*/);
 			for (ip in pattern)
-				p.Add(new IntPoint(path[i].X + ip.X, path[i].Y + ip.Y));
-			result.Add(p);
+				p.push(new IntPoint(path[i].X + ip.X, path[i].Y + ip.Y));
+			result.push(p);
 		} else for (i in 0...pathCnt) {
-			var p = new Path(polyCnt);
+			var p = new Path(/*TODO:polyCnt*/);
 			for (ip in pattern)
-				p.Add(new IntPoint(path[i].X - ip.X, path[i].Y - ip.Y));
-			result.Add(p);
+				p.push(new IntPoint(path[i].X - ip.X, path[i].Y - ip.Y));
+			result.push(p);
 		}
 
-		var quads:Paths = new Paths((pathCnt + delta) * (polyCnt + 1));
+		var quads:Paths = new Paths(/*TODO:(pathCnt + delta) * (polyCnt + 1)*/);
 		for (i in 0...pathCnt - 1 + delta) {
 			for (j in 0...polyCnt) {
-				var quad = new Path(4);
-				quad.Add(result[i % pathCnt][j % polyCnt]);
-				quad.Add(result[(i + 1) % pathCnt][j % polyCnt]);
-				quad.Add(result[(i + 1) % pathCnt][(j + 1) % polyCnt]);
-				quad.Add(result[i % pathCnt][(j + 1) % polyCnt]);
-				if (!Orientation(quad)) quad.Reverse();
-				quads.Add(quad);
+				var quad = new Path(/*TODO:4*/);
+				quad.push(result[i % pathCnt][j % polyCnt]);
+				quad.push(result[(i + 1) % pathCnt][j % polyCnt]);
+				quad.push(result[(i + 1) % pathCnt][(j + 1) % polyCnt]);
+				quad.push(result[i % pathCnt][(j + 1) % polyCnt]);
+				if (!Orientation(quad)) quad.reverse();
+				quads.push(quad);
 			}
 		}
 		return quads;
@@ -3508,9 +3558,9 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	static function TranslatePath(path:Path, delta:IntPoint):Path {
-		var outPath = new Path(path.Count);
-		for (i in 0...path.Count)
-			outPath.Add(new IntPoint(path[i].X + delta.X, path[i].Y + delta.Y));
+		var outPath = new Path(/*TODO:path.length*/);
+		for (i in 0...path.length)
+			outPath.push(new IntPoint(path[i].X + delta.X, path[i].Y + delta.Y));
 		return outPath;
 	}
 	//------------------------------------------------------------------------------
@@ -3518,7 +3568,7 @@ class Clipper extends ClipperBase
 	static public function MinkowskiSum(pattern:Path, paths:Paths, pathIsClosed:Bool):Paths {
 		var solution = new Paths();
 		var c = new Clipper();
-		for (i in 0...paths.Count) {
+		for (i in 0...paths.length) {
 			var tmp:Paths = Minkowski(pattern, paths[i], true, pathIsClosed);
 			c.AddPaths(tmp, PolyType.ptSubject, true);
 			if (pathIsClosed) {
@@ -3544,7 +3594,7 @@ class Clipper extends ClipperBase
 	static public function PolyTreeToPaths(polytree:PolyTree):Paths {
 
 		var result = new Paths();
-		result.Capacity = polytree.Total;
+		//TODO:result.Capacity = polytree.Total;
 		AddPolyNodeToPaths(polytree, NodeType.ntAny, result);
 		return result;
 	}
@@ -3562,7 +3612,7 @@ class Clipper extends ClipperBase
 				break;
 		}
 
-		if (polynode.m_polygon.Count > 0 && match) paths.Add(polynode.m_polygon);
+		if (polynode.m_polygon.length > 0 && match) paths.push(polynode.m_polygon);
 		for (pn in polynode.Childs)
 			AddPolyNodeToPaths(pn, nt, paths);
 	}
@@ -3570,16 +3620,16 @@ class Clipper extends ClipperBase
 
 	static public function OpenPathsFromPolyTree(polytree:PolyTree):Paths {
 		var result = new Paths();
-		result.Capacity = polytree.ChildCount;
+		//TODO:result.Capacity = polytree.ChildCount;
 		for (i in 0...polytree.ChildCount)
-			if (polytree.Childs[i].IsOpen) result.Add(polytree.Childs[i].m_polygon);
+			if (polytree.Childs[i].IsOpen) result.push(polytree.Childs[i].m_polygon);
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
 	static public function ClosedPathsFromPolyTree(polytree:PolyTree):Paths {
 		var result = new Paths();
-		result.Capacity = polytree.Total;
+		//TODO:result.Capacity = polytree.Total;
 		AddPolyNodeToPaths(polytree, NodeType.ntClosed, result);
 		return result;
 	}
@@ -3592,7 +3642,7 @@ class ClipperOffset
 	var m_destPolys:Paths;
 	var m_srcPoly:Path;
 	var m_destPoly:Path;
-	var m_normals:List<DoublePoint> = new List<DoublePoint>();
+	var m_normals:Array<DoublePoint> = new Array<DoublePoint>();
 	var m_delta:Float;
 	var m_sinA:Float;
 	var m_sin:Float;
@@ -3609,8 +3659,8 @@ class ClipperOffset
 	// TODO: prop?
 	public var MiterLimit(default, default):Float;
 
-	// TODO: uppercase (ISSUES: multi var (comma separated) on same line, inline var without type)
-	inline static var two_pi:Float = Math.PI * 2;
+	// TODO: uppercase (ISSUES: multi var (comma separated) on same line, inline var without type, Bool xor missing)
+	inline static var two_pi:Float = 6.283185307179586476925286766559; // TODO: Math.PI * 2;
 	inline static var def_arc_tolerance:Float = 0.25;
 
 	public function new(miterLimit:Float = 2.0, arcTolerance:Float = def_arc_tolerance) {
@@ -3633,7 +3683,7 @@ class ClipperOffset
 	//------------------------------------------------------------------------------
 
 	public function AddPath(path:Path, joinType:JoinType, endType:EndType):Void {
-		var highI:Int = path.Count - 1;
+		var highI:Int = path.length - 1;
 		if (highI < 0) return;
 		var newNode = new PolyNode();
 		newNode.m_jointype = joinType;
@@ -3641,14 +3691,14 @@ class ClipperOffset
 
 		//strip duplicate points from path and also get index to the lowest point ...
 		if (endType == EndType.etClosedLine || endType == EndType.etClosedPolygon) while (highI > 0 && path[0] == path[highI]) highI--;
-		newNode.m_polygon.Capacity = highI + 1;
-		newNode.m_polygon.Add(path[0]);
+		//TODO:newNode.m_polygon.Capacity = highI + 1;
+		newNode.m_polygon.push(path[0]);
 		var j:Int = 0, k:Int = 0;
 		// TODO: check loop
 		for (i in 1...highI + 1) {
 			if (newNode.m_polygon[j] != path[i]) {
 				j++;
-				newNode.m_polygon.Add(path[i]);
+				newNode.m_polygon.push(path[i]);
 				if (path[i].Y > newNode.m_polygon[k].Y || (path[i].Y == newNode.m_polygon[k].Y && path[i].X < newNode.m_polygon[k].X)) k = j;
 			}
 		}
@@ -3680,12 +3730,12 @@ class ClipperOffset
 		if (m_lowest.X >= 0 && !Clipper.Orientation(m_polyNodes.Childs[Std.int(m_lowest.X)].m_polygon)) {
 			for (i in 0...m_polyNodes.ChildCount) {
 				var node:PolyNode = m_polyNodes.Childs[i];
-				if (node.m_endtype == EndType.etClosedPolygon || (node.m_endtype == EndType.etClosedLine && Clipper.Orientation(node.m_polygon))) node.m_polygon.Reverse();
+				if (node.m_endtype == EndType.etClosedPolygon || (node.m_endtype == EndType.etClosedLine && Clipper.Orientation(node.m_polygon))) node.m_polygon.reverse();
 			}
 		} else {
 			for (i in 0...m_polyNodes.ChildCount) {
 				var node:PolyNode = m_polyNodes.Childs[i];
-				if (node.m_endtype == EndType.etClosedLine && !Clipper.Orientation(node.m_polygon)) node.m_polygon.Reverse();
+				if (node.m_endtype == EndType.etClosedLine && !Clipper.Orientation(node.m_polygon)) node.m_polygon.reverse();
 			}
 		}
 	}
@@ -3704,16 +3754,16 @@ class ClipperOffset
 	}
 	//------------------------------------------------------------------------------
 
-	function DoOffset(delta:Float):Float {
+	function DoOffset(delta:Float):Void {
 		m_destPolys = new Paths();
 		m_delta = delta;
 
 		//if Zero offset, just copy any CLOSED polygons to m_p and return ...
 		if (ClipperBase.near_zero(delta)) {
-			m_destPolys.Capacity = m_polyNodes.ChildCount;
+			//TODO:m_destPolys.Capacity = m_polyNodes.ChildCount;
 			for (i in 0...m_polyNodes.ChildCount) {
 				var node:PolyNode = m_polyNodes.Childs[i];
-				if (node.m_endtype == EndType.etClosedPolygon) m_destPolys.Add(node.m_polygon);
+				if (node.m_endtype == EndType.etClosedPolygon) m_destPolys.push(node.m_polygon);
 			}
 			return;
 		}
@@ -3724,7 +3774,7 @@ class ClipperOffset
 
 		var y:Float;
 		if (ArcTolerance <= 0.0) y = def_arc_tolerance;
-		else if (ArcTolerance > Math.Abs(delta) * def_arc_tolerance) y = Math.Abs(delta) * def_arc_tolerance;
+		else if (ArcTolerance > Math.abs(delta) * def_arc_tolerance) y = Math.abs(delta) * def_arc_tolerance;
 		else y = ArcTolerance;
 		//see offset_triginometry2.svg in the documentation folder ...
 		var steps:Float = Math.PI / Math.acos(1 - y / Math.abs(delta));
@@ -3734,12 +3784,12 @@ class ClipperOffset
 		if (delta < 0.0) m_sin = -m_sin;
 
 		// TODO: danger loops
-		m_destPolys.Capacity = m_polyNodes.ChildCount * 2;
+		//TODO:m_destPolys.Capacity = m_polyNodes.ChildCount * 2;
 		for (i in 0...m_polyNodes.ChildCount) {
 			var node:PolyNode = m_polyNodes.Childs[i];
 			m_srcPoly = node.m_polygon;
 
-			var len:Int = m_srcPoly.Count;
+			var len:Int = m_srcPoly.length;
 
 			if (len == 0 || (delta <= 0 && (len < 3 || node.m_endtype != EndType.etClosedPolygon))) continue;
 
@@ -3748,33 +3798,36 @@ class ClipperOffset
 			if (len == 1) {
 				if (node.m_jointype == JoinType.jtRound) {
 					var X:Float = 1.0, Y:Float = 0.0;
-					for (j in 1...steps + 1) {
-						m_destPoly.Add(new IntPoint(Round(m_srcPoly[0].X + X * delta), Round(m_srcPoly[0].Y + Y * delta)));
+					// TODO: check loop (int vs float)
+					var j:Int = 1;
+					while (j <= steps) {
+						m_destPoly.push(new IntPoint(Round(m_srcPoly[0].X + X * delta), Round(m_srcPoly[0].Y + Y * delta)));
 						var X2:Float = X;
 						X = X * m_cos - m_sin * Y;
 						Y = X2 * m_sin + Y * m_cos;
+						j++;
 					}
 				} else {
 					var X:Float = -1.0, Y:Float = -1.0;
 					for (j in 0...4) {
-						m_destPoly.Add(new IntPoint(Round(m_srcPoly[0].X + X * delta), Round(m_srcPoly[0].Y + Y * delta)));
+						m_destPoly.push(new IntPoint(Round(m_srcPoly[0].X + X * delta), Round(m_srcPoly[0].Y + Y * delta)));
 						if (X < 0) X = 1;
 						else if (Y < 0) Y = 1;
 						else X = -1;
 					}
 				}
-				m_destPolys.Add(m_destPoly);
+				m_destPolys.push(m_destPoly);
 				continue;
 			}
 
 			//build m_normals ...
 			m_normals.Clear();
-			m_normals.Capacity = len;
+			//TODO:m_normals.Capacity = len;
 			for (j in 0...len - 1) {
-				m_normals.Add(GetUnitNormal(m_srcPoly[j], m_srcPoly[j + 1]));
+				m_normals.push(GetUnitNormal(m_srcPoly[j], m_srcPoly[j + 1]));
 			}
-			if (node.m_endtype == EndType.etClosedLine || node.m_endtype == EndType.etClosedPolygon) m_normals.Add(GetUnitNormal(m_srcPoly[len - 1], m_srcPoly[0]));
-			else m_normals.Add(new DoublePoint(m_normals[len - 2]));
+			if (node.m_endtype == EndType.etClosedLine || node.m_endtype == EndType.etClosedPolygon) m_normals.push(GetUnitNormal(m_srcPoly[len - 1], m_srcPoly[0]));
+			else m_normals.push(m_normals[len - 2].clone());
 
 			if (node.m_endtype == EndType.etClosedPolygon) {
 				var k:Int = len - 1;
@@ -3782,21 +3835,21 @@ class ClipperOffset
 					// TODO: ref
 					OffsetPoint(j, /*ref*/ k, node.m_jointype);
 				}
-				m_destPolys.Add(m_destPoly);
+				m_destPolys.push(m_destPoly);
 			} else if (node.m_endtype == EndType.etClosedLine) {
 				var k:Int = len - 1;
 				for (j in 0...len) {
 					// TODO: ref
 					OffsetPoint(j, /*ref*/ k, node.m_jointype);
 				}
-				m_destPolys.Add(m_destPoly);
+				m_destPolys.push(m_destPoly);
 				m_destPoly = new Path();
 				//re-build m_normals ...
 				var n:DoublePoint = m_normals[len - 1];
 				var nj:Int = len - 1;
 				// TODO: check here
 				while (nj > 0) {
-					m_normals[j] = new DoublePoint(-m_normals[j - 1].X, -m_normals[j - 1].Y);
+					m_normals[nj] = new DoublePoint(-m_normals[nj - 1].X, -m_normals[nj - 1].Y);
 					nj--;
 				}
 				m_normals[0] = new DoublePoint(-n.X, -n.Y);
@@ -3805,10 +3858,10 @@ class ClipperOffset
 				nj = len - 1;
 				while (nj >= 0) {
 					// TODO: ref
-					OffsetPoint(j, /*ref*/ k, node.m_jointype);
+					OffsetPoint(nj, /*ref*/ k, node.m_jointype);
 					nj--;
 				}
-				m_destPolys.Add(m_destPoly);
+				m_destPolys.push(m_destPoly);
 			} else {
 				var k:Int = 0;
 				for (j in 1...len - 1) {
@@ -3821,9 +3874,9 @@ class ClipperOffset
 					// TODO: casts
 					var j:Int = len - 1;
 					pt1 = new IntPoint(/*(cInt)*/ Round(m_srcPoly[j].X + m_normals[j].X * delta), /*(cInt)*/ Round(m_srcPoly[j].Y + m_normals[j].Y * delta));
-					m_destPoly.Add(pt1);
+					m_destPoly.push(pt1);
 					pt1 = new IntPoint(/*(cInt)*/ Round(m_srcPoly[j].X - m_normals[j].X * delta), /*(cInt)*/ Round(m_srcPoly[j].Y - m_normals[j].Y * delta));
-					m_destPoly.Add(pt1);
+					m_destPoly.push(pt1);
 				} else {
 					var j:Int = len - 1;
 					k = len - 2;
@@ -3837,7 +3890,7 @@ class ClipperOffset
 				// TODO: check whiles
 				var nj:Int = len - 1;
 				while (nj > 0) {
-					m_normals[j] = new DoublePoint(-m_normals[j - 1].X, -m_normals[j - 1].Y);
+					m_normals[nj] = new DoublePoint(-m_normals[nj - 1].X, -m_normals[nj - 1].Y);
 					nj--;
 				}
 
@@ -3847,23 +3900,23 @@ class ClipperOffset
 				nj = k - 1;
 				while (nj > 0) {
 					// TODO: ref
-					OffsetPoint(j, /*ref*/ k, node.m_jointype);
+					OffsetPoint(nj, /*ref*/ k, node.m_jointype);
 					nj--;
 				}
 
 				if (node.m_endtype == EndType.etOpenButt) {
 					// TODO: casts
 					pt1 = new IntPoint(/*(cInt)*/ Round(m_srcPoly[0].X - m_normals[0].X * delta), /*(cInt)*/ Round(m_srcPoly[0].Y - m_normals[0].Y * delta));
-					m_destPoly.Add(pt1);
+					m_destPoly.push(pt1);
 					pt1 = new IntPoint(/*(cInt)*/ Round(m_srcPoly[0].X + m_normals[0].X * delta), /*(cInt)*/ Round(m_srcPoly[0].Y + m_normals[0].Y * delta));
-					m_destPoly.Add(pt1);
+					m_destPoly.push(pt1);
 				} else {
 					k = 1;
 					m_sinA = 0;
 					if (node.m_endtype == EndType.etOpenSquare) DoSquare(0, 1);
 					else DoRound(0, 1);
 				}
-				m_destPolys.Add(m_destPoly);
+				m_destPolys.push(m_destPoly);
 			}
 		}
 	}
@@ -3881,18 +3934,18 @@ class ClipperOffset
 			clpr.Execute(ClipType.ctUnion, solution,
 			PolyFillType.pftPositive, PolyFillType.pftPositive);
 		} else {
-			var r:IntRect = Clipper.GetBounds(m_destPolys);
-			var outer = new Path(4);
+			var r:IntRect = ClipperBase.GetBounds(m_destPolys);
+			var outer = new Path(/*TODO:4*/);
 
-			outer.Add(new IntPoint(r.left - 10, r.bottom + 10));
-			outer.Add(new IntPoint(r.right + 10, r.bottom + 10));
-			outer.Add(new IntPoint(r.right + 10, r.top - 10));
-			outer.Add(new IntPoint(r.left - 10, r.top - 10));
+			outer.push(new IntPoint(r.left - 10, r.bottom + 10));
+			outer.push(new IntPoint(r.right + 10, r.bottom + 10));
+			outer.push(new IntPoint(r.right + 10, r.top - 10));
+			outer.push(new IntPoint(r.left - 10, r.top - 10));
 
 			clpr.AddPath(outer, PolyType.ptSubject, true);
 			clpr.ReverseSolution = true;
 			clpr.Execute(ClipType.ctUnion, solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
-			if (solution.Count > 0) solution.RemoveAt(0);
+			if (solution.length > 0) solution.shift(); //TODO: RemoveAt(0);
 		}
 	}
 	//------------------------------------------------------------------------------
@@ -3907,16 +3960,15 @@ class ClipperOffset
 		var clpr = new Clipper();
 		clpr.AddPaths(m_destPolys, PolyType.ptSubject, true);
 		if (delta > 0) {
-			clpr.Execute(ClipType.ctUnion, solution,
-			PolyFillType.pftPositive, PolyFillType.pftPositive);
+			clpr.Execute(ClipType.ctUnion, solution, PolyFillType.pftPositive, PolyFillType.pftPositive);
 		} else {
-			var r:IntRect = Clipper.GetBounds(m_destPolys);
-			var outer = new Path(4);
+			var r:IntRect = ClipperBase.GetBounds(m_destPolys);
+			var outer = new Path(/*TODO:4*/);
 
-			outer.Add(new IntPoint(r.left - 10, r.bottom + 10));
-			outer.Add(new IntPoint(r.right + 10, r.bottom + 10));
-			outer.Add(new IntPoint(r.right + 10, r.top - 10));
-			outer.Add(new IntPoint(r.left - 10, r.top - 10));
+			outer.push(new IntPoint(r.left - 10, r.bottom + 10));
+			outer.push(new IntPoint(r.right + 10, r.bottom + 10));
+			outer.push(new IntPoint(r.right + 10, r.top - 10));
+			outer.push(new IntPoint(r.left - 10, r.top - 10));
 
 			clpr.AddPath(outer, PolyType.ptSubject, true);
 			clpr.ReverseSolution = true;
@@ -3924,7 +3976,7 @@ class ClipperOffset
 			//remove the outer PolyNode rectangle ...
 			if (solution.ChildCount == 1 && solution.Childs[0].ChildCount > 0) {
 				var outerNode:PolyNode = solution.Childs[0];
-				solution.Childs.Capacity = outerNode.ChildCount;
+				//TODO:solution.Childs.Capacity = outerNode.ChildCount;
 				solution.Childs[0] = outerNode.Childs[0];
 				solution.Childs[0].m_Parent = solution;
 				for (i in 1...outerNode.ChildCount)
@@ -3944,7 +3996,7 @@ class ClipperOffset
 			var cosA:Float = (m_normals[k].X * m_normals[j].X + m_normals[j].Y * m_normals[k].Y);
 			if (cosA > 0) // angle ==> 0 degrees
 			{
-				m_destPoly.Add(new IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta), Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta)));
+				m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta), Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta)));
 				return;
 			}
 			//else angle ==> 180 degrees   
@@ -3952,9 +4004,9 @@ class ClipperOffset
 		else if (m_sinA < -1.0) m_sinA = -1.0;
 
 		if (m_sinA * m_delta < 0) {
-			m_destPoly.Add(new IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta), Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta)));
-			m_destPoly.Add(m_srcPoly[j]);
-			m_destPoly.Add(new IntPoint(Round(m_srcPoly[j].X + m_normals[j].X * m_delta), Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta)));
+			m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta), Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta)));
+			m_destPoly.push(m_srcPoly[j]);
+			m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_normals[j].X * m_delta), Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta)));
 		} else switch (jointype) {
 			case JoinType.jtMiter:
 				{
@@ -3976,30 +4028,30 @@ class ClipperOffset
 
 	/*internal*/ public function DoSquare(j:Int, k:Int):Void {
 		var dx:Float = Math.tan(Math.atan2(m_sinA, m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y) / 4);
-		m_destPoly.Add(new IntPoint(Round(m_srcPoly[j].X + m_delta * (m_normals[k].X - m_normals[k].Y * dx)), Round(m_srcPoly[j].Y + m_delta * (m_normals[k].Y + m_normals[k].X * dx))));
-		m_destPoly.Add(new IntPoint(Round(m_srcPoly[j].X + m_delta * (m_normals[j].X + m_normals[j].Y * dx)), Round(m_srcPoly[j].Y + m_delta * (m_normals[j].Y - m_normals[j].X * dx))));
+		m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_delta * (m_normals[k].X - m_normals[k].Y * dx)), Round(m_srcPoly[j].Y + m_delta * (m_normals[k].Y + m_normals[k].X * dx))));
+		m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_delta * (m_normals[j].X + m_normals[j].Y * dx)), Round(m_srcPoly[j].Y + m_delta * (m_normals[j].Y - m_normals[j].X * dx))));
 	}
 	//------------------------------------------------------------------------------
 
 	/*internal*/ public function DoMiter(j:Int, k:Int, r:Float):Void {
 		var q:Float = m_delta / r;
-		m_destPoly.Add(new IntPoint(Round(m_srcPoly[j].X + (m_normals[k].X + m_normals[j].X) * q), Round(m_srcPoly[j].Y + (m_normals[k].Y + m_normals[j].Y) * q)));
+		m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + (m_normals[k].X + m_normals[j].X) * q), Round(m_srcPoly[j].Y + (m_normals[k].Y + m_normals[j].Y) * q)));
 	}
 	//------------------------------------------------------------------------------
 
 	/*internal*/ public function DoRound(j:Int, k:Int):Void {
 		var a:Float = Math.atan2(m_sinA, m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y);
 		// TODO: cast
-		var steps:Int = Math.Max(Std.int(Round(m_StepsPerRad * Math.Abs(a))), 1);
+		var steps:Int = Std.int(Math.max(Std.int(Round(m_StepsPerRad * Math.abs(a))), 1));
 
 		var X:Float = m_normals[k].X, Y = m_normals[k].Y, X2;
 		for (i in 0...steps) {
-			m_destPoly.Add(new IntPoint(Round(m_srcPoly[j].X + X * m_delta), Round(m_srcPoly[j].Y + Y * m_delta)));
+			m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + X * m_delta), Round(m_srcPoly[j].Y + Y * m_delta)));
 			X2 = X;
 			X = X * m_cos - m_sin * Y;
 			Y = X2 * m_sin + Y * m_cos;
 		}
-		m_destPoly.Add(new IntPoint(Round(m_srcPoly[j].X + m_normals[j].X * m_delta), Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta)));
+		m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_normals[j].X * m_delta), Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta)));
 	}
 	//------------------------------------------------------------------------------
 }
@@ -4015,5 +4067,20 @@ class ClipperException
 	public function toString():String {
 		return desc;
 	}
+}
+//------------------------------------------------------------------------------
+
+class ArrayTools
+{
+	/** Empties an array of its contents. */
+	static inline public function Clear<T>(array:Array<T>)
+	{
+#if (cpp || php)
+		array.splice(0, array.length);
+#else
+		untyped array.length = 0;
+#end
+	}
+	
 }
 //------------------------------------------------------------------------------
