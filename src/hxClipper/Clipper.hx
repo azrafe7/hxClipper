@@ -46,7 +46,7 @@
  * 		fix multi declarations
  * 		fix internal
  * 		check capacity
- * 
+ * 		check switches/break
  * 
  * 
  * 
@@ -841,7 +841,7 @@ class ClipperBase
 		if ((Closed && highI < 2) || (!Closed && highI < 1)) return false;
 
 		//create a new edge array ...
-		var edges = new Array<TEdge>(highI + 1);
+		var edges = new Array<TEdge>(/*TODO:highI + 1*/);
 		for (i in 0...highI + 1) edges.push(new TEdge());
 
 		var IsFlat = true;
@@ -1500,24 +1500,19 @@ class Clipper extends ClipperBase
 			case PolyFillType.pftEvenOdd:
 				//return false if a subj line has been flagged as inside a subj polygon
 				if (edge.WindDelta == 0 && edge.WindCnt != 1) return false;
-				break;
 			case PolyFillType.pftNonZero:
 				if (Math.abs(edge.WindCnt) != 1) return false;
-				break;
 			case PolyFillType.pftPositive:
 				if (edge.WindCnt != 1) return false;
-				break;
 			default:
 				//PolyFillType.pftNegative
 				if (edge.WindCnt != -1) return false;
-				break;
 		}
 
 		switch (m_ClipType) {
 			case ClipType.ctIntersection:
 				switch (pft2) {
-					case PolyFillType.pftEvenOdd:
-					case PolyFillType.pftNonZero:
+					case PolyFillType.pftEvenOdd, PolyFillType.pftNonZero:
 						return (edge.WindCnt2 != 0);
 					case PolyFillType.pftPositive:
 						return (edge.WindCnt2 > 0);
@@ -1526,8 +1521,7 @@ class Clipper extends ClipperBase
 				}
 			case ClipType.ctUnion:
 				switch (pft2) {
-					case PolyFillType.pftEvenOdd:
-					case PolyFillType.pftNonZero:
+					case PolyFillType.pftEvenOdd, PolyFillType.pftNonZero:
 						return (edge.WindCnt2 == 0);
 					case PolyFillType.pftPositive:
 						return (edge.WindCnt2 <= 0);
@@ -1536,16 +1530,14 @@ class Clipper extends ClipperBase
 				}
 			case ClipType.ctDifference:
 				if (edge.PolyTyp == PolyType.ptSubject) switch (pft2) {
-					case PolyFillType.pftEvenOdd:
-					case PolyFillType.pftNonZero:
+					case PolyFillType.pftEvenOdd, PolyFillType.pftNonZero:
 						return (edge.WindCnt2 == 0);
 					case PolyFillType.pftPositive:
 						return (edge.WindCnt2 <= 0);
 					default:
 						return (edge.WindCnt2 >= 0);
 				} else switch (pft2) {
-					case PolyFillType.pftEvenOdd:
-					case PolyFillType.pftNonZero:
+					case PolyFillType.pftEvenOdd, PolyFillType.pftNonZero:
 						return (edge.WindCnt2 != 0);
 					case PolyFillType.pftPositive:
 						return (edge.WindCnt2 > 0);
@@ -1555,8 +1547,7 @@ class Clipper extends ClipperBase
 			case ClipType.ctXor:
 				if (edge.WindDelta == 0) //XOr always contributing unless open
 				switch (pft2) {
-					case PolyFillType.pftEvenOdd:
-					case PolyFillType.pftNonZero:
+					case PolyFillType.pftEvenOdd, PolyFillType.pftNonZero:
 						return (edge.WindCnt2 == 0);
 					case PolyFillType.pftPositive:
 						return (edge.WindCnt2 <= 0);
@@ -2152,24 +2143,18 @@ class Clipper extends ClipperBase
 		switch (e1FillType) {
 			case PolyFillType.pftPositive:
 				e1Wc = e1.WindCnt;
-				break;
 			case PolyFillType.pftNegative:
 				e1Wc = -e1.WindCnt;
-				break;
 			default:
 				e1Wc = Std.int(Math.abs(e1.WindCnt));
-				break;
 		}
 		switch (e2FillType) {
 			case PolyFillType.pftPositive:
 				e2Wc = e2.WindCnt;
-				break;
 			case PolyFillType.pftNegative:
 				e2Wc = -e2.WindCnt;
-				break;
 			default:
 				e2Wc = Std.int(Math.abs(e2.WindCnt));
-				break;
 		}
 
 		if (e1Contributing && e2Contributing) {
@@ -2201,24 +2186,18 @@ class Clipper extends ClipperBase
 			switch (e1FillType2) {
 				case PolyFillType.pftPositive:
 					e1Wc2 = e1.WindCnt2;
-					break;
 				case PolyFillType.pftNegative:
 					e1Wc2 = -e1.WindCnt2;
-					break;
 				default:
 					e1Wc2 = Std.int(Math.abs(e1.WindCnt2));
-					break;
 			}
 			switch (e2FillType2) {
 				case PolyFillType.pftPositive:
 					e2Wc2 = e2.WindCnt2;
-					break;
 				case PolyFillType.pftNegative:
 					e2Wc2 = -e2.WindCnt2;
-					break;
 				default:
 					e2Wc2 = Std.int(Math.abs(e2.WindCnt2));
-					break;
 			}
 
 			if (e1.PolyTyp != e2.PolyTyp) {
@@ -2226,16 +2205,12 @@ class Clipper extends ClipperBase
 			} else if (e1Wc == 1 && e2Wc == 1) switch (m_ClipType) {
 				case ClipType.ctIntersection:
 					if (e1Wc2 > 0 && e2Wc2 > 0) AddLocalMinPoly(e1, e2, pt);
-					break;
 				case ClipType.ctUnion:
 					if (e1Wc2 <= 0 && e2Wc2 <= 0) AddLocalMinPoly(e1, e2, pt);
-					break;
 				case ClipType.ctDifference:
 					if (((e1.PolyTyp == PolyType.ptClip) && (e1Wc2 > 0) && (e2Wc2 > 0)) || ((e1.PolyTyp == PolyType.ptSubject) && (e1Wc2 <= 0) && (e2Wc2 <= 0))) AddLocalMinPoly(e1, e2, pt);
-					break;
 				case ClipType.ctXor:
 					AddLocalMinPoly(e1, e2, pt);
-					break;
 			} else SwapSides(e1, e2);
 		}
 	}
@@ -3607,9 +3582,7 @@ class Clipper extends ClipperBase
 				return;
 			case NodeType.ntClosed:
 				match = !polynode.IsOpen;
-				break;
 			default:
-				break;
 		}
 
 		if (polynode.m_polygon.length > 0 && match) paths.push(polynode.m_polygon);
@@ -4013,14 +3986,11 @@ class ClipperOffset
 					var r:Float = 1 + (m_normals[j].X * m_normals[k].X + m_normals[j].Y * m_normals[k].Y);
 					if (r >= m_miterLim) DoMiter(j, k, r);
 					else DoSquare(j, k);
-					break;
 				}
 			case JoinType.jtSquare:
 				DoSquare(j, k);
-				break;
 			case JoinType.jtRound:
 				DoRound(j, k);
-				break;
 		}
 		k = j;
 	}
