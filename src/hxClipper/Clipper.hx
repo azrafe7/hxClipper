@@ -61,7 +61,7 @@ import haxe.Int64;
 import hxClipper.Clipper.DoublePoint;
 import hxClipper.Clipper.IntPoint;
 
-using hxClipper.Clipper.ArrayTools;
+using hxClipper.Clipper.InternalTools;
 
 //use_int32: When enabled 32bit ints are used instead of 64bit ints. This
 //improve performance but coordinate values are limited to the range +/- 46340
@@ -128,8 +128,8 @@ class PolyTree extends PolyNode
 		for (i in 0...m_AllPolys.length) {
 			m_AllPolys[i] = null;
 		}
-		m_AllPolys.Clear();
-		m_Childs.Clear();
+		m_AllPolys.clear();
+		m_Childs.clear();
 	}
 
 	public function GetFirst():PolyNode {
@@ -351,6 +351,13 @@ class IntPoint
 	public function clone() {
 		return new IntPoint(this.X, this.Y, this.Z);
 	}
+	
+	public function copyFrom(ip:IntPoint):Void {
+		this.X = ip.X;
+		this.Y = ip.Y;
+		this.Z = ip.Z;
+	}
+	
 	// TODO: casts?
 	static public function fromFloats(x:Float, y:Float, z:Float = 0) {
 		return new IntPoint(Std.int(x), Std.int(z), Std.int(z));
@@ -371,6 +378,11 @@ class IntPoint
 
 	public function clone() {
 		return new IntPoint(this.X, this.Y);
+	}
+	
+	public function copyFrom(ip:IntPoint):Void {
+		this.X = ip.X;
+		this.Y = ip.Y;
 	}
 	
 	static public function fromFloats(x:Float, y:Float) {
@@ -669,9 +681,9 @@ class ClipperBase
 			for (j in 0...m_edges[i].length) {
 				m_edges[i][j] = null;
 			}
-			m_edges[i].Clear();
+			m_edges[i].clear();
 		}
-		m_edges.Clear();
+		m_edges.clear();
 		m_UseFullRange = false;
 		m_HasOpenPaths = false;
 	}
@@ -1047,9 +1059,13 @@ class ClipperBase
 		//swap horizontal edges' top and bottom x's so they follow the natural
 		//progression of the bounds - ie so their xbots will align with the
 		//adjoining lower edge. [Helpful in the ProcessHorizontal() method.]
-		Swap(/*ref*/ e.Top.X, /*ref*/ e.Bot.X);
+		var tmp = e.Top.X;
+		e.Top.X = e.Bot.X;
+		e.Bot.X = tmp;
 	#if use_xyz 
-		Swap(/*ref*/ e.Top.Z, /*ref*/ e.Bot.Z);
+		var tmp = e.Top.Z;
+		e.Top.Z = e.Bot.Z;
+		e.Bot.Z = tmp;
 	#end
 	}
 	//------------------------------------------------------------------------------
@@ -1213,13 +1229,12 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function Execute(clipType:ClipType, solution:Paths, subjFillType:PolyFillType, clipFillType:PolyFillType):Bool {
+	public function ExecutePaths(clipType:ClipType, solution:Paths, subjFillType:PolyFillType, clipFillType:PolyFillType):Bool {
 		if (m_ExecuteLocked) return false;
-		if (m_HasOpenPaths) throw
-		new ClipperException("Error: PolyTree struct is need for open path clipping.");
+		if (m_HasOpenPaths) throw new ClipperException("Error: PolyTree struct is needed for open path clipping.");
 
 		m_ExecuteLocked = true;
-		solution.Clear();
+		solution.clear();
 		m_SubjFillType = subjFillType;
 		m_ClipFillType = clipFillType;
 		m_ClipType = clipType;
@@ -1234,11 +1249,13 @@ class Clipper extends ClipperBase
 			DisposeAllPolyPts();
 			m_ExecuteLocked = false;
 		}*/
+		DisposeAllPolyPts();
+		m_ExecuteLocked = false;
 		return succeeded;
 	}
 	//------------------------------------------------------------------------------
 
-	public function Execute(clipType:ClipType, polytree:PolyTree, subjFillType:PolyFillType, clipFillType:PolyFillType):Bool {
+	public function ExecutePolyTree(clipType:ClipType, polytree:PolyTree, subjFillType:PolyFillType, clipFillType:PolyFillType):Bool {
 		if (m_ExecuteLocked) return false;
 		m_ExecuteLocked = true;
 		m_SubjFillType = subjFillType;
@@ -1255,17 +1272,20 @@ class Clipper extends ClipperBase
 			DisposeAllPolyPts();
 			m_ExecuteLocked = false;
 		}*/
+		DisposeAllPolyPts();
+		m_ExecuteLocked = false;
 		return succeeded;
 	}
 	//------------------------------------------------------------------------------
 
-	public function Execute(clipType:ClipType, solution:Paths):Bool {
-		return Execute(clipType, solution, PolyFillType.pftEvenOdd, PolyFillType.pftEvenOdd);
-	}
-	//------------------------------------------------------------------------------
-
-	public function Execute(clipType:ClipType, polytree:PolyTree):Bool {
-		return Execute(clipType, polytree, PolyFillType.pftEvenOdd, PolyFillType.pftEvenOdd);
+	public function Execute(clipType:ClipType, solution:Dynamic):Bool {
+		if (Std.is(solution, Paths)) {
+			return ExecutePaths(clipType, solution, PolyFillType.pftEvenOdd, PolyFillType.pftEvenOdd);
+		} else if (Std.is(solution, PolyTree)) {
+			return ExecutePolyTree(clipType, solution, PolyFillType.pftEvenOdd, PolyFillType.pftEvenOdd);
+		} else {
+			throw new ClipperException("`solution` must be either a Paths or a PolyTree");
+		}
 	}
 	//------------------------------------------------------------------------------
 
@@ -1291,7 +1311,7 @@ class Clipper extends ClipperBase
 			var botY:CInt = PopScanbeam();
 			do {
 				InsertLocalMinimaIntoAEL(botY);
-				m_GhostJoins.Clear();
+				m_GhostJoins.clear();
 				ProcessHorizontals(false);
 				if (m_Scanbeam == null) break;
 				var topY:CInt = PopScanbeam();
@@ -1304,7 +1324,7 @@ class Clipper extends ClipperBase
 			for (i in 0...m_PolyOuts.length) {
 				var outRec:OutRec = m_PolyOuts[i];
 				if (outRec.Pts == null || outRec.IsOpen) continue;
-				if ((outRec.IsHole ^ ReverseSolution) == (AreaOfOutRec(outRec) > 0)) ReversePolyPtLinks(outRec.Pts);
+				if ((outRec.IsHole.xor(ReverseSolution)) == (AreaOfOutRec(outRec) > 0)) ReversePolyPtLinks(outRec.Pts);
 			}
 
 			JoinCommonEdges();
@@ -1320,8 +1340,8 @@ class Clipper extends ClipperBase
 		//catch { return false; }
 		// TODO: finally?
 		/*finally {
-			m_Joins.Clear();
-			m_GhostJoins.Clear();
+			m_Joins.clear();
+			m_GhostJoins.clear();
 		}*/
 	}
 	//------------------------------------------------------------------------------
@@ -1335,7 +1355,7 @@ class Clipper extends ClipperBase
 
 	function DisposeAllPolyPts():Void {
 		for (i in 0...m_PolyOuts.length) DisposeOutRec(i);
-		m_PolyOuts.Clear();
+		m_PolyOuts.clear();
 	}
 	//------------------------------------------------------------------------------
 
@@ -1830,16 +1850,24 @@ class Clipper extends ClipperBase
 
 	//TODO: ref?
 	/*internal*/ function SwapPoints(/*ref*/ pt1:IntPoint, /*ref*/ pt2:IntPoint):Void {
-		var tmp = new IntPoint(pt1);
-		pt1 = pt2;
-		pt2 = tmp;
+		var tmp = pt1.clone();
+		pt1.copyFrom(pt2);
+		pt2.copyFrom(tmp);
 	}
 	//------------------------------------------------------------------------------
 
-	// TODO: ref
+	// TODO: ref/swap
 	function HorzSegmentsOverlap(seg1a:CInt, seg1b:CInt, seg2a:CInt, seg2b:CInt):Bool {
-		if (seg1a > seg1b) Swap(/*ref*/ seg1a, /*ref*/ seg1b);
-		if (seg2a > seg2b) Swap(/*ref*/ seg2a, /*ref*/ seg2b);
+		if (seg1a > seg1b) {
+			var tmp:CInt = seg1a;
+			seg1a = seg1b;
+			seg1b = tmp;
+		}
+		if (seg2a > seg2b) {
+			var tmp:CInt = seg2a;
+			seg2a = seg2b;
+			seg2b = tmp;
+		}
 		return (seg1a < seg2b) && (seg2a < seg1b);
 	}
 	//------------------------------------------------------------------------------
@@ -2375,8 +2403,8 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function GetNextInAEL(e:TEdge, Direction:Direction):TEdge {
-		return Direction == Direction.dLeftToRight ? e.NextInAEL : e.PrevInAEL;
+	function GetNextInAEL(e:TEdge, direction:Direction):TEdge {
+		return direction == Direction.dLeftToRight ? e.NextInAEL : e.PrevInAEL;
 	}
 	//------------------------------------------------------------------------------
 
@@ -2413,7 +2441,7 @@ class Clipper extends ClipperBase
 			else return false;
 		} catch (e:Dynamic) {
 			m_SortedEdges = null;
-			m_IntersectList.Clear();
+			m_IntersectList.clear();
 			throw new ClipperException("ProcessIntersections error");
 		}
 		m_SortedEdges = null;
@@ -2507,7 +2535,7 @@ class Clipper extends ClipperBase
 				SwapPositionsInAEL(iNode.Edge1, iNode.Edge2);
 			}
 		}
-		m_IntersectList.Clear();
+		m_IntersectList.clear();
 	}
 	//------------------------------------------------------------------------------
 
@@ -2720,7 +2748,7 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function BuildResult(polyg:Paths):Void {
-		polyg.Clear();
+		polyg.clear();
 		//TODO:polyg.Capacity = m_PolyOuts.length;
 		for (i in 0...m_PolyOuts.length) {
 			var outRec:OutRec = m_PolyOuts[i];
@@ -3217,7 +3245,7 @@ class Clipper extends ClipperBase
 					//fixup FirstLeft pointers that may need reassigning to OutRec1
 					if (m_UsingPolyTree) FixupFirstLefts2(outRec2, outRec1);
 
-					if ((outRec2.IsHole ^ ReverseSolution) == (AreaOfOutRec(outRec2) > 0)) ReversePolyPtLinks(outRec2.Pts);
+					if ((outRec2.IsHole.xor(ReverseSolution)) == (AreaOfOutRec(outRec2) > 0)) ReversePolyPtLinks(outRec2.Pts);
 
 				} else if (Poly2ContainsPoly1(outRec1.Pts, outRec2.Pts)) {
 					//outRec1 is contained by outRec2 ...
@@ -3229,7 +3257,7 @@ class Clipper extends ClipperBase
 					//fixup FirstLeft pointers that may need reassigning to OutRec1
 					if (m_UsingPolyTree) FixupFirstLefts2(outRec1, outRec2);
 
-					if ((outRec1.IsHole ^ ReverseSolution) == (AreaOfOutRec(outRec1) > 0)) ReversePolyPtLinks(outRec1.Pts);
+					if ((outRec1.IsHole.xor(ReverseSolution)) == (AreaOfOutRec(outRec1) > 0)) ReversePolyPtLinks(outRec1.Pts);
 				} else {
 					//the 2 polygons are completely separate ...
 					outRec2.IsHole = outRec1.IsHole;
@@ -3361,7 +3389,7 @@ class Clipper extends ClipperBase
 		var c = new Clipper();
 		c.StrictlySimple = true;
 		c.AddPath(poly, PolyType.ptSubject, true);
-		c.Execute(ClipType.ctUnion, result, fillType, fillType);
+		c.ExecutePaths(ClipType.ctUnion, result, fillType, fillType);
 		return result;
 	}
 	//------------------------------------------------------------------------------
@@ -3372,7 +3400,7 @@ class Clipper extends ClipperBase
 		var c = new Clipper();
 		c.StrictlySimple = true;
 		c.AddPaths(polys, PolyType.ptSubject, true);
-		c.Execute(ClipType.ctUnion, result, fillType, fillType);
+		c.ExecutePaths(ClipType.ctUnion, result, fillType, fillType);
 		return result;
 	}
 	//------------------------------------------------------------------------------
@@ -3527,7 +3555,7 @@ class Clipper extends ClipperBase
 		var paths:Paths = Minkowski(pattern, path, true, pathIsClosed);
 		var c = new Clipper();
 		c.AddPaths(paths, PolyType.ptSubject, true);
-		c.Execute(ClipType.ctUnion, paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
+		c.ExecutePaths(ClipType.ctUnion, paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
 		return paths;
 	}
 	//------------------------------------------------------------------------------
@@ -3540,7 +3568,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	static public function MinkowskiSum(pattern:Path, paths:Paths, pathIsClosed:Bool):Paths {
+	static public function MinkowskiSumPaths(pattern:Path, paths:Paths, pathIsClosed:Bool):Paths {
 		var solution = new Paths();
 		var c = new Clipper();
 		for (i in 0...paths.length) {
@@ -3551,8 +3579,7 @@ class Clipper extends ClipperBase
 				c.AddPath(path, PolyType.ptClip, true);
 			}
 		}
-		c.Execute(ClipType.ctUnion, solution,
-		PolyFillType.pftNonZero, PolyFillType.pftNonZero);
+		c.ExecutePaths(ClipType.ctUnion, solution, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
 		return solution;
 	}
 	//------------------------------------------------------------------------------
@@ -3561,7 +3588,7 @@ class Clipper extends ClipperBase
 		var paths:Paths = Minkowski(poly1, poly2, false, true);
 		var c = new Clipper();
 		c.AddPaths(paths, PolyType.ptSubject, true);
-		c.Execute(ClipType.ctUnion, paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
+		c.ExecutePaths(ClipType.ctUnion, paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
 		return paths;
 	}
 	//------------------------------------------------------------------------------
@@ -3644,7 +3671,7 @@ class ClipperOffset
 	//------------------------------------------------------------------------------
 
 	public function Clear():Void {
-		m_polyNodes.Childs.Clear();
+		m_polyNodes.Childs.clear();
 		m_lowest.X = -1;
 	}
 	//------------------------------------------------------------------------------
@@ -3794,7 +3821,7 @@ class ClipperOffset
 			}
 
 			//build m_normals ...
-			m_normals.Clear();
+			m_normals.clear();
 			//TODO:m_normals.Capacity = len;
 			for (j in 0...len - 1) {
 				m_normals.push(GetUnitNormal(m_srcPoly[j], m_srcPoly[j + 1]));
@@ -3896,15 +3923,15 @@ class ClipperOffset
 	//------------------------------------------------------------------------------
 
 	// TODO: ref
-	public function Execute(/*ref*/ solution:Paths, delta:Float):Void {
-		solution.Clear();
+	public function ExecutePathsWithDelta(/*ref*/ solution:Paths, delta:Float):Void {
+		solution.clear();
 		FixOrientations();
 		DoOffset(delta);
 		//now clean up 'corners' ...
 		var clpr = new Clipper();
 		clpr.AddPaths(m_destPolys, PolyType.ptSubject, true);
 		if (delta > 0) {
-			clpr.Execute(ClipType.ctUnion, solution,
+			clpr.ExecutePaths(ClipType.ctUnion, solution,
 			PolyFillType.pftPositive, PolyFillType.pftPositive);
 		} else {
 			var r:IntRect = ClipperBase.GetBounds(m_destPolys);
@@ -3917,14 +3944,14 @@ class ClipperOffset
 
 			clpr.AddPath(outer, PolyType.ptSubject, true);
 			clpr.ReverseSolution = true;
-			clpr.Execute(ClipType.ctUnion, solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
+			clpr.ExecutePaths(ClipType.ctUnion, solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
 			if (solution.length > 0) solution.shift(); //TODO: RemoveAt(0);
 		}
 	}
 	//------------------------------------------------------------------------------
 
 	// TODO: ref
-	public function Execute(/*ref*/ solution:PolyTree, delta:Float):Void {
+	public function ExecutePolyTreeWithDelta(/*ref*/ solution:PolyTree, delta:Float):Void {
 		solution.Clear();
 		FixOrientations();
 		DoOffset(delta);
@@ -3933,7 +3960,7 @@ class ClipperOffset
 		var clpr = new Clipper();
 		clpr.AddPaths(m_destPolys, PolyType.ptSubject, true);
 		if (delta > 0) {
-			clpr.Execute(ClipType.ctUnion, solution, PolyFillType.pftPositive, PolyFillType.pftPositive);
+			clpr.ExecutePolyTree(ClipType.ctUnion, solution, PolyFillType.pftPositive, PolyFillType.pftPositive);
 		} else {
 			var r:IntRect = ClipperBase.GetBounds(m_destPolys);
 			var outer = new Path(/*TODO:4*/);
@@ -3945,7 +3972,7 @@ class ClipperOffset
 
 			clpr.AddPath(outer, PolyType.ptSubject, true);
 			clpr.ReverseSolution = true;
-			clpr.Execute(ClipType.ctUnion, solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
+			clpr.ExecutePolyTree(ClipType.ctUnion, solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
 			//remove the outer PolyNode rectangle ...
 			if (solution.ChildCount == 1 && solution.Childs[0].ChildCount > 0) {
 				var outerNode:PolyNode = solution.Childs[0];
@@ -4040,10 +4067,10 @@ class ClipperException
 }
 //------------------------------------------------------------------------------
 
-class ArrayTools
+class InternalTools
 {
 	/** Empties an array of its contents. */
-	static inline public function Clear<T>(array:Array<T>)
+	static inline public function clear<T>(array:Array<T>)
 	{
 #if (cpp || php)
 		array.splice(0, array.length);
@@ -4052,5 +4079,9 @@ class ArrayTools
 #end
 	}
 	
+	static inline public function xor(a:Bool, b:Bool):Bool
+	{
+		return (a && !b) || (b && !a);
+	}
 }
 //------------------------------------------------------------------------------
