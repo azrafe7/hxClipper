@@ -26,9 +26,9 @@ class ClipperDemo extends Sprite {
 		var clipPolygon: Array<IntPoint> = [new IntPoint(0, 100), new IntPoint(200, 100), new IntPoint(300, 200)];
 		var clipper = new Clipper();
 		var resultPolygons: Array<Array<IntPoint>> = [];
-		clipper.AddPath(subjectPolygon, ptSubject, true);
-		clipper.AddPath(clipPolygon, ptClip, true);
-		clipper.Execute(ClipType.ctDifference, resultPolygons);
+		clipper.AddPath(subjectPolygon, PolyType.ptSubject, true);
+		clipper.AddPath(clipPolygon, PolyType.ptClip, true);
+		clipper.Execute(ClipType.ctIntersection, resultPolygons);
 		
 		trace(resultPolygons);
 		
