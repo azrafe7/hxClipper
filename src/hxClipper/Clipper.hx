@@ -58,9 +58,13 @@ package hxClipper;
 import haxe.ds.ArraySort;
 import haxe.Int32;
 import haxe.Int64;
+import hxClipper.Clipper.ClipperBase;
 import hxClipper.Clipper.DoublePoint;
+import hxClipper.Clipper.Int128;
 import hxClipper.Clipper.IntPoint;
 
+using haxe.Int64;
+using hxClipper.Clipper.Int128;
 using hxClipper.Clipper.InternalTools;
 
 //use_int32: When enabled 32bit ints are used instead of 64bit ints. This
@@ -81,7 +85,7 @@ using hxClipper.Clipper.InternalTools;
 
 
 #if use_int32
-typedef CInt = Int32;
+typedef CInt = Int;
 #else
 typedef CInt = Int64;
 #end
@@ -222,116 +226,82 @@ class PolyNode
 //    val3.ToString => "85070591730234615847396907784232501249" (8.5e+37)
 //------------------------------------------------------------------------------
 
-/*internal*//* public struct Int128 {
-	private Int64 hi;
-	private UInt64 lo;
+/*internal*/ class Int128 {
+	var hi:Int64;
+	var lo:Int64;	// this will make use of unsigned versions of ops
 
-	public Int128(Int64 _lo) {
-		lo = (UInt64) _lo;
-		if (_lo < 0) hi = -1;
-		else hi = 0;
+	static var zero64:Int64 = Int64.make(0, 0);
+	static var one64:Int64 = Int64.make(0, 1);
+	static inline var shift64:Float = 18446744073709551616.0; //2^64
+
+	public function new(hi:Int64, lo:Int64) {
+		this.lo = lo;
+		this.hi = hi;
 	}
 
-	public Int128(Int64 _hi, UInt64 _lo) {
-		lo = _lo;
-		hi = _hi;
+	public function IsNeg():Bool {
+		return hi.compare(zero64) < 0;
 	}
 
-	public Int128(Int128 val) {
-		hi = val.hi;
-		lo = val.lo;
+	static public function compare(a:Int128, b:Int128):Int {
+		if (a.hi != b.hi) return a.hi.compare(b.hi);
+		else return a.lo.ucompare(b.lo);
 	}
-
-	public bool IsNegative() {
-		return hi < 0;
-	}
-
-	public static bool operator == (Int128 val1, Int128 val2) {
-		if ((object) val1 == (object) val2) return true;
-		else if ((object) val1 == null || (object) val2 == null) return false;
-		return (val1.hi == val2.hi && val1.lo == val2.lo);
-	}
-
-	public static bool operator != (Int128 val1, Int128 val2) {
-		return !(val1 == val2);
-	}
-
-	public override bool Equals(System.Object obj) {
-		if (obj == null || !(obj is Int128)) return false;
-		Int128 i128 = (Int128) obj;
-		return (i128.hi == hi && i128.lo == lo);
-	}
-
-	public override int GetHashCode() {
-		return hi.GetHashCode() ^ lo.GetHashCode();
-	}
-
-	public static bool operator > (Int128 val1, Int128 val2) {
-		if (val1.hi != val2.hi) return val1.hi > val2.hi;
-		else return val1.lo > val2.lo;
-	}
-
-	public static bool operator < (Int128 val1, Int128 val2) {
-		if (val1.hi != val2.hi) return val1.hi < val2.hi;
-		else return val1.lo < val2.lo;
-	}
-
-	public static Int128 operator + (Int128 lhs, Int128 rhs) {
-		lhs.hi += rhs.hi;
-		lhs.lo += rhs.lo;
-		if (lhs.lo < rhs.lo) lhs.hi++;
+	
+	static public function add(lhs:Int128, rhs:Int128):Int128 {
+		lhs.hi = lhs.hi.add(rhs.hi);
+		lhs.lo = lhs.lo.add(rhs.lo);
+		if (lhs.lo.ucompare(rhs.lo) < 0) lhs.hi.add(one64);
 		return lhs;
 	}
 
-	public static Int128 operator - (Int128 lhs, Int128 rhs) {
-		return lhs + -rhs;
+	static public function sub(lhs:Int128, rhs:Int128):Int128 {
+		return lhs.add(rhs.neg());
 	}
 
-	public static Int128 operator - (Int128 val) {
-		if (val.lo == 0) return new Int128(-val.hi, 0);
-		else return new Int128(~val.hi, ~val.lo + 1);
+	static public function neg(val:Int128):Int128 {
+		if (val.lo.ucompare(zero64) == 0) return new Int128(val.hi.neg(), Int64.ofInt(0));
+		else return new Int128(val.hi.neg(), val.lo.neg().add(one64));
 	}
 
-	public static explicit operator double(Int128 val) {
-		const double shift64 = 18446744073709551616.0; //2^64
-		if (val.hi < 0) {
-			if (val.lo == 0) return (double) val.hi * shift64;
-			else return -(double)(~val.lo + ~val.hi * shift64);
-		} else return (double)(val.lo + val.hi * shift64);
+	public function toFloat():Float {
+		var res:Float = 0;
+		if (hi.compare(zero64) < 0) {
+			if (lo.compare(zero64) == 0) res = Std.parseFloat(hi.toStr()) * shift64;
+			else res = -(lo.neg().toInt() + Std.parseFloat(hi.neg().toStr()) * shift64);
+		} else res = (lo.toInt() + Std.parseFloat(hi.toStr()) * shift64);
+		return res;
 	}
 
 	//nb: Constructing two new Int128 objects every time we want to multiply longs  
 	//is slow. So, although calling the Int128Mul method doesn't look as clean, the 
 	//code runs significantly faster than if we'd used the * operator.
 
-	public static Int128 Int128Mul(Int64 lhs, Int64 rhs) {
-		bool negate = (lhs < 0) != (rhs < 0);
-		if (lhs < 0) lhs = -lhs;
-		if (rhs < 0) rhs = -rhs;
-		UInt64 int1Hi = (UInt64) lhs >> 32;
-		UInt64 int1Lo = (UInt64) lhs & 0xFFFFFFFF;
-		UInt64 int2Hi = (UInt64) rhs >> 32;
-		UInt64 int2Lo = (UInt64) rhs & 0xFFFFFFFF;
+	static public function mul(lhs:Int64, rhs:Int64):Int128 {
+		var negate = (lhs.isNeg()) != (rhs.isNeg());
+		if (lhs.isNeg()) lhs = lhs.neg();
+		if (rhs.isNeg()) rhs = rhs.neg();
+		var int1Hi:Int64 = lhs.ushr(32);
+		var int1Lo:Int64 = lhs.and(Int64.ofInt(0xFFFFFFFF));
+		var int2Hi:Int64 = rhs.ushr(32);
+		var int2Lo:Int64 = rhs.and(Int64.ofInt(0xFFFFFFFF));
 
 		//nb: see comments in clipper.pas
-		UInt64 a = int1Hi * int2Hi;
-		UInt64 b = int1Lo * int2Lo;
-		UInt64 c = int1Hi * int2Lo + int1Lo * int2Hi;
+		var a:Int64 = Int64.mul(int1Hi, int2Hi);
+		var b:Int64 = Int64.mul(int1Lo, int2Lo);
+		var c:Int64 = Int64.mul(int1Hi, int2Lo).add(Int64.mul(int1Lo, int2Hi));
 
-		UInt64 lo;
-		Int64 hi;
-		hi = (Int64)(a + (c >> 32));
+		var hi:Int64 = (a.add(c.ushr(32)));
+		var lo:Int64 = c.shl(32).add(b);
 
-		unchecked {
-			lo = (c << 32) + b;
-		}
-		if (lo < b) hi++;
-		Int128 result = new Int128(hi, lo);
-		return negate ? -result : result;
+		if (lo.ucompare(b) < 0) hi = hi.add(one64);
+		var result:Int128 = new Int128(hi, lo);
+		if (negate) result = result.neg();
+		return result;
 	}
 
-};
-*/
+}
+
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
@@ -342,7 +312,7 @@ class IntPoint
 #if use_xyz 
 	public var Z:CInt;
 
-	public function new(x:CInt, y:CInt, z:CInt = 0) {
+	public function new(x:CInt = 0, y:CInt = 0, z:CInt = 0) {
 		this.X = x;
 		this.Y = y;
 		this.Z = z;
@@ -371,7 +341,7 @@ class IntPoint
 		return pt.clone();
 	}
 #else 
-	public function new(x:CInt, y:CInt) {
+	public function new(x:CInt = 0, y:CInt = 0) {
 		this.X = x;
 		this.Y = y;
 	}
@@ -500,7 +470,12 @@ enum EndType {
 	/*internal*/ public var NextInSEL:TEdge;
 	/*internal*/ public var PrevInSEL:TEdge;
 	
-	/*internal*/ public function new() { };
+	/*internal*/ public function new() { 
+		Bot = new IntPoint();
+		Curr = new IntPoint();
+		Top = new IntPoint();
+		Delta = new IntPoint();
+	};
 }
 
 class IntersectNode 
@@ -548,7 +523,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ public var FirstLeft:OutRec; //see comments in clipper.pas
 	/*internal*/ public var Pts:OutPt;
 	/*internal*/ public var BottomPt:OutPt;
-	/*internal*/ public var PolyNode:PolyNode; //TODO: check name here
+	/*internal*/ public var polyNode:PolyNode; //TODO: check name here
 	
 	/*internal*/ public function new() { };
 }
@@ -630,8 +605,12 @@ class ClipperBase
 	//------------------------------------------------------------------------------
 
 	/*internal*/ public function PointOnLineSegment(pt:IntPoint, linePt1:IntPoint, linePt2:IntPoint, UseFullRange:Bool):Bool {
+	#if !use_int32
 		if (UseFullRange) return ((pt.X == linePt1.X) && (pt.Y == linePt1.Y)) || ((pt.X == linePt2.X) && (pt.Y == linePt2.Y)) || (((pt.X > linePt1.X) == (pt.X < linePt2.X)) && ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) && ((Int128.Int128Mul((pt.X - linePt1.X), (linePt2.Y - linePt1.Y)) == Int128.Int128Mul((linePt2.X - linePt1.X), (pt.Y - linePt1.Y)))));
-		else return ((pt.X == linePt1.X) && (pt.Y == linePt1.Y)) || ((pt.X == linePt2.X) && (pt.Y == linePt2.Y)) || (((pt.X > linePt1.X) == (pt.X < linePt2.X)) && ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) && ((pt.X - linePt1.X) * (linePt2.Y - linePt1.Y) == (linePt2.X - linePt1.X) * (pt.Y - linePt1.Y)));
+		else 
+	#else
+		return ((pt.X == linePt1.X) && (pt.Y == linePt1.Y)) || ((pt.X == linePt2.X) && (pt.Y == linePt2.Y)) || (((pt.X > linePt1.X) == (pt.X < linePt2.X)) && ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) && ((pt.X - linePt1.X) * (linePt2.Y - linePt1.Y) == (linePt2.X - linePt1.X) * (pt.Y - linePt1.Y)));
+	#end
 	}
 	//------------------------------------------------------------------------------
 
@@ -646,26 +625,37 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	/* TODO: fix these Int128*/
 	/*internal*/ static public function SlopesEqual(e1:TEdge, e2:TEdge, UseFullRange:Bool):Bool {
-		if (UseFullRange) return Int128.Int128Mul(e1.Delta.Y, e2.Delta.X) == Int128.Int128Mul(e1.Delta.X, e2.Delta.Y);
-		else return (cInt)(e1.Delta.Y) * (e2.Delta.X) == (cInt)(e1.Delta.X) * (e2.Delta.Y);
-	}
-	//------------------------------------------------------------------------------
-/* TODO: fix these Int128
-	protected static bool SlopesEqual(IntPoint pt1, IntPoint pt2,
-	IntPoint pt3, bool UseFullRange) {
-		if (UseFullRange) return Int128.Int128Mul(pt1.Y - pt2.Y, pt2.X - pt3.X) == Int128.Int128Mul(pt1.X - pt2.X, pt2.Y - pt3.Y);
-		else return (cInt)(pt1.Y - pt2.Y) * (pt2.X - pt3.X) - (cInt)(pt1.X - pt2.X) * (pt2.Y - pt3.Y) == 0;
+	#if !use_int32	
+		if (UseFullRange) return Int128.mul(e1.Delta.Y, e2.Delta.X) == Int128.mul(e1.Delta.X, e2.Delta.Y);
+		else
+	#else 
+		return /*(cInt)*/(e1.Delta.Y) * (e2.Delta.X) == /*(cInt)*/(e1.Delta.X) * (e2.Delta.Y);
+	#end
 	}
 	//------------------------------------------------------------------------------
 
-	protected static bool SlopesEqual(IntPoint pt1, IntPoint pt2,
-	IntPoint pt3, IntPoint pt4, bool UseFullRange) {
-		if (UseFullRange) return Int128.Int128Mul(pt1.Y - pt2.Y, pt3.X - pt4.X) == Int128.Int128Mul(pt1.X - pt2.X, pt3.Y - pt4.Y);
-		else return (cInt)(pt1.Y - pt2.Y) * (pt3.X - pt4.X) - (cInt)(pt1.X - pt2.X) * (pt3.Y - pt4.Y) == 0;
+	/*protected*/ static function SlopesEqual3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, UseFullRange:Bool):Bool {
+	#if !use_int32	
+		if (UseFullRange) return Int128.Int128Mul(pt1.Y - pt2.Y, pt2.X - pt3.X) == Int128.Int128Mul(pt1.X - pt2.X, pt2.Y - pt3.Y);
+		else 
+	#else
+		return /*(cInt)*/(pt1.Y - pt2.Y) * (pt2.X - pt3.X) - /*(cInt)*/(pt1.X - pt2.X) * (pt2.Y - pt3.Y) == 0;
+	#end
 	}
 	//------------------------------------------------------------------------------
-*/
+
+	/*protected*/ static function SlopesEqual4(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, pt4:IntPoint, UseFullRange:Bool):Bool {
+	#if !use_int32	
+		if (UseFullRange) return Int128.Int128Mul(pt1.Y - pt2.Y, pt3.X - pt4.X) == Int128.Int128Mul(pt1.X - pt2.X, pt3.Y - pt4.Y);
+		else 
+	#else
+		return /*(cInt)*/(pt1.Y - pt2.Y) * (pt3.X - pt4.X) - /*(cInt)*/(pt1.X - pt2.X) * (pt3.Y - pt4.Y) == 0;
+	#end
+	}
+	//------------------------------------------------------------------------------
+
 	/*internal*/ public function new() //constructor (nb: no external instantiation)
 	{
 		m_MinimaList = null;
@@ -886,7 +876,9 @@ class ClipperBase
 				continue;
 			}
 			if (E.Prev == E.Next) break; //only two vertices
-			else if (Closed && SlopesEqual(E.Prev.Curr, E.Curr, E.Next.Curr, m_UseFullRange) && (!PreserveCollinear || !Pt2IsBetweenPt1AndPt3(E.Prev.Curr, E.Curr, E.Next.Curr))) {
+			else if (Closed && ClipperBase.SlopesEqual3(E.Prev.Curr, E.Curr, E.Next.Curr, m_UseFullRange) 
+					 && (!PreserveCollinear || !Pt2IsBetweenPt1AndPt3(E.Prev.Curr, E.Curr, E.Next.Curr))) 
+			{
 				//Collinear edges are allowed for open paths but in closed paths
 				//the default is to merge adjacent collinear edges into a single edge.
 				//However, if the PreserveCollinear property is enabled, only overlapping
@@ -995,7 +987,7 @@ class ClipperBase
 
 	public function AddPaths(ppg:Paths, polyType:PolyType, closed:Bool):Bool {
 		var result = false;
-		for (i = 0...ppg.length) {
+		for (i in 0...ppg.length) {
 			if (AddPath(ppg[i], polyType, closed)) result = true;
 		}
 		return result;
@@ -1440,14 +1432,18 @@ class Clipper extends ClipperBase
 				}
 			}
 
-			if (lb.OutIdx >= 0 && lb.PrevInAEL != null && lb.PrevInAEL.Curr.X == lb.Bot.X && lb.PrevInAEL.OutIdx >= 0 && SlopesEqual(lb.PrevInAEL, lb, m_UseFullRange) && lb.WindDelta != 0 && lb.PrevInAEL.WindDelta != 0) {
+			if (lb.OutIdx >= 0 && lb.PrevInAEL != null && lb.PrevInAEL.Curr.X == lb.Bot.X && lb.PrevInAEL.OutIdx >= 0 
+				&& ClipperBase.SlopesEqual(lb.PrevInAEL, lb, m_UseFullRange) && lb.WindDelta != 0 && lb.PrevInAEL.WindDelta != 0) 
+			{
 				var Op2:OutPt = AddOutPt(lb.PrevInAEL, lb.Bot);
 				AddJoin(Op1, Op2, lb.Top);
 			}
 
 			if (lb.NextInAEL != rb) {
 
-				if (rb.OutIdx >= 0 && rb.PrevInAEL.OutIdx >= 0 && SlopesEqual(rb.PrevInAEL, rb, m_UseFullRange) && rb.WindDelta != 0 && rb.PrevInAEL.WindDelta != 0) {
+				if (rb.OutIdx >= 0 && rb.PrevInAEL.OutIdx >= 0 && ClipperBase.SlopesEqual(rb.PrevInAEL, rb, m_UseFullRange) 
+					&& rb.WindDelta != 0 && rb.PrevInAEL.WindDelta != 0) 
+				{
 					var Op2:OutPt = AddOutPt(rb.PrevInAEL, rb.Bot);
 					AddJoin(Op1, Op2, rb.Top);
 				}
@@ -1807,7 +1803,7 @@ class Clipper extends ClipperBase
 		result.FirstLeft = null;
 		result.Pts = null;
 		result.BottomPt = null;
-		result.PolyNode = null;
+		result.polyNode = null;
 		m_PolyOuts.push(result);
 		result.Idx = m_PolyOuts.length - 1;
 		return result;
@@ -2300,25 +2296,29 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	// TODO: check out
-	function GetHorzDirection(HorzEdge:TEdge, /*out*/ Dir:Direction, /*out*/ Left:CInt, /*out*/Right:CInt):Void {
+	function GetHorzDirection(HorzEdge:TEdge, outParams:{/*out*/ Dir:Direction, /*out*/ Left:CInt, /*out*/Right:CInt}):Void {
 		if (HorzEdge.Bot.X < HorzEdge.Top.X) {
-			Left = HorzEdge.Bot.X;
-			Right = HorzEdge.Top.X;
-			Dir = Direction.dLeftToRight;
+			outParams.Left = HorzEdge.Bot.X;
+			outParams.Right = HorzEdge.Top.X;
+			outParams.Dir = Direction.dLeftToRight;
 		} else {
-			Left = HorzEdge.Top.X;
-			Right = HorzEdge.Bot.X;
-			Dir = Direction.dRightToLeft;
+			outParams.Left = HorzEdge.Top.X;
+			outParams.Right = HorzEdge.Bot.X;
+			outParams.Dir = Direction.dRightToLeft;
 		}
 	}
 	//------------------------------------------------------------------------
 
 	function ProcessHorizontal(horzEdge:TEdge, isTopOfScanbeam:Bool):Void {
-		var dir:Direction;
-		var horzLeft:CInt, horzRight:CInt;
+		var dir:Direction = null;
+		var horzLeft:CInt = 0, horzRight:CInt = 0;
 
 		// TODO: out
-		GetHorzDirection(horzEdge, /*out*/ dir, /*out*/ horzLeft, /*out*/ horzRight);
+		var outParams = {/*out*/ Dir:dir, /*out*/ Left:horzLeft, /*out*/ Right:horzRight};
+		GetHorzDirection(horzEdge, outParams);
+		dir = outParams.Dir;
+		horzLeft = outParams.Left;
+		horzRight = outParams.Right;
 
 		var eLastHorz:TEdge = horzEdge, eMaxPair:TEdge = null;
 		while (eLastHorz.NextInLML != null && ClipperBase.IsHorizontal(eLastHorz.NextInLML)) eLastHorz = eLastHorz.NextInLML;
@@ -2372,7 +2372,10 @@ class Clipper extends ClipperBase
 				UpdateEdgeIntoAEL(/*ref*/ horzEdge);
 				if (horzEdge.OutIdx >= 0) AddOutPt(horzEdge, horzEdge.Bot);
 				// TODO: out
-				GetHorzDirection(horzEdge, /*out*/ dir, /*out*/ horzLeft, /*out*/ horzRight);
+				GetHorzDirection(horzEdge, outParams);
+				dir = outParams.Dir;
+				horzLeft = outParams.Left;
+				horzRight = outParams.Right;
 			} else break;
 		} //end for (;;)
 
@@ -2387,10 +2390,14 @@ class Clipper extends ClipperBase
 				//nb: HorzEdge is no longer horizontal here
 				var ePrev:TEdge = horzEdge.PrevInAEL;
 				var eNext:TEdge = horzEdge.NextInAEL;
-				if (ePrev != null && ePrev.Curr.X == horzEdge.Bot.X && ePrev.Curr.Y == horzEdge.Bot.Y && ePrev.WindDelta != 0 && (ePrev.OutIdx >= 0 && ePrev.Curr.Y > ePrev.Top.Y && SlopesEqual(horzEdge, ePrev, m_UseFullRange))) {
+				if (ePrev != null && ePrev.Curr.X == horzEdge.Bot.X && ePrev.Curr.Y == horzEdge.Bot.Y && ePrev.WindDelta != 0 
+					&& (ePrev.OutIdx >= 0 && ePrev.Curr.Y > ePrev.Top.Y && ClipperBase.SlopesEqual(horzEdge, ePrev, m_UseFullRange))) 
+				{
 					var op2:OutPt = AddOutPt(ePrev, horzEdge.Bot);
 					AddJoin(op1, op2, horzEdge.Top);
-				} else if (eNext != null && eNext.Curr.X == horzEdge.Bot.X && eNext.Curr.Y == horzEdge.Bot.Y && eNext.WindDelta != 0 && eNext.OutIdx >= 0 && eNext.Curr.Y > eNext.Top.Y && SlopesEqual(horzEdge, eNext, m_UseFullRange)) {
+				} else if (eNext != null && eNext.Curr.X == horzEdge.Bot.X && eNext.Curr.Y == horzEdge.Bot.Y && eNext.WindDelta != 0 
+						   && eNext.OutIdx >= 0 && eNext.Curr.Y > eNext.Top.Y && ClipperBase.SlopesEqual(horzEdge, eNext, m_UseFullRange)) 
+				{
 					var op2:OutPt = AddOutPt(eNext, horzEdge.Bot);
 					AddJoin(op1, op2, horzEdge.Top);
 				}
@@ -2469,7 +2476,7 @@ class Clipper extends ClipperBase
 			e = m_SortedEdges;
 			while (e.NextInSEL != null) {
 				var eNext:TEdge = e.NextInSEL;
-				var pt:IntPoint;
+				var pt:IntPoint = new IntPoint();
 				if (e.Curr.X > eNext.Curr.X) {
 					// TODO: out
 					IntersectPoint(e, eNext, /*out*/ pt);
@@ -2667,10 +2674,14 @@ class Clipper extends ClipperBase
 				//if output polygons share an edge, they'll need joining later ...
 				var ePrev:TEdge = e.PrevInAEL;
 				var eNext:TEdge = e.NextInAEL;
-				if (ePrev != null && ePrev.Curr.X == e.Bot.X && ePrev.Curr.Y == e.Bot.Y && op != null && ePrev.OutIdx >= 0 && ePrev.Curr.Y > ePrev.Top.Y && SlopesEqual(e, ePrev, m_UseFullRange) && (e.WindDelta != 0) && (ePrev.WindDelta != 0)) {
+				if (ePrev != null && ePrev.Curr.X == e.Bot.X && ePrev.Curr.Y == e.Bot.Y && op != null && ePrev.OutIdx >= 0 
+					&& ePrev.Curr.Y > ePrev.Top.Y && ClipperBase.SlopesEqual(e, ePrev, m_UseFullRange) && (e.WindDelta != 0) && (ePrev.WindDelta != 0)) 
+				{
 					var op2:OutPt = AddOutPt(ePrev, e.Bot);
 					AddJoin(op, op2, e.Top);
-				} else if (eNext != null && eNext.Curr.X == e.Bot.X && eNext.Curr.Y == e.Bot.Y && op != null && eNext.OutIdx >= 0 && eNext.Curr.Y > eNext.Top.Y && SlopesEqual(e, eNext, m_UseFullRange) && (e.WindDelta != 0) && (eNext.WindDelta != 0)) {
+				} else if (eNext != null && eNext.Curr.X == e.Bot.X && eNext.Curr.Y == e.Bot.Y && op != null && eNext.OutIdx >= 0 
+						   && eNext.Curr.Y > eNext.Top.Y && ClipperBase.SlopesEqual(e, eNext, m_UseFullRange) && (e.WindDelta != 0) && (eNext.WindDelta != 0)) 
+				{
 					var op2:OutPt = AddOutPt(eNext, e.Bot);
 					AddJoin(op, op2, e.Top);
 				}
@@ -2778,7 +2789,7 @@ class Clipper extends ClipperBase
 			FixHoleLinkage(outRec);
 			var pn = new PolyNode();
 			polytree.m_AllPolys.push(pn);
-			outRec.PolyNode = pn;
+			outRec.polyNode = pn;
 			//TODO:pn.m_polygon.Capacity = cnt;
 			var op:OutPt = outRec.Pts.Prev;
 			for (j in 0...cnt) {
@@ -2791,12 +2802,12 @@ class Clipper extends ClipperBase
 		//TODO:polytree.m_Childs.Capacity = m_PolyOuts.length;
 		for (i in 0...m_PolyOuts.length) {
 			var outRec:OutRec = m_PolyOuts[i];
-			if (outRec.PolyNode == null) continue;
+			if (outRec.polyNode == null) continue;
 			else if (outRec.IsOpen) {
-				outRec.PolyNode.IsOpen = true;
-				polytree.AddChild(outRec.PolyNode);
-			} else if (outRec.FirstLeft != null && outRec.FirstLeft.PolyNode != null) outRec.FirstLeft.PolyNode.AddChild(outRec.PolyNode);
-			else polytree.AddChild(outRec.PolyNode);
+				outRec.polyNode.IsOpen = true;
+				polytree.AddChild(outRec.polyNode);
+			} else if (outRec.FirstLeft != null && outRec.FirstLeft.polyNode != null) outRec.FirstLeft.polyNode.AddChild(outRec.polyNode);
+			else polytree.AddChild(outRec.polyNode);
 		}
 	}
 	//------------------------------------------------------------------------------
@@ -2813,7 +2824,9 @@ class Clipper extends ClipperBase
 				return;
 			}
 			//test for duplicate points and collinear edges ...
-			if ((pp.Pt == pp.Next.Pt) || (pp.Pt == pp.Prev.Pt) || (SlopesEqual(pp.Prev.Pt, pp.Pt, pp.Next.Pt, m_UseFullRange) && (!PreserveCollinear || !Pt2IsBetweenPt1AndPt3(pp.Prev.Pt, pp.Pt, pp.Next.Pt)))) {
+			if ((pp.Pt == pp.Next.Pt) || (pp.Pt == pp.Prev.Pt) || (ClipperBase.SlopesEqual3(pp.Prev.Pt, pp.Pt, pp.Next.Pt, m_UseFullRange) 
+				&& (!PreserveCollinear || !Pt2IsBetweenPt1AndPt3(pp.Prev.Pt, pp.Pt, pp.Next.Pt)))) 
+			{
 				lastOK = null;
 				pp.Prev.Next = pp.Next;
 				pp.Next.Prev = pp.Prev;
@@ -2848,26 +2861,26 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	// TODO: out
-	function GetOverlap(a1:CInt, a2:CInt, b1:CInt, b2:CInt, /*out*/ Left:CInt, /*out*/ Right:CInt):Bool {
+	function GetOverlap(a1:CInt, a2:CInt, b1:CInt, b2:CInt, outParams:{/*out*/ Left:CInt, /*out*/ Right:CInt}):Bool {
 		if (a1 < a2) {
 			// TODO: check casts to CInt
 			if (b1 < b2) {
-				Left = Std.int(Math.max(a1, b1));
-				Right = Std.int(Math.min(a2, b2));
+				outParams.Left = Std.int(Math.max(a1, b1));
+				outParams.Right = Std.int(Math.min(a2, b2));
 			} else {
-				Left = Std.int(Math.max(a1, b2));
-				Right = Std.int(Math.min(a2, b1));
+				outParams.Left = Std.int(Math.max(a1, b2));
+				outParams.Right = Std.int(Math.min(a2, b1));
 			}
 		} else {
 			if (b1 < b2) {
-				Left = Std.int(Math.max(a2, b1));
-				Right = Std.int(Math.min(a1, b2));
+				outParams.Left = Std.int(Math.max(a2, b1));
+				outParams.Right = Std.int(Math.min(a1, b2));
 			} else {
-				Left = Std.int(Math.max(a2, b2));
-				Right = Std.int(Math.min(a1, b1));
+				outParams.Left = Std.int(Math.max(a2, b2));
+				outParams.Right = Std.int(Math.min(a1, b1));
 			}
 		}
-		return Left < Right;
+		return outParams.Left < outParams.Right;
 	}
 	//------------------------------------------------------------------------------
 
@@ -3003,10 +3016,13 @@ class Clipper extends ClipperBase
 			while (op2b.Next.Pt.Y == op2b.Pt.Y && op2b.Next != op2 && op2b.Next != op1) op2b = op2b.Next;
 			if (op2b.Next == op2 || op2b.Next == op1) return false; //a flat 'polygon'
 
-			var Left:CInt, Right:CInt;
+			var Left:CInt = 0, Right:CInt = 0;
 			//Op1 -. Op1b & Op2 -. Op2b are the extremites of the horizontal edges
 			// TODO: out
-			if (!GetOverlap(op1.Pt.X, op1b.Pt.X, op2.Pt.X, op2b.Pt.X, /*out*/ Left, /*out*/ Right)) return false;
+			var outParams = { Left:Left, Right:Right };
+			if (!GetOverlap(op1.Pt.X, op1b.Pt.X, op2.Pt.X, op2b.Pt.X, outParams)) return false;
+			Left = outParams.Left;
+			Right = outParams.Right;
 
 			//DiscardLeftSide: when overlapping edges are joined, a spike will created
 			//which needs to be cleaned up. However, we don't want Op1 or Op2 caught up
@@ -3037,19 +3053,19 @@ class Clipper extends ClipperBase
 			//make sure the polygons are correctly oriented ...
 			op1b = op1.Next;
 			while ((op1b.Pt == op1.Pt) && (op1b != op1)) op1b = op1b.Next;
-			var Reverse1:Bool = ((op1b.Pt.Y > op1.Pt.Y) || !SlopesEqual(op1.Pt, op1b.Pt, j.OffPt, m_UseFullRange));
+			var Reverse1:Bool = ((op1b.Pt.Y > op1.Pt.Y) || !ClipperBase.SlopesEqual3(op1.Pt, op1b.Pt, j.OffPt, m_UseFullRange));
 			if (Reverse1) {
 				op1b = op1.Prev;
 				while ((op1b.Pt == op1.Pt) && (op1b != op1)) op1b = op1b.Prev;
-				if ((op1b.Pt.Y > op1.Pt.Y) || !SlopesEqual(op1.Pt, op1b.Pt, j.OffPt, m_UseFullRange)) return false;
+				if ((op1b.Pt.Y > op1.Pt.Y) || !ClipperBase.SlopesEqual3(op1.Pt, op1b.Pt, j.OffPt, m_UseFullRange)) return false;
 			};
 			op2b = op2.Next;
 			while ((op2b.Pt == op2.Pt) && (op2b != op2)) op2b = op2b.Next;
-			var Reverse2:Bool = ((op2b.Pt.Y > op2.Pt.Y) || !SlopesEqual(op2.Pt, op2b.Pt, j.OffPt, m_UseFullRange));
+			var Reverse2:Bool = ((op2b.Pt.Y > op2.Pt.Y) || !ClipperBase.SlopesEqual3(op2.Pt, op2b.Pt, j.OffPt, m_UseFullRange));
 			if (Reverse2) {
 				op2b = op2.Prev;
 				while ((op2b.Pt == op2.Pt) && (op2b != op2)) op2b = op2b.Prev;
-				if ((op2b.Pt.Y > op2.Pt.Y) || !SlopesEqual(op2.Pt, op2b.Pt, j.OffPt, m_UseFullRange)) return false;
+				if ((op2b.Pt.Y > op2.Pt.Y) || !ClipperBase.SlopesEqual3(op2.Pt, op2b.Pt, j.OffPt, m_UseFullRange)) return false;
 			}
 
 			if ((op1b == op1) || (op2b == op2) || (op1b == op2b) || ((outRec1 == outRec2) && (Reverse1 == Reverse2))) return false;
@@ -3678,7 +3694,8 @@ class ClipperOffset
 
 	/*internal*/ static public function Round(value:Float):CInt {
 		// TODO: check how to cast (this is already defined in Clipper)
-		return value < 0 ? /*(cInt)*/Std.int(value - 0.5) : /*(cInt)*/Std.int(value + 0.5);
+		//return value < 0 ? /*(cInt)*/Std.int(value - 0.5) : /*(cInt)*/Std.int(value + 0.5);
+		return Clipper.Round(value);
 	}
 	//------------------------------------------------------------------------------
 
