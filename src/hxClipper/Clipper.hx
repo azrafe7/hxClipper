@@ -48,8 +48,8 @@
  * 		check capacity
  * 		check switches/break
  * 		check occurrences of IntPoint.equals()
- * 		fix struct vs class issues
- * 
+ * 		fix struct vs class issues (structs are: DoublePoint, Int128, IntPoint, IntRect)
+ * 			replaced structs assignments with clone() or copyFrom()
  * 
  */
 
@@ -463,10 +463,10 @@ enum EndType {
 
 /*internal*/ class TEdge 
 {
-	/*internal*/ public var Bot:IntPoint;
-	/*internal*/ public var Curr:IntPoint;
-	/*internal*/ public var Top:IntPoint;
-	/*internal*/ public var Delta:IntPoint;
+	/*internal*/ public var Bot:IntPoint = new IntPoint();
+	/*internal*/ public var Curr:IntPoint = new IntPoint();
+	/*internal*/ public var Top:IntPoint = new IntPoint();
+	/*internal*/ public var Delta:IntPoint = new IntPoint();
 	/*internal*/ public var Dx:Float;
 	/*internal*/ public var PolyTyp:PolyType;
 	/*internal*/ public var Side:EdgeSide;
@@ -482,12 +482,7 @@ enum EndType {
 	/*internal*/ public var NextInSEL:TEdge;
 	/*internal*/ public var PrevInSEL:TEdge;
 	
-	/*internal*/ public function new() { 
-		Bot = new IntPoint();
-		Curr = new IntPoint();
-		Top = new IntPoint();
-		Delta = new IntPoint();
-	}
+	/*internal*/ public function new() { }
 	
 	public function toString():String {
 		return 'TE(curr:${Curr.toString()}, bot:${Bot.toString()}, top:${Top.toString()}, dx:$Dx)';
@@ -724,18 +719,18 @@ class ClipperBase
 	function InitEdge(e:TEdge, eNext:TEdge, ePrev:TEdge, pt:IntPoint):Void {
 		e.Next = eNext;
 		e.Prev = ePrev;
-		e.Curr = pt;
+		e.Curr.copyFrom(pt);
 		e.OutIdx = Unassigned;
 	}
 	//------------------------------------------------------------------------------
 
 	function InitEdge2(e:TEdge, polyType:PolyType):Void {
 		if (e.Curr.Y >= e.Next.Curr.Y) {
-			e.Bot = e.Curr;
-			e.Top = e.Next.Curr;
+			e.Bot.copyFrom(e.Curr);
+			e.Top.copyFrom(e.Next.Curr);
 		} else {
-			e.Top = e.Curr;
-			e.Bot = e.Next.Curr;
+			e.Top.copyFrom(e.Curr);
+			e.Bot.copyFrom(e.Next.Curr);
 		}
 		SetDx(e);
 		e.PolyTyp = polyType;
@@ -870,7 +865,7 @@ class ClipperBase
 		var IsFlat = true;
 
 		//1. Basic (first) edge initialization ...
-		edges[1].Curr = pg[1];
+		edges[1].Curr.copyFrom(pg[1]);
 		// TODO: check refs
 		RangeTest(pg[0], /*ref*/ m_UseFullRange);
 		RangeTest(pg[highI], /*ref*/ m_UseFullRange);
@@ -1091,13 +1086,13 @@ class ClipperBase
 		while (lm != null) {
 			var e:TEdge = lm.LeftBound;
 			if (e != null) {
-				e.Curr = e.Bot;
+				e.Curr.copyFrom(e.Bot);
 				e.Side = EdgeSide.esLeft;
 				e.OutIdx = Unassigned;
 			}
 			e = lm.RightBound;
 			if (e != null) {
-				e.Curr = e.Bot;
+				e.Curr.copyFrom(e.Bot);
 				e.Side = EdgeSide.esRight;
 				e.OutIdx = Unassigned;
 			}
@@ -1387,7 +1382,7 @@ class Clipper extends ClipperBase
 		var j = new Join();
 		j.OutPt1 = Op1;
 		j.OutPt2 = Op2;
-		j.OffPt = OffPt;
+		j.OffPt.copyFrom(OffPt);
 		m_Joins.push(j);
 	}
 	//------------------------------------------------------------------------------
@@ -1395,7 +1390,7 @@ class Clipper extends ClipperBase
 	function AddGhostJoin(Op:OutPt, OffPt:IntPoint):Void {
 		var j = new Join();
 		j.OutPt1 = Op;
-		j.OffPt = OffPt;
+		j.OffPt.copyFrom(OffPt);
 		m_GhostJoins.push(j);
 	}
 	//------------------------------------------------------------------------------
@@ -1848,7 +1843,7 @@ class Clipper extends ClipperBase
 			var newOp = new OutPt();
 			outRec.Pts = newOp;
 			newOp.Idx = outRec.Idx;
-			newOp.Pt = pt;
+			newOp.Pt.copyFrom(pt);
 			newOp.Next = newOp;
 			newOp.Prev = newOp;
 			if (!outRec.IsOpen) SetHoleState(e, outRec);
@@ -1863,7 +1858,7 @@ class Clipper extends ClipperBase
 
 			var newOp = new OutPt();
 			newOp.Idx = outRec.Idx;
-			newOp.Pt = pt;
+			newOp.Pt.copyFrom(pt);
 			newOp.Next = op;
 			newOp.Prev = op.Prev;
 			newOp.Prev.Next = newOp;
@@ -2312,7 +2307,7 @@ class Clipper extends ClipperBase
 		e.NextInLML.WindCnt = e.WindCnt;
 		e.NextInLML.WindCnt2 = e.WindCnt2;
 		e = e.NextInLML;
-		e.Curr = e.Bot;
+		e.Curr.copyFrom(e.Bot);
 		e.PrevInAEL = AelPrev;
 		e.NextInAEL = AelNext;
 		if (!ClipperBase.IsHorizontal(e)) InsertScanbeam(e.Top.Y);
@@ -2526,7 +2521,7 @@ class Clipper extends ClipperBase
 					var newNode = new IntersectNode();
 					newNode.Edge1 = e;
 					newNode.Edge2 = eNext;
-					newNode.Pt = pt;
+					newNode.Pt.copyFrom(pt);
 					m_IntersectList.push(newNode);
 
 					SwapPositionsInSEL(e, eNext);
@@ -2888,7 +2883,7 @@ class Clipper extends ClipperBase
 
 	function DupOutPt(outPt:OutPt, InsertAfter:Bool):OutPt {
 		var result = new OutPt();
-		result.Pt = outPt.Pt;
+		result.Pt.copyFrom(outPt.Pt);
 		result.Idx = outPt.Idx;
 		if (InsertAfter) {
 			result.Next = outPt.Next;
@@ -2946,7 +2941,7 @@ class Clipper extends ClipperBase
 			op1b = DupOutPt(op1, !DiscardLeft);
 			if (!op1b.Pt.equals(Pt)) {
 				op1 = op1b;
-				op1.Pt = Pt;
+				op1.Pt.copyFrom(Pt);
 				op1b = DupOutPt(op1, !DiscardLeft);
 			}
 		} else {
@@ -2956,7 +2951,7 @@ class Clipper extends ClipperBase
 			op1b = DupOutPt(op1, DiscardLeft);
 			if (!op1b.Pt.equals(Pt)) {
 				op1 = op1b;
-				op1.Pt = Pt;
+				op1.Pt.copyFrom(Pt);
 				op1b = DupOutPt(op1, DiscardLeft);
 			}
 		}
@@ -2968,7 +2963,7 @@ class Clipper extends ClipperBase
 			op2b = DupOutPt(op2, !DiscardLeft);
 			if (!op2b.Pt.equals(Pt)) {
 				op2 = op2b;
-				op2.Pt = Pt;
+				op2.Pt.copyFrom(Pt);
 				op2b = DupOutPt(op2, !DiscardLeft);
 			}
 		} else {
@@ -2978,7 +2973,7 @@ class Clipper extends ClipperBase
 			op2b = DupOutPt(op2, DiscardLeft);
 			if (!op2b.Pt.equals(Pt)) {
 				op2 = op2b;
-				op2.Pt = Pt;
+				op2.Pt.copyFrom(Pt);
 				op2b = DupOutPt(op2, DiscardLeft);
 			}
 		}
@@ -3072,19 +3067,19 @@ class Clipper extends ClipperBase
 			//DiscardLeftSide: when overlapping edges are joined, a spike will created
 			//which needs to be cleaned up. However, we don't want Op1 or Op2 caught up
 			//on the discard Side as either may still be needed for other joins ...
-			var Pt:IntPoint;
+			var Pt:IntPoint = new IntPoint();
 			var DiscardLeftSide:Bool;
 			if (op1.Pt.X >= Left && op1.Pt.X <= Right) {
-				Pt = op1.Pt;
+				Pt.copyFrom(op1.Pt);
 				DiscardLeftSide = (op1.Pt.X > op1b.Pt.X);
 			} else if (op2.Pt.X >= Left && op2.Pt.X <= Right) {
-				Pt = op2.Pt;
+				Pt.copyFrom(op2.Pt);
 				DiscardLeftSide = (op2.Pt.X > op2b.Pt.X);
 			} else if (op1b.Pt.X >= Left && op1b.Pt.X <= Right) {
-				Pt = op1b.Pt;
+				Pt.copyFrom(op1b.Pt);
 				DiscardLeftSide = op1b.Pt.X > op1.Pt.X;
 			} else {
-				Pt = op2b.Pt;
+				Pt.copyFrom(op2b.Pt);
 				DiscardLeftSide = (op2b.Pt.X > op2.Pt.X);
 			}
 			j.OutPt1 = op1;
@@ -3146,10 +3141,11 @@ class Clipper extends ClipperBase
 		//http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.5498&rep=rep1&type=pdf
 		var result:Int = 0, cnt:Int = path.length;
 		if (cnt < 3) return 0;
-		var ip:IntPoint = path[0];
+		var ip:IntPoint = path[0].clone();
 		// TODO: check loop and casts
+		var ipNext:IntPoint = new IntPoint();
 		for (i in 1...cnt + 1) {
-			var ipNext:IntPoint = (i == cnt ? path[0] : path[i]);
+			ipNext.copyFrom((i == cnt ? path[0] : path[i]));
 			if (ipNext.Y == pt.Y) {
 				if ((ipNext.X == pt.X) || (ip.Y == pt.Y && ((ipNext.X > pt.X) == (ip.X < pt.X)))) return -1;
 			}
@@ -3173,7 +3169,7 @@ class Clipper extends ClipperBase
 					}
 				}
 			}
-			ip = ipNext;
+			ip.copyFrom(ipNext);
 		}
 		return result;
 	}
@@ -3534,7 +3530,7 @@ class Clipper extends ClipperBase
 		var outPts = [for (i in 0...cnt) new OutPt()];
 
 		for (i in 0...cnt) {
-			outPts[i].Pt = path[i];
+			outPts[i].Pt.copyFrom(path[i]);
 			outPts[i].Next = outPts[(i + 1) % cnt];
 			outPts[i].Next.Prev = outPts[i];
 			outPts[i].Idx = 0;
@@ -3778,7 +3774,7 @@ class ClipperOffset
 		if (m_lowest.X < 0) m_lowest = new IntPoint(m_polyNodes.ChildCount - 1, k);
 		else {
 			// TODO: casts
-			var ip:IntPoint = m_polyNodes.Childs[Std.int(m_lowest.X)].m_polygon[Std.int(m_lowest.Y)];
+			var ip:IntPoint = m_polyNodes.Childs[Std.int(m_lowest.X)].m_polygon[Std.int(m_lowest.Y)].clone();
 			if (newNode.m_polygon[k].Y > ip.Y || (newNode.m_polygon[k].Y == ip.Y && newNode.m_polygon[k].X < ip.X)) {
 				m_lowest = new IntPoint(m_polyNodes.ChildCount - 1, k);
 			}
@@ -3919,7 +3915,7 @@ class ClipperOffset
 				m_destPolys.push(m_destPoly);
 				m_destPoly = new Path();
 				//re-build m_normals ...
-				var n:DoublePoint = m_normals[len - 1];
+				var n:DoublePoint = m_normals[len - 1].clone();
 				var nj:Int = len - 1;
 				// TODO: check here
 				while (nj > 0) {
