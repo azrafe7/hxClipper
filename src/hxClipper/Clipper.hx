@@ -48,7 +48,7 @@
  * 		check capacity
  * 		check switches/break
  * 		check occurrences of IntPoint.equals()
- * 
+ * 		fix struct vs class issues
  * 
  * 
  */
