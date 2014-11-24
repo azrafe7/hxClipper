@@ -338,7 +338,7 @@ class IntPoint
 	
 	// TODO: casts?
 	static public function fromFloats(x:Float, y:Float, z:Float = 0) {
-		return new IntPoint(Std.int(x), Std.int(z), Std.int(z));
+		return new IntPoint(Std.int(x), Std.int(y), Std.int(z));
 	}
 
 	static public function fromDoublePoint(dp:DoublePoint) {
@@ -498,7 +498,7 @@ class IntersectNode
 {
 	/*internal*/ public var Edge1:TEdge;
 	/*internal*/ public var Edge2:TEdge;
-	/*internal*/ public var Pt:IntPoint;
+	/*internal*/ public var Pt:IntPoint = new IntPoint();
 	
 	/*internal*/ public function new() { }
 }
@@ -547,7 +547,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 /*internal*/ class OutPt 
 {
 	/*internal*/ public var Idx:Int;
-	/*internal*/ public var Pt:IntPoint;
+	/*internal*/ public var Pt:IntPoint = new IntPoint();
 	/*internal*/ public var Next:OutPt;
 	/*internal*/ public var Prev:OutPt;
 	
@@ -558,7 +558,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 {
 	/*internal*/ public var OutPt1:OutPt;
 	/*internal*/ public var OutPt2:OutPt;
-	/*internal*/ public var OffPt:IntPoint;
+	/*internal*/ public var OffPt:IntPoint = new IntPoint();
 	
 	/*internal*/ public function new() { }
 }
@@ -927,8 +927,7 @@ class ClipperBase
 			InitEdge2(E, polyType);
 			E = E.Next;
 			if (IsFlat && E.Curr.Y != eStart.Curr.Y) IsFlat = false;
-		}
-		while (E != eStart);
+		} while (E != eStart);
 
 		//4. Finally, add edge bounds to LocalMinima list ...
 
@@ -1333,7 +1332,6 @@ class Clipper extends ClipperBase
 				if (m_Scanbeam == null) break;
 				var topY:CInt = PopScanbeam();
 				if (!ProcessIntersections(topY)) return false;
-				m_ActiveEdges.traceEdges();
 				ProcessEdgesAtTopOfScanbeam(topY);
 				botY = topY;
 			} while (m_Scanbeam != null || m_CurrentLM != null);
@@ -2300,8 +2298,8 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	// TODO: ref
-	function UpdateEdgeIntoAEL(/*ref*/ e:TEdge):Void {
+	// TODO: ref (updated to return the modified edge)
+	function UpdateEdgeIntoAEL(/*ref*/ e:TEdge):TEdge {
 		if (e.NextInLML == null) throw new ClipperException("UpdateEdgeIntoAEL: invalid call");
 		var AelPrev:TEdge = e.PrevInAEL;
 		var AelNext:TEdge = e.NextInAEL;
@@ -2318,6 +2316,7 @@ class Clipper extends ClipperBase
 		e.PrevInAEL = AelPrev;
 		e.NextInAEL = AelNext;
 		if (!ClipperBase.IsHorizontal(e)) InsertScanbeam(e.Top.Y);
+		return e;
 	}
 	//------------------------------------------------------------------------------
 
@@ -2409,7 +2408,7 @@ class Clipper extends ClipperBase
 
 			if (horzEdge.NextInLML != null && ClipperBase.IsHorizontal(horzEdge.NextInLML)) {
 				// TODO: ref
-				UpdateEdgeIntoAEL(/*ref*/ horzEdge);
+				horzEdge = UpdateEdgeIntoAEL(/*ref*/ horzEdge);
 				if (horzEdge.OutIdx >= 0) AddOutPt(horzEdge, horzEdge.Bot);
 				// TODO: out
 				GetHorzDirection(horzEdge, outParams);
@@ -2425,7 +2424,7 @@ class Clipper extends ClipperBase
 				if (isTopOfScanbeam) AddGhostJoin(op1, horzEdge.Bot);
 
 				// TODO: ref
-				UpdateEdgeIntoAEL(/*ref*/ horzEdge);
+				horzEdge = UpdateEdgeIntoAEL(/*ref*/ horzEdge);
 				if (horzEdge.WindDelta == 0) return;
 				//nb: HorzEdge is no longer horizontal here
 				var ePrev:TEdge = horzEdge.PrevInAEL;
@@ -2442,7 +2441,7 @@ class Clipper extends ClipperBase
 					AddJoin(op1, op2, horzEdge.Top);
 				}
 				// TODO: ref
-			} else UpdateEdgeIntoAEL(/*ref*/ horzEdge);
+			} else horzEdge = UpdateEdgeIntoAEL(/*ref*/ horzEdge);
 		} else {
 			if (horzEdge.OutIdx >= 0) AddOutPt(horzEdge, horzEdge.Top);
 			DeleteFromAEL(horzEdge);
@@ -2677,7 +2676,7 @@ class Clipper extends ClipperBase
 				//2. promote horizontal edges, otherwise update Curr.X and Curr.Y ...
 				if (IsIntermediate(e, topY) && ClipperBase.IsHorizontal(e.NextInLML)) {
 					// TODO: ref
-					UpdateEdgeIntoAEL(/*ref*/ e);
+					e = UpdateEdgeIntoAEL(/*ref*/ e);
 					if (e.OutIdx >= 0) AddOutPt(e, e.Bot);
 					AddEdgeToSEL(e);
 				} else {
@@ -2715,7 +2714,7 @@ class Clipper extends ClipperBase
 				var op:OutPt = null;
 				if (e.OutIdx >= 0) op = AddOutPt(e, e.Top);
 				// TODO: ref
-				UpdateEdgeIntoAEL(/*ref*/ e);
+				e = UpdateEdgeIntoAEL(/*ref*/ e);
 
 				//if output polygons share an edge, they'll need joining later ...
 				var ePrev:TEdge = e.PrevInAEL;
@@ -3231,8 +3230,7 @@ class Clipper extends ClipperBase
 			var res:Int = PointInOutPt(op.Pt, outPt2);
 			if (res >= 0) return res > 0;
 			op = op.Next;
-		}
-		while (op != outPt1);
+		} while (op != outPt1);
 		return true;
 	}
 	//----------------------------------------------------------------------
@@ -3909,14 +3907,14 @@ class ClipperOffset
 				var k:Int = len - 1;
 				for (j in 0...len) {
 					// TODO: ref
-					OffsetPoint(j, /*ref*/ k, node.m_jointype);
+					k = OffsetPoint(j, /*ref*/ k, node.m_jointype);
 				}
 				m_destPolys.push(m_destPoly);
 			} else if (node.m_endtype == EndType.etClosedLine) {
 				var k:Int = len - 1;
 				for (j in 0...len) {
 					// TODO: ref
-					OffsetPoint(j, /*ref*/ k, node.m_jointype);
+					k = OffsetPoint(j, /*ref*/ k, node.m_jointype);
 				}
 				m_destPolys.push(m_destPoly);
 				m_destPoly = new Path();
@@ -3934,7 +3932,7 @@ class ClipperOffset
 				nj = len - 1;
 				while (nj >= 0) {
 					// TODO: ref
-					OffsetPoint(nj, /*ref*/ k, node.m_jointype);
+					k = OffsetPoint(nj, /*ref*/ k, node.m_jointype);
 					nj--;
 				}
 				m_destPolys.push(m_destPoly);
@@ -3942,7 +3940,7 @@ class ClipperOffset
 				var k:Int = 0;
 				for (j in 1...len - 1) {
 					// TODO: ref
-					OffsetPoint(j, /*ref*/ k, node.m_jointype);
+					k = OffsetPoint(j, /*ref*/ k, node.m_jointype);
 				}
 
 				var pt1:IntPoint;
@@ -3976,7 +3974,7 @@ class ClipperOffset
 				nj = k - 1;
 				while (nj > 0) {
 					// TODO: ref
-					OffsetPoint(nj, /*ref*/ k, node.m_jointype);
+					k = OffsetPoint(nj, /*ref*/ k, node.m_jointype);
 					nj--;
 				}
 
@@ -4062,8 +4060,8 @@ class ClipperOffset
 	}
 	//------------------------------------------------------------------------------
 
-	// TODO: ref
-	function OffsetPoint(j:Int, /*ref*/ k:Int, jointype:JoinType):Void {
+	// TODO: ref (updated to return the modified k)
+	function OffsetPoint(j:Int, /*ref*/ k:Int, jointype:JoinType):Int {
 		//cross product ...
 		m_sinA = (m_normals[k].X * m_normals[j].Y - m_normals[j].X * m_normals[k].Y);
 
@@ -4073,7 +4071,7 @@ class ClipperOffset
 			if (cosA > 0) // angle ==> 0 degrees
 			{
 				m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta), Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta)));
-				return;
+				return k;
 			}
 			//else angle ==> 180 degrees   
 		} else if (m_sinA > 1.0) m_sinA = 1.0;
@@ -4096,6 +4094,7 @@ class ClipperOffset
 				DoRound(j, k);
 		}
 		k = j;
+		return k;
 	}
 	//------------------------------------------------------------------------------
 
