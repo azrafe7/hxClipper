@@ -12,6 +12,8 @@ import haxe.Timer;
 
 import hxClipper.Clipper;
 
+using hxClipper.Clipper.InternalTools;
+
 
 class ClipperDemo extends Sprite {
 
@@ -44,8 +46,89 @@ class ClipperDemo extends Sprite {
 		for( polygon in resultPolygons )
 			drawPolygon(polygon);
 		graphics.endFill();
+		
+		testUnion2();
+		//testJoins4();
 	}
 	
+	function testUnion2():Void {
+		var pft = pftEvenOdd;
+		
+		var ints:Array<Array<CInt>> = [[0, 10, 20, 10, 20, 20, 10, 2],
+			[0, 10, 30, 10, 30, 20, 20, 2],
+			[0, 10, 40, 10, 40, 20, 30, 2],
+			[0, 10, 50, 10, 50, 20, 40, 2],
+			[0, 10, 60, 10, 60, 20, 50, 2],
+			[0, 20, 20, 20, 20, 30, 10, 3],
+			[0, 20, 40, 20, 40, 30, 30, 3],
+			[0, 30, 20, 30, 20, 40, 10, 4],
+			[0, 30, 30, 30, 30, 40, 20, 4],
+			[0, 30, 40, 30, 40, 40, 30, 4],
+			[0, 30, 50, 30, 50, 40, 40, 4]];
+
+		var subj:Paths = [];
+		for (i in 0...11)
+			subj.push(Tests.MakePolygonFromInts(ints[i], 12));
+		var c = new Clipper();
+		c.AddPaths(subj, ptSubject, true);
+
+		var solution:Paths = [];
+		var res = c.ExecutePaths(ctUnion, solution, pft, pft);
+		res = res && (solution.length == 2);
+		trace(solution.length);
+		
+		graphics.clear();
+		
+		graphics.lineStyle(1, 0xFF0000, 0.75);
+		for (polygon in subj) {
+			drawPolygon(polygon);
+		}
+		
+		//graphics.lineStyle(1, 0x00FF00, 0.75);
+		graphics.beginFill(0x00FF00, 0.5);
+		for (polygon in solution)
+			drawPolygon(polygon);
+		graphics.endFill();
+		
+    } 
+	
+	function testJoins4():Void {
+		var pft = pftEvenOdd;    
+		var ints:Array<CInt> = [
+			1172, 318, 337, 1066, 154, 639, 479, 448, 1197, 545, 1041, 773, 30, 888,
+			444, 308, 1051, 552, 1109, 102, 658, 683, 394, 596, 972, 1145, 442, 179,
+			470, 441, 227, 564, 1179, 1037, 213, 379, 1072, 872, 587, 171, 723, 329,
+			272, 242, 952, 1121, 714, 1148, 91, 217, 735, 561, 903, 1009, 664, 1168,
+			1160, 847, 9, 7, 619, 142, 1139, 1116, 1134, 369, 760, 647, 372, 134,
+			1106, 183, 311, 103, 265, 185, 1062, 856, 453, 944, 44, 653, 766, 527,
+			334, 965, 443, 971, 474, 36, 397, 1138, 901, 841, 775, 612, 222, 465,
+			148, 955, 417, 540, 997, 472, 666, 802, 754, 32, 907, 638, 927, 42, 990,
+			406, 99, 682, 17, 281, 106, 848];
+			
+		var subj = Tests.MakeDiamondPolygons(20, 600, 400);
+		for (i in 0...120) subj[ints[i]].clear();
+		var c = new Clipper();
+		c.AddPaths(subj, ptSubject, true);
+		var solution = [];
+		var res = c.ExecutePaths(ctUnion, solution, pft, pft);
+
+		trace(solution.length);
+		
+		graphics.clear();
+		
+		graphics.lineStyle(1, 0xFF0000, 0.75);
+		for (polygon in subj) {
+			drawPolygon(polygon);
+		}
+		
+		//graphics.lineStyle(1, 0x00FF00, 0.75);
+		graphics.beginFill(0x00FF00, 0.5);
+		for (polygon in solution)
+			drawPolygon(polygon);
+		graphics.endFill();
+		
+    }
+
 	public function drawPolygon( polygon: Array<IntPoint> )
 	{
 		var n: Int = polygon.length;
@@ -61,6 +144,8 @@ class ClipperDemo extends Sprite {
 	
 	public function new() {
 		super();
+		
+		Tests.run();
 		
 		// click/drag
 		Lib.current.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);

@@ -11,7 +11,8 @@
 	
 	<source path="src" />
 	<source path="../../src" />
-	<haxeflag name="-D" value="use_int32" />
+	<haxeflag name="-D" value="USE_INT32" />
+	<haxeflag name="-D" value="USE_LINES" />
 	<haxeflag name="-D" value="swf-script-timeout=60" />
 	<!--haxeflag name="-D" value="next" /-->
 	<!--haxeflag name="--no-traces" if="release" /-->

@@ -50,6 +50,7 @@
  * 		check occurrences of IntPoint.equals()
  * 		fix struct vs class issues (structs are: DoublePoint, Int128, IntPoint, IntRect)
  * 			replaced structs assignments with clone() or copyFrom()
+ * 		EitherType for Paths and PolyTree in Execute() (instead of Dynamic and Std.is())?
  * 
  */
 
@@ -67,15 +68,15 @@ using haxe.Int64;
 using hxClipper.Clipper.Int128;
 using hxClipper.Clipper.InternalTools;
 
-//use_int32: When enabled 32bit ints are used instead of 64bit ints. This
+//USE_INT32: When enabled 32bit ints are used instead of 64bit ints. This
 //improve performance but coordinate values are limited to the range +/- 46340
-//#define use_int32
+//#define USE_INT32
 
-//use_xyz: adds a Z member to IntPoint. Adds a minor cost to performance.
-//#define use_xyz
+//USE_XYZ: adds a Z member to IntPoint. Adds a minor cost to performance.
+//#define USE_XYZ
 
-//use_lines: Enables open path clipping. Adds a very minor cost to performance.
-//#define use_lines
+//USE_LINES: Enables open path clipping. Adds a very minor cost to performance.
+//#define USE_LINES
 
 
 
@@ -84,7 +85,7 @@ using hxClipper.Clipper.InternalTools;
 //using System.Windows.Forms; //debugging to clipboard
 
 
-#if use_int32
+#if USE_INT32
 typedef CInt = Int;
 #else
 typedef CInt = Int64;
@@ -313,7 +314,7 @@ class IntPoint
 {
 	public var X:CInt;
 	public var Y:CInt;
-#if use_xyz 
+#if USE_XYZ 
 	public var Z:CInt;
 
 	public function new(x:CInt = 0, y:CInt = 0, z:CInt = 0) {
@@ -571,7 +572,7 @@ class ClipperBase
 		return (val > -tolerance) && (val < tolerance);
 	}
 
-#if use_int32 
+#if USE_INT32 
 	inline static public var loRange:CInt = 0x7FFF;
 	inline static public var hiRange:CInt = 0x7FFF;
 #else 
@@ -616,7 +617,7 @@ class ClipperBase
 	//------------------------------------------------------------------------------
 
 	/*internal*/ public function PointOnLineSegment(pt:IntPoint, linePt1:IntPoint, linePt2:IntPoint, UseFullRange:Bool):Bool {
-	#if !use_int32
+	#if !USE_INT32
 		if (UseFullRange) return ((pt.X == linePt1.X) && (pt.Y == linePt1.Y)) || ((pt.X == linePt2.X) && (pt.Y == linePt2.Y)) 
 								 || (((pt.X > linePt1.X) == (pt.X < linePt2.X)) && ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) 
 								 && ((Int128.Int128Mul((pt.X - linePt1.X), (linePt2.Y - linePt1.Y)) == Int128.Int128Mul((linePt2.X - linePt1.X), (pt.Y - linePt1.Y)))));
@@ -642,7 +643,7 @@ class ClipperBase
 
 	/* TODO: fix these Int128*/
 	/*internal*/ static public function SlopesEqual(e1:TEdge, e2:TEdge, UseFullRange:Bool):Bool {
-	#if !use_int32	
+	#if !USE_INT32	
 		if (UseFullRange) return Int128.mul(e1.Delta.Y, e2.Delta.X) == Int128.mul(e1.Delta.X, e2.Delta.Y);
 		else
 	#else 
@@ -652,7 +653,7 @@ class ClipperBase
 	//------------------------------------------------------------------------------
 
 	/*protected*/ static function SlopesEqual3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, UseFullRange:Bool):Bool {
-	#if !use_int32	
+	#if !USE_INT32	
 		if (UseFullRange) return Int128.Int128Mul(pt1.Y - pt2.Y, pt2.X - pt3.X) == Int128.Int128Mul(pt1.X - pt2.X, pt2.Y - pt3.Y);
 		else 
 	#else
@@ -662,7 +663,7 @@ class ClipperBase
 	//------------------------------------------------------------------------------
 
 	/*protected*/ static function SlopesEqual4(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, pt4:IntPoint, UseFullRange:Bool):Bool {
-	#if !use_int32	
+	#if !USE_INT32	
 		if (UseFullRange) return Int128.Int128Mul(pt1.Y - pt2.Y, pt3.X - pt4.X) == Int128.Int128Mul(pt1.X - pt2.X, pt3.Y - pt4.Y);
 		else 
 	#else
@@ -847,10 +848,10 @@ class ClipperBase
 
 
 	public function AddPath(pg:Path, polyType:PolyType, Closed:Bool):Bool {
-	#if use_lines
+	#if USE_LINES
 		if (!Closed && polyType == PolyType.ptClip) throw new ClipperException("AddPath: Open paths must be subject.");
 	#else 
-		if (!Closed) throw new ClipperException("AddPath: Open paths have been disabled.");
+		if (!Closed) throw new ClipperException("AddPath: Open paths have been disabled (define USE_LINES to enable them).");
 	#end
 		//TODO: why the cast
 		var highI = /*(int)*/ pg.length - 1;
@@ -1000,10 +1001,12 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	// TODO: I've changed the logic here to break and report false whenever an AddPath fails
 	public function AddPaths(ppg:Paths, polyType:PolyType, closed:Bool):Bool {
 		var result = false;
 		for (i in 0...ppg.length) {
-			if (AddPath(ppg[i], polyType, closed)) result = true;
+			result = AddPath(ppg[i], polyType, closed);
+			if (!result) break;
 		}
 		return result;
 	}
@@ -1069,7 +1072,7 @@ class ClipperBase
 		var tmp = e.Top.X;
 		e.Top.X = e.Bot.X;
 		e.Bot.X = tmp;
-	#if use_xyz 
+	#if USE_XYZ 
 		var tmp = e.Top.Z;
 		e.Top.Z = e.Bot.Z;
 		e.Bot.Z = tmp;
@@ -1148,7 +1151,7 @@ class Clipper extends ClipperBase
 	var m_Joins:Array<Join>;
 	var m_GhostJoins:Array<Join>;
 	var m_UsingPolyTree:Bool;
-#if use_xyz 
+#if USE_XYZ 
 	// TODO: ref here
 	public delegate void ZFillCallback(bot1:IntPoint, top1:IntPoint, bot2:IntPoint, top2:IntPoint, /*ref*/ pt:IntPoint);
 	public ZFillCallback ZFillFunction {
@@ -1172,7 +1175,7 @@ class Clipper extends ClipperBase
 		ReverseSolution = (ioReverseSolution & InitOptions) != 0;
 		StrictlySimple = (ioStrictlySimple & InitOptions) != 0;
 		PreserveCollinear = (ioPreserveCollinear & InitOptions) != 0;
-	#if use_xyz 
+	#if USE_XYZ 
 		ZFillFunction = null;
 	#end
 	}
@@ -1395,7 +1398,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-#if use_xyz 
+#if USE_XYZ 
 	// TODO: ref?
 	/*internal*/ public function SetZ(/*ref*/ pt:IntPoint, e1:TEdge, e2:TEdge):Void {
 		if (pt.Z != 0 || ZFillFunction == null) return;
@@ -2116,11 +2119,11 @@ class Clipper extends ClipperBase
 		var e2Contributing = (e2.OutIdx >= 0);
 
 		// TODO: ref
-	#if use_xyz 
+	#if USE_XYZ 
 		SetZ(/*ref*/ pt, e1, e2);
 	#end
 
-	#if use_lines
+	#if USE_LINES
 		//if either edge is on an OPEN path ...
 		if (e1.WindDelta == 0 || e2.WindDelta == 0) {
 			//ignore subject-subject open path intersections UNLESS they
@@ -2131,21 +2134,21 @@ class Clipper extends ClipperBase
 				if (e1.WindDelta == 0) {
 					if (e2Contributing) {
 						AddOutPt(e1, pt);
-						if (e1Contributing) e1.OutIdx = Unassigned;
+						if (e1Contributing) e1.OutIdx = ClipperBase.Unassigned;
 					}
 				} else {
 					if (e1Contributing) {
 						AddOutPt(e2, pt);
-						if (e2Contributing) e2.OutIdx = Unassigned;
+						if (e2Contributing) e2.OutIdx = ClipperBase.Unassigned;
 					}
 				}
 			} else if (e1.PolyTyp != e2.PolyTyp) {
-				if ((e1.WindDelta == 0) && Math.Abs(e2.WindCnt) == 1 && (m_ClipType != ClipType.ctUnion || e2.WindCnt2 == 0)) {
+				if ((e1.WindDelta == 0) && Math.abs(e2.WindCnt) == 1 && (m_ClipType != ClipType.ctUnion || e2.WindCnt2 == 0)) {
 					AddOutPt(e1, pt);
-					if (e1Contributing) e1.OutIdx = Unassigned;
-				} else if ((e2.WindDelta == 0) && (Math.Abs(e1.WindCnt) == 1) && (m_ClipType != ClipType.ctUnion || e1.WindCnt2 == 0)) {
+					if (e1Contributing) e1.OutIdx = ClipperBase.Unassigned;
+				} else if ((e2.WindDelta == 0) && (Math.abs(e1.WindCnt) == 1) && (m_ClipType != ClipType.ctUnion || e1.WindCnt2 == 0)) {
 					AddOutPt(e2, pt);
-					if (e2Contributing) e2.OutIdx = Unassigned;
+					if (e2Contributing) e2.OutIdx = ClipperBase.Unassigned;
 				}
 			}
 			return;
@@ -2686,7 +2689,7 @@ class Clipper extends ClipperBase
 					{
 						// TODO: I foresee a compiler error here
 						var ip = e.Curr.clone();
-					#if use_xyz 
+					#if USE_XYZ 
 						SetZ(ref ip, ePrev, e);
 					#end 
 						var op:OutPt = AddOutPt(ePrev, ip);
@@ -2754,17 +2757,17 @@ class Clipper extends ClipperBase
 			DeleteFromAEL(e);
 			DeleteFromAEL(eMaxPair);
 		}
-	#if use_lines
+	#if USE_LINES
 		else if (e.WindDelta == 0) {
 			if (e.OutIdx >= 0) {
 				AddOutPt(e, e.Top);
-				e.OutIdx = Unassigned;
+				e.OutIdx = ClipperBase.Unassigned;
 			}
 			DeleteFromAEL(e);
 
 			if (eMaxPair.OutIdx >= 0) {
 				AddOutPt(eMaxPair, e.Top);
-				eMaxPair.OutIdx = Unassigned;
+				eMaxPair.OutIdx = ClipperBase.Unassigned;
 			}
 			DeleteFromAEL(eMaxPair);
 		}
@@ -3706,7 +3709,7 @@ class ClipperOffset
 	var m_miterLim:Float;
 	var m_StepsPerRad:Float;
 
-	var m_lowest:IntPoint;
+	var m_lowest:IntPoint = new IntPoint();
 	var m_polyNodes:PolyNode = new PolyNode();
 
 	// TODO: prop?
