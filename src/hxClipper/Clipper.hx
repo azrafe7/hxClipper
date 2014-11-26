@@ -31,13 +31,6 @@
 *                                                                              *
 *******************************************************************************/
 
-/*******************************************************************************
-*                                                                              *
-* This is a translation of the Delphi Clipper library and the naming style     *
-* used has retained a Delphi flavour.                                          *
-*                                                                              *
-*******************************************************************************/
-
 
 /*
  * CS -> HX notes:
@@ -51,7 +44,7 @@
  * 		fix struct vs class issues (structs are: DoublePoint, Int128, IntPoint, IntRect)
  * 			replaced structs assignments with clone() or copyFrom()
  * 		EitherType for Paths and PolyTree in Execute() (instead of Dynamic and Std.is())?
- * 
+ * 		adjust to haxe naming style conventions
  */
 
 package hxClipper;
@@ -96,16 +89,16 @@ typedef Paths = Array<Array<IntPoint>>;
 
 class DoublePoint 
 {
-	public var X:Float;
-	public var Y:Float;
+	public var x:Float;
+	public var y:Float;
 
 	public function new(x:Float = 0, y:Float = 0) {
-		this.X = x;
-		this.Y = y;
+		this.x = x;
+		this.y = y;
 	}
 	
 	public function clone() {
-		return new DoublePoint(this.X, this.Y);
+		return new DoublePoint(this.x, this.y);
 	}
 	
 	static public function fromDoublePoint(dp:DoublePoint) {
@@ -113,11 +106,11 @@ class DoublePoint
 	}
 	
 	static public function fromIntPoint(ip:IntPoint) {
-		return new DoublePoint(ip.X, ip.Y);
+		return new DoublePoint(ip.x, ip.y);
 	}
 	
 	public function toString():String {
-		return '(x:$X, y:$Y)';
+		return '(x:$x, y:$y)';
 	}
 }
 
@@ -128,29 +121,29 @@ class DoublePoint
 
 class PolyTree extends PolyNode 
 {
-	/*internal*/ public var m_AllPolys:Array<PolyNode> = new Array<PolyNode>();
+	/*internal*/ public var mAllPolys:Array<PolyNode> = new Array<PolyNode>();
 
 	//The GC probably handles this cleanup more efficiently ...
 	//~PolyTree(){Clear();}
 
-	public function Clear():Void {
-		for (i in 0...m_AllPolys.length) {
-			m_AllPolys[i] = null;
+	public function clear():Void {
+		for (i in 0...mAllPolys.length) {
+			mAllPolys[i] = null;
 		}
-		m_AllPolys.clear();
-		m_Childs.clear();
+		mAllPolys.clear();
+		mChildren.clear();
 	}
 
-	public function GetFirst():PolyNode {
-		if (m_Childs.length > 0) return m_Childs[0];
+	public function getFirst():PolyNode {
+		if (mChildren.length > 0) return mChildren[0];
 		else return null;
 	}
 
-	public var Total(get, never):Int;
-	function get_Total():Int {
-		var result = m_AllPolys.length;
+	public var total(get, never):Int;
+	function get_total():Int {
+		var result = mAllPolys.length;
 		//with negative offsets, ignore the hidden outer polygon ...
-		if (result > 0 && m_Childs[0] != m_AllPolys[0]) result--;
+		if (result > 0 && mChildren[0] != mAllPolys[0]) result--;
 		return result;
 	}
 
@@ -158,68 +151,68 @@ class PolyTree extends PolyNode
 
 class PolyNode 
 {
-	/*internal*/ public var m_Parent:PolyNode;
-	/*internal*/ public var m_polygon:Path = new Path();
-	/*internal*/ public var m_Index:Int;
-	/*internal*/ public var m_jointype:JoinType;
-	/*internal*/ public var m_endtype:EndType;
-	/*internal*/ public var m_Childs:Array<PolyNode> = new Array<PolyNode>();
+	/*internal*/ public var mParent:PolyNode;
+	/*internal*/ public var mPolygon:Path = new Path();
+	/*internal*/ public var mIndex:Int;
+	/*internal*/ public var mJoinType:JoinType;
+	/*internal*/ public var mEndtype:EndType;
+	/*internal*/ public var mChildren:Array<PolyNode> = new Array<PolyNode>();
 
-	function IsHoleNode():Bool {
+	function isHoleNode():Bool {
 		var result = true;
-		var node:PolyNode = m_Parent;
+		var node:PolyNode = mParent;
 		while (node != null) {
 			result = !result;
-			node = node.m_Parent;
+			node = node.mParent;
 		}
 		return result;
 	}
 
-	public var ChildCount(get, never):Int;
-	function get_ChildCount():Int {
-		return m_Childs.length;
+	public var numChildren(get, never):Int;
+	function get_numChildren():Int {
+		return mChildren.length;
 	}
 
-	public var Contour(get, never):Path;
-	function get_Contour():Path {
-		return m_polygon;
+	public var contour(get, never):Path;
+	function get_contour():Path {
+		return mPolygon;
 	}
 
-	/*internal*/ public function AddChild(Child:PolyNode):Void {
-		var cnt = m_Childs.length;
-		m_Childs.push(Child);
-		Child.m_Parent = this;
-		Child.m_Index = cnt;
+	/*internal*/ public function addChild(child:PolyNode):Void {
+		var cnt = mChildren.length;
+		mChildren.push(child);
+		child.mParent = this;
+		child.mIndex = cnt;
 	}
 
-	public function GetNext():PolyNode {
-		if (m_Childs.length > 0) return m_Childs[0];
-		else return GetNextSiblingUp();
+	public function getNext():PolyNode {
+		if (mChildren.length > 0) return mChildren[0];
+		else return getNextSiblingUp();
 	}
 
-	/*internal*/ public function GetNextSiblingUp():PolyNode {
-		if (m_Parent == null) return null;
-		else if (m_Index == m_Parent.m_Childs.length - 1) return m_Parent.GetNextSiblingUp();
-		else return m_Parent.m_Childs[m_Index + 1];
+	/*internal*/ public function getNextSiblingUp():PolyNode {
+		if (mParent == null) return null;
+		else if (mIndex == mParent.mChildren.length - 1) return mParent.getNextSiblingUp();
+		else return mParent.mChildren[mIndex + 1];
 	}
 
-	public var Childs(get, never):Array<PolyNode>;
-	function get_Childs():Array<PolyNode> {
-		return m_Childs;
+	public var children(get, never):Array<PolyNode>;
+	function get_children():Array<PolyNode> {
+		return mChildren;
 	}
 
-	public var Parent(get, null):PolyNode;
-	public function get_Parent():PolyNode {
-		return m_Parent;
+	public var parent(get, null):PolyNode;
+	public function get_parent():PolyNode {
+		return mParent;
 	}
 
-	public var IsHole(get, never):Bool;
-	function get_IsHole():Bool {
-		return IsHoleNode();
+	public var isHole(get, never):Bool;
+	function get_isHole():Bool {
+		return isHoleNode();
 	}
 
 	/*TODO: check why of this property*/
-	public var IsOpen(default, default):Bool;
+	public var isOpen(default, default):Bool;
 }
 
 
@@ -244,7 +237,7 @@ class PolyNode
 		this.hi = hi;
 	}
 
-	public function IsNeg():Bool {
+	public function isNeg():Bool {
 		return hi.compare(zero64) < 0;
 	}
 
@@ -312,29 +305,29 @@ class PolyNode
 
 class IntPoint 
 {
-	public var X:CInt;
-	public var Y:CInt;
+	public var x:CInt;
+	public var y:CInt;
 #if USE_XYZ 
-	public var Z:CInt;
+	public var z:CInt;
 
 	public function new(x:CInt = 0, y:CInt = 0, z:CInt = 0) {
-		this.X = x;
-		this.Y = y;
-		this.Z = z;
+		this.x = x;
+		this.y = y;
+		this.z = z;
 	}
 
 	public function clone() {
-		return new IntPoint(this.X, this.Y, this.Z);
+		return new IntPoint(this.x, this.y, this.z);
 	}
 	
 	public function copyFrom(ip:IntPoint):Void {
-		this.X = ip.X;
-		this.Y = ip.Y;
-		this.Z = ip.Z;
+		this.x = ip.x;
+		this.y = ip.y;
+		this.z = ip.z;
 	}
 	
 	public function toString():String {
-		return '(x:$X, y:$Y, z:$Z)';
+		return '(x:$x, y:$y, z:$z)';
 	}
 	
 	// TODO: casts?
@@ -343,7 +336,7 @@ class IntPoint
 	}
 
 	static public function fromDoublePoint(dp:DoublePoint) {
-		return fromFloats(dp.X, dp.Y, 0);
+		return fromFloats(dp.x, dp.y, 0);
 	}
 
 	static public function fromIntPoint(pt:IntPoint) {
@@ -351,21 +344,21 @@ class IntPoint
 	}
 #else 
 	public function new(x:CInt = 0, y:CInt = 0) {
-		this.X = x;
-		this.Y = y;
+		this.x = x;
+		this.y = y;
 	}
 
 	public function clone() {
-		return new IntPoint(this.X, this.Y);
+		return new IntPoint(this.x, this.y);
 	}
 	
 	public function toString():String {
-		return '(x:$X, y:$Y)';
+		return '(x:$x, y:$y)';
 	}
 	
 	public function copyFrom(ip:IntPoint):Void {
-		this.X = ip.X;
-		this.Y = ip.Y;
+		this.x = ip.x;
+		this.y = ip.y;
 	}
 	
 	static public function fromFloats(x:Float, y:Float) {
@@ -373,7 +366,7 @@ class IntPoint
 	}
 
 	static public function fromDoublePoint(dp:DoublePoint) {
-		return fromFloats(dp.X, dp.Y);
+		return fromFloats(dp.x, dp.y);
 	}
 
 	static public function fromIntPoint(pt:IntPoint) {
@@ -382,7 +375,7 @@ class IntPoint
 #end
 
 	public function equals(ip:IntPoint):Bool {
-		return this.X == ip.X && this.Y == ip.Y;
+		return this.x == ip.x && this.y == ip.y;
 	}
 	
 	/* TODO: removed IntPoint ops
@@ -429,11 +422,15 @@ class IntRect
 }
 
 enum ClipType {
-	ctIntersection; ctUnion; ctDifference; ctXor;
+	CT_INTERSECTION; 
+	CT_UNION; 
+	CT_DIFFERENCE; 
+	CT_XOR;
 }
 
 enum PolyType {
-	ptSubject; ptClip;
+	PT_SUBJECT; 
+	PT_CLIP;
 }
 
 //By far the most widely used winding rules for polygon filling are
@@ -441,60 +438,74 @@ enum PolyType {
 //Others rules include Positive, Negative and ABS_GTR_EQ_TWO (only in OpenGL)
 //see http://glprogramming.com/red/chapter11.html
 enum PolyFillType {
-	pftEvenOdd; pftNonZero; pftPositive; pftNegative;
+	PFT_EVEN_ODD; 
+	PFT_NON_ZERO; 
+	PFT_POSITIVE; 
+	PFT_NEGATIVE;
 }
 
 enum JoinType {
-	jtSquare; jtRound; jtMiter;
+	JT_SQUARE; 
+	JT_ROUND; 
+	JT_MITER;
 }
+
 enum EndType {
-	etClosedPolygon; etClosedLine; etOpenButt; etOpenSquare; etOpenRound;
+	ET_CLOSED_POLYGON; 
+	ET_CLOSED_LINE; 
+	ET_OPEN_BUTT; 
+	ET_OPEN_SQUARE; 
+	ET_OPEN_ROUND;
 }
 
 /*internal*/ enum EdgeSide {
-	esLeft; esRight;
+	ES_LEFT; 
+	ES_RIGHT;
 }
 /*internal*/ enum Direction {
-	dRightToLeft; dLeftToRight;
+	D_RIGHT_TO_LEFT; 
+	D_LEFT_TO_RIGHT;
 }
 
 /*internal*/ enum NodeType {
-	ntAny; ntOpen; ntClosed;
+	NT_ANY; 
+	NT_OPEN; 
+	NT_CLOSED;
 }
 
 /*internal*/ class TEdge 
 {
-	/*internal*/ public var Bot:IntPoint = new IntPoint();
-	/*internal*/ public var Curr:IntPoint = new IntPoint();
-	/*internal*/ public var Top:IntPoint = new IntPoint();
-	/*internal*/ public var Delta:IntPoint = new IntPoint();
-	/*internal*/ public var Dx:Float;
-	/*internal*/ public var PolyTyp:PolyType;
-	/*internal*/ public var Side:EdgeSide;
-	/*internal*/ public var WindDelta:Int; //1 or -1 depending on winding direction
-	/*internal*/ public var WindCnt:Int;
-	/*internal*/ public var WindCnt2:Int; //winding count of the opposite polytype
-	/*internal*/ public var OutIdx:Int;
-	/*internal*/ public var Next:TEdge;
-	/*internal*/ public var Prev:TEdge;
-	/*internal*/ public var NextInLML:TEdge;
-	/*internal*/ public var NextInAEL:TEdge;
-	/*internal*/ public var PrevInAEL:TEdge;
-	/*internal*/ public var NextInSEL:TEdge;
-	/*internal*/ public var PrevInSEL:TEdge;
+	/*internal*/ public var bot:IntPoint = new IntPoint();
+	/*internal*/ public var curr:IntPoint = new IntPoint();
+	/*internal*/ public var top:IntPoint = new IntPoint();
+	/*internal*/ public var delta:IntPoint = new IntPoint();
+	/*internal*/ public var dx:Float;
+	/*internal*/ public var polyType:PolyType;
+	/*internal*/ public var edgeSide:EdgeSide;
+	/*internal*/ public var windDelta:Int; //1 or -1 depending on winding direction
+	/*internal*/ public var windCnt:Int;
+	/*internal*/ public var windCnt2:Int; //winding count of the opposite polytype
+	/*internal*/ public var outIdx:Int;
+	/*internal*/ public var next:TEdge;
+	/*internal*/ public var prev:TEdge;
+	/*internal*/ public var nextInLML:TEdge;
+	/*internal*/ public var nextInAEL:TEdge;
+	/*internal*/ public var prevInAEL:TEdge;
+	/*internal*/ public var nextInSEL:TEdge;
+	/*internal*/ public var prevInSEL:TEdge;
 	
 	/*internal*/ public function new() { }
 	
 	public function toString():String {
-		return 'TE(curr:${Curr.toString()}, bot:${Bot.toString()}, top:${Top.toString()}, dx:$Dx)';
+		return 'TE(curr:${curr.toString()}, bot:${bot.toString()}, top:${top.toString()}, dx:$dx)';
 	}
 }
 
 class IntersectNode 
 {
-	/*internal*/ public var Edge1:TEdge;
-	/*internal*/ public var Edge2:TEdge;
-	/*internal*/ public var Pt:IntPoint = new IntPoint();
+	/*internal*/ public var edge1:TEdge;
+	/*internal*/ public var edge2:TEdge;
+	/*internal*/ public var pt:IntPoint = new IntPoint();
 	
 	/*internal*/ public function new() { }
 }
@@ -502,7 +513,7 @@ class IntersectNode
 /* TODO: fix the comparer (look into ListSort, or change List with Array
 class MyIntersectNodeSort: IComparer < IntersectNode > {
 	public int Compare(IntersectNode node1, IntersectNode node2) {
-		cInt i = node2.Pt.Y - node1.Pt.Y;
+		cInt i = node2.pt.Y - node1.pt.Y;
 		if (i > 0) return 1;
 		else if (i < 0) return -1;
 		else return 0;
@@ -511,30 +522,30 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 
 /*internal*/ class LocalMinima 
 {
-	/*internal*/ public var Y:CInt;
-	/*internal*/ public var LeftBound:TEdge;
-	/*internal*/ public var RightBound:TEdge;
-	/*internal*/ public var Next:LocalMinima;
+	/*internal*/ public var y:CInt;
+	/*internal*/ public var leftBound:TEdge;
+	/*internal*/ public var rightBound:TEdge;
+	/*internal*/ public var next:LocalMinima;
 	
 	/*internal*/ public function new() { }
 }
 
 /*internal*/ class Scanbeam 
 {
-	/*internal*/ public var Y:CInt;
-	/*internal*/ public var Next:Scanbeam;
+	/*internal*/ public var y:CInt;
+	/*internal*/ public var next:Scanbeam;
 	
 	/*internal*/ public function new() { }
 }
 
 /*internal*/ class OutRec 
 {
-	/*internal*/ public var Idx:Int;
-	/*internal*/ public var IsHole:Bool;
-	/*internal*/ public var IsOpen:Bool;
-	/*internal*/ public var FirstLeft:OutRec; //see comments in clipper.pas
-	/*internal*/ public var Pts:OutPt;
-	/*internal*/ public var BottomPt:OutPt;
+	/*internal*/ public var idx:Int;
+	/*internal*/ public var isHole:Bool;
+	/*internal*/ public var isOpen:Bool;
+	/*internal*/ public var firstLeft:OutRec; //see comments in clipper.pas
+	/*internal*/ public var pts:OutPt;
+	/*internal*/ public var bottomPt:OutPt;
 	/*internal*/ public var polyNode:PolyNode; //TODO: check name here
 	
 	/*internal*/ public function new() { }
@@ -542,19 +553,19 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 
 /*internal*/ class OutPt 
 {
-	/*internal*/ public var Idx:Int;
-	/*internal*/ public var Pt:IntPoint = new IntPoint();
-	/*internal*/ public var Next:OutPt;
-	/*internal*/ public var Prev:OutPt;
+	/*internal*/ public var idx:Int;
+	/*internal*/ public var pt:IntPoint = new IntPoint();
+	/*internal*/ public var next:OutPt;
+	/*internal*/ public var prev:OutPt;
 	
 	/*internal*/ public function new() { }
 }
 
 /*internal*/ class Join 
 {
-	/*internal*/ public var OutPt1:OutPt;
-	/*internal*/ public var OutPt2:OutPt;
-	/*internal*/ public var OffPt:IntPoint = new IntPoint();
+	/*internal*/ public var outPt1:OutPt;
+	/*internal*/ public var outPt2:OutPt;
+	/*internal*/ public var offPt:IntPoint = new IntPoint();
 	
 	/*internal*/ public function new() { }
 }
@@ -562,34 +573,34 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 class ClipperBase 
 {
 	// TODO: refactor to uppercase
-	inline static public var horizontal:Float = -3.4E+38;
-	inline static public var Skip:Int = -2;
-	inline static public var Unassigned:Int = -1;
-	inline static public var tolerance:Float = 1.0E-20;
+	inline static public var HORIZONTAL:Float = -3.4E+38;
+	inline static public var SKIP:Int = -2;
+	inline static public var UNASSIGNED:Int = -1;
+	inline static public var TOLERANCE:Float = 1.0E-20;
 	
 	// TODO: camelcase
-	/*internal*/ public static function near_zero(val:Float):Bool {
-		return (val > -tolerance) && (val < tolerance);
+	/*internal*/ public static function nearZero(val:Float):Bool {
+		return (val > -TOLERANCE) && (val < TOLERANCE);
 	}
 
 #if USE_INT32 
-	inline static public var loRange:CInt = 0x7FFF;
-	inline static public var hiRange:CInt = 0x7FFF;
+	inline static public var LO_RANGE:CInt = 0x7FFF;
+	inline static public var HI_RANGE:CInt = 0x7FFF;
 #else 
-	inline static public var loRange:CInt = 0x3FFFFFFF;
-	inline static public var hiRange:CInt = 0x3FFFFFFFFFFFFFFFL;
+	inline static public var LO_RANGE:CInt = 0x3FFFFFFF;
+	inline static public var HI_RANGE:CInt = 0x3FFFFFFFFFFFFFFFL;
 #end
 
-	/*internal*/ public var m_MinimaList:LocalMinima;
-	/*internal*/ public var m_CurrentLM:LocalMinima;
-	/*internal*/ public var m_edges:Array<Array<TEdge>> = new Array<Array<TEdge>>();
-	/*internal*/ public var m_UseFullRange:Bool;
-	/*internal*/ public var m_HasOpenPaths:Bool;
+	/*internal*/ public var mMinimaList:LocalMinima;
+	/*internal*/ public var mCurrentLM:LocalMinima;
+	/*internal*/ public var mEdges:Array<Array<TEdge>> = new Array<Array<TEdge>>();
+	/*internal*/ public var mUseFullRange:Bool;
+	/*internal*/ public var mHasOpenPaths:Bool;
 
 	//------------------------------------------------------------------------------
 
 	//TODO: check this prop
-	public var PreserveCollinear(default, default):Bool;
+	public var preserveCollinear(default, default):Bool;
 	//------------------------------------------------------------------------------
 
 	/*TODO: check swap
@@ -600,41 +611,41 @@ class ClipperBase
 	}*/
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function IsHorizontal(e:TEdge):Bool {
-		return e.Delta.Y == 0;
+	/*internal*/ static public function isHorizontal(e:TEdge):Bool {
+		return e.delta.y == 0;
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function PointIsVertex(pt:IntPoint, pp:OutPt):Bool {
+	/*internal*/ public function pointIsVertex(pt:IntPoint, pp:OutPt):Bool {
 		var pp2:OutPt = pp;
 		do {
-			if (pp2.Pt.equals(pt)) return true;
-			pp2 = pp2.Next;
+			if (pp2.pt.equals(pt)) return true;
+			pp2 = pp2.next;
 		}
 		while (pp2 != pp);
 		return false;
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function PointOnLineSegment(pt:IntPoint, linePt1:IntPoint, linePt2:IntPoint, UseFullRange:Bool):Bool {
+	/*internal*/ public function pointOnLineSegment(pt:IntPoint, linePt1:IntPoint, linePt2:IntPoint, useFullRange:Bool):Bool {
 	#if !USE_INT32
-		if (UseFullRange) return ((pt.X == linePt1.X) && (pt.Y == linePt1.Y)) || ((pt.X == linePt2.X) && (pt.Y == linePt2.Y)) 
-								 || (((pt.X > linePt1.X) == (pt.X < linePt2.X)) && ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) 
-								 && ((Int128.Int128Mul((pt.X - linePt1.X), (linePt2.Y - linePt1.Y)) == Int128.Int128Mul((linePt2.X - linePt1.X), (pt.Y - linePt1.Y)))));
+		if (useFullRange) return ((pt.x == linePt1.x) && (pt.y == linePt1.y)) || ((pt.x == linePt2.x) && (pt.y == linePt2.y)) 
+								 || (((pt.x > linePt1.x) == (pt.x < linePt2.x)) && ((pt.y > linePt1.y) == (pt.y < linePt2.y)) 
+								 && ((Int128.Int128Mul((pt.x - linePt1.x), (linePt2.y - linePt1.y)) == Int128.Int128Mul((linePt2.x - linePt1.x), (pt.y - linePt1.y)))));
 		else 
 	#else
-		return ((pt.X == linePt1.X) && (pt.Y == linePt1.Y)) || ((pt.X == linePt2.X) && (pt.Y == linePt2.Y)) 
-			   || (((pt.X > linePt1.X) == (pt.X < linePt2.X)) && ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) 
-			   && ((pt.X - linePt1.X) * (linePt2.Y - linePt1.Y) == (linePt2.X - linePt1.X) * (pt.Y - linePt1.Y)));
+		return ((pt.x == linePt1.x) && (pt.y == linePt1.y)) || ((pt.x == linePt2.x) && (pt.y == linePt2.y)) 
+			   || (((pt.x > linePt1.x) == (pt.x < linePt2.x)) && ((pt.y > linePt1.y) == (pt.y < linePt2.y)) 
+			   && ((pt.x - linePt1.x) * (linePt2.y - linePt1.y) == (linePt2.x - linePt1.x) * (pt.y - linePt1.y)));
 	#end
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function PointOnPolygon(pt:IntPoint, pp:OutPt, UseFullRange:Bool):Bool {
+	/*internal*/ public function pointOnPolygon(pt:IntPoint, pp:OutPt, useFullRange:Bool):Bool {
 		var pp2:OutPt = pp;
 		while (true) {
-			if (PointOnLineSegment(pt, pp2.Pt, pp2.Next.Pt, UseFullRange)) return true;
-			pp2 = pp2.Next;
+			if (pointOnLineSegment(pt, pp2.pt, pp2.next.pt, useFullRange)) return true;
+			pp2 = pp2.next;
 			if (pp2 == pp) break;
 		}
 		return false;
@@ -642,482 +653,483 @@ class ClipperBase
 	//------------------------------------------------------------------------------
 
 	/* TODO: fix these Int128*/
-	/*internal*/ static public function SlopesEqual(e1:TEdge, e2:TEdge, UseFullRange:Bool):Bool {
+	/*internal*/ static public function slopesEqual(e1:TEdge, e2:TEdge, useFullRange:Bool):Bool {
 	#if !USE_INT32	
-		if (UseFullRange) return Int128.mul(e1.Delta.Y, e2.Delta.X) == Int128.mul(e1.Delta.X, e2.Delta.Y);
+		if (useFullRange) return Int128.mul(e1.delta.y, e2.delta.x) == Int128.mul(e1.delta.x, e2.delta.y);
 		else
 	#else 
-		return /*(cInt)*/(e1.Delta.Y) * (e2.Delta.X) == /*(cInt)*/(e1.Delta.X) * (e2.Delta.Y);
+		return /*(cInt)*/(e1.delta.y) * (e2.delta.x) == /*(cInt)*/(e1.delta.x) * (e2.delta.y);
 	#end
 	}
 	//------------------------------------------------------------------------------
 
-	/*protected*/ static function SlopesEqual3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, UseFullRange:Bool):Bool {
+	/*protected*/ static function slopesEqual3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, useFullRange:Bool):Bool {
 	#if !USE_INT32	
-		if (UseFullRange) return Int128.Int128Mul(pt1.Y - pt2.Y, pt2.X - pt3.X) == Int128.Int128Mul(pt1.X - pt2.X, pt2.Y - pt3.Y);
+		if (useFullRange) return Int128.Int128Mul(pt1.y - pt2.y, pt2.x - pt3.x) == Int128.Int128Mul(pt1.x - pt2.x, pt2.y - pt3.y);
 		else 
 	#else
-		return /*(cInt)*/(pt1.Y - pt2.Y) * (pt2.X - pt3.X) - /*(cInt)*/(pt1.X - pt2.X) * (pt2.Y - pt3.Y) == 0;
+		return /*(cInt)*/(pt1.y - pt2.y) * (pt2.x - pt3.x) - /*(cInt)*/(pt1.x - pt2.x) * (pt2.y - pt3.y) == 0;
 	#end
 	}
 	//------------------------------------------------------------------------------
 
-	/*protected*/ static function SlopesEqual4(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, pt4:IntPoint, UseFullRange:Bool):Bool {
+	/*protected*/ static function slopesEqual4(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, pt4:IntPoint, useFullRange:Bool):Bool {
 	#if !USE_INT32	
-		if (UseFullRange) return Int128.Int128Mul(pt1.Y - pt2.Y, pt3.X - pt4.X) == Int128.Int128Mul(pt1.X - pt2.X, pt3.Y - pt4.Y);
+		if (useFullRange) return Int128.Int128Mul(pt1.y - pt2.y, pt3.x - pt4.x) == Int128.Int128Mul(pt1.x - pt2.x, pt3.y - pt4.y);
 		else 
 	#else
-		return /*(cInt)*/(pt1.Y - pt2.Y) * (pt3.X - pt4.X) - /*(cInt)*/(pt1.X - pt2.X) * (pt3.Y - pt4.Y) == 0;
+		return /*(cInt)*/(pt1.y - pt2.y) * (pt3.x - pt4.x) - /*(cInt)*/(pt1.x - pt2.x) * (pt3.y - pt4.y) == 0;
 	#end
 	}
 	//------------------------------------------------------------------------------
 
 	/*internal*/ public function new() //constructor (nb: no external instantiation)
 	{
-		m_MinimaList = null;
-		m_CurrentLM = null;
-		m_UseFullRange = false;
-		m_HasOpenPaths = false;
+		mMinimaList = null;
+		mCurrentLM = null;
+		mUseFullRange = false;
+		mHasOpenPaths = false;
 	}
 	//------------------------------------------------------------------------------
 
-	public function Clear():Void {
-		DisposeLocalMinimaList();
-		for (i in 0...m_edges.length) {
-			for (j in 0...m_edges[i].length) {
-				m_edges[i][j] = null;
+	public function clear():Void {
+		disposeLocalMinimaList();
+		for (i in 0...mEdges.length) {
+			for (j in 0...mEdges[i].length) {
+				mEdges[i][j] = null;
 			}
-			m_edges[i].clear();
+			mEdges[i].clear();
 		}
-		m_edges.clear();
-		m_UseFullRange = false;
-		m_HasOpenPaths = false;
+		mEdges.clear();
+		mUseFullRange = false;
+		mHasOpenPaths = false;
 	}
 	//------------------------------------------------------------------------------
 
-	function DisposeLocalMinimaList():Void {
-		while (m_MinimaList != null) {
-			var tmpLm:LocalMinima = m_MinimaList.Next;
-			m_MinimaList = null;
-			m_MinimaList = tmpLm;
+	function disposeLocalMinimaList():Void {
+		while (mMinimaList != null) {
+			var tmpLm:LocalMinima = mMinimaList.next;
+			mMinimaList = null;
+			mMinimaList = tmpLm;
 		}
-		m_CurrentLM = null;
+		mCurrentLM = null;
 	}
 	//------------------------------------------------------------------------------
 
-	// TODO: check ref
-	function RangeTest(Pt:IntPoint, /*ref*/ useFullRange:Bool):Void {
+	// TODO: check ref - changed to return it
+	function rangeTest(pt:IntPoint, /*ref*/ useFullRange:Bool):Bool {
 		if (useFullRange) {
-			if (Pt.X > hiRange || Pt.Y > hiRange || -Pt.X > hiRange || -Pt.Y > hiRange) 
+			if (pt.x > HI_RANGE || pt.y > HI_RANGE || -pt.x > HI_RANGE || -pt.y > HI_RANGE) 
 				throw new ClipperException("Coordinate outside allowed range");
-		} else if (Pt.X > loRange || Pt.Y > loRange || -Pt.X > loRange || -Pt.Y > loRange) {
+		} else if (pt.x > LO_RANGE || pt.y > LO_RANGE || -pt.x > LO_RANGE || -pt.y > LO_RANGE) {
 			useFullRange = true;
-			RangeTest(Pt, /*ref*/ useFullRange);
+			rangeTest(pt, /*ref*/ useFullRange);
 		}
+		return useFullRange;
 	}
 	//------------------------------------------------------------------------------
 
-	function InitEdge(e:TEdge, eNext:TEdge, ePrev:TEdge, pt:IntPoint):Void {
-		e.Next = eNext;
-		e.Prev = ePrev;
-		e.Curr.copyFrom(pt);
-		e.OutIdx = Unassigned;
+	function initEdge(e:TEdge, eNext:TEdge, ePrev:TEdge, pt:IntPoint):Void {
+		e.next = eNext;
+		e.prev = ePrev;
+		e.curr.copyFrom(pt);
+		e.outIdx = UNASSIGNED;
 	}
 	//------------------------------------------------------------------------------
 
-	function InitEdge2(e:TEdge, polyType:PolyType):Void {
-		if (e.Curr.Y >= e.Next.Curr.Y) {
-			e.Bot.copyFrom(e.Curr);
-			e.Top.copyFrom(e.Next.Curr);
+	function initEdge2(e:TEdge, polyType:PolyType):Void {
+		if (e.curr.y >= e.next.curr.y) {
+			e.bot.copyFrom(e.curr);
+			e.top.copyFrom(e.next.curr);
 		} else {
-			e.Top.copyFrom(e.Curr);
-			e.Bot.copyFrom(e.Next.Curr);
+			e.top.copyFrom(e.curr);
+			e.bot.copyFrom(e.next.curr);
 		}
-		SetDx(e);
-		e.PolyTyp = polyType;
+		setDx(e);
+		e.polyType = polyType;
 	}
 	//------------------------------------------------------------------------------
 
-	function FindNextLocMin(E:TEdge):TEdge {
-		var E2:TEdge;
+	function findNextLocMin(e:TEdge):TEdge {
+		var e2:TEdge;
 		while (true) {
-			while (!E.Bot.equals(E.Prev.Bot) || E.Curr.equals(E.Top)) E = E.Next;
-			if (E.Dx != horizontal && E.Prev.Dx != horizontal) break;
-			while (E.Prev.Dx == horizontal) E = E.Prev;
-			E2 = E;
-			while (E.Dx == horizontal) E = E.Next;
-			if (E.Top.Y == E.Prev.Bot.Y) continue; //ie just an intermediate horz.
-			if (E2.Prev.Bot.X < E.Bot.X) E = E2;
+			while (!e.bot.equals(e.prev.bot) || e.curr.equals(e.top)) e = e.next;
+			if (e.dx != HORIZONTAL && e.prev.dx != HORIZONTAL) break;
+			while (e.prev.dx == HORIZONTAL) e = e.prev;
+			e2 = e;
+			while (e.dx == HORIZONTAL) e = e.next;
+			if (e.top.y == e.prev.bot.y) continue; //ie just an intermediate horz.
+			if (e2.prev.bot.x < e.bot.x) e = e2;
 			break;
 		}
-		return E;
+		return e;
 	}
 	//------------------------------------------------------------------------------
 
-	function ProcessBound(E:TEdge, LeftBoundIsForward:Bool):TEdge {
-		var EStart:TEdge, Result = E;
-		var Horz:TEdge;
+	function processBound(e:TEdge, leftBoundIsForward:Bool):TEdge {
+		var eStart:TEdge, result = e;
+		var horz:TEdge;
 
-		if (Result.OutIdx == Skip) {
+		if (result.outIdx == SKIP) {
 			//check if there are edges beyond the skip edge in the bound and if so
 			//create another LocMin and calling ProcessBound once more ...
-			E = Result;
-			if (LeftBoundIsForward) {
-				while (E.Top.Y == E.Next.Bot.Y) E = E.Next;
-				while (E != Result && E.Dx == horizontal) E = E.Prev;
+			e = result;
+			if (leftBoundIsForward) {
+				while (e.top.y == e.next.bot.y) e = e.next;
+				while (e != result && e.dx == HORIZONTAL) e = e.prev;
 			} else {
-				while (E.Top.Y == E.Prev.Bot.Y) E = E.Prev;
-				while (E != Result && E.Dx == horizontal) E = E.Next;
+				while (e.top.y == e.prev.bot.y) e = e.prev;
+				while (e != result && e.dx == HORIZONTAL) e = e.next;
 			}
-			if (E == Result) {
-				if (LeftBoundIsForward) Result = E.Next;
-				else Result = E.Prev;
+			if (e == result) {
+				if (leftBoundIsForward) result = e.next;
+				else result = e.prev;
 			} else {
 				//there are more edges in the bound beyond result starting with E
-				if (LeftBoundIsForward) E = Result.Next;
-				else E = Result.Prev;
+				if (leftBoundIsForward) e = result.next;
+				else e = result.prev;
 				var locMin = new LocalMinima();
-				locMin.Next = null;
-				locMin.Y = E.Bot.Y;
-				locMin.LeftBound = null;
-				locMin.RightBound = E;
-				E.WindDelta = 0;
-				Result = ProcessBound(E, LeftBoundIsForward);
-				InsertLocalMinima(locMin);
+				locMin.next = null;
+				locMin.y = e.bot.y;
+				locMin.leftBound = null;
+				locMin.rightBound = e;
+				e.windDelta = 0;
+				result = processBound(e, leftBoundIsForward);
+				insertLocalMinima(locMin);
 			}
-			return Result;
+			return result;
 		}
 
-		if (E.Dx == horizontal) {
+		if (e.dx == HORIZONTAL) {
 			//We need to be careful with open paths because this may not be a
 			//true local minima (ie E may be following a skip edge).
 			//Also, consecutive horz. edges may start heading left before going right.
-			if (LeftBoundIsForward) EStart = E.Prev;
-			else EStart = E.Next;
-			if (EStart.OutIdx != Skip) {
-				if (EStart.Dx == horizontal) //ie an adjoining horizontal skip edge
+			if (leftBoundIsForward) eStart = e.prev;
+			else eStart = e.next;
+			if (eStart.outIdx != SKIP) {
+				if (eStart.dx == HORIZONTAL) //ie an adjoining horizontal skip edge
 				{
-					if (EStart.Bot.X != E.Bot.X && EStart.Top.X != E.Bot.X) ReverseHorizontal(E);
-				} else if (EStart.Bot.X != E.Bot.X) ReverseHorizontal(E);
+					if (eStart.bot.x != e.bot.x && eStart.top.x != e.bot.x) reverseHorizontal(e);
+				} else if (eStart.bot.x != e.bot.x) reverseHorizontal(e);
 			}
 		}
 
-		EStart = E;
-		if (LeftBoundIsForward) {
-			while (Result.Top.Y == Result.Next.Bot.Y && Result.Next.OutIdx != Skip)
-			Result = Result.Next;
-			if (Result.Dx == horizontal && Result.Next.OutIdx != Skip) {
+		eStart = e;
+		if (leftBoundIsForward) {
+			while (result.top.y == result.next.bot.y && result.next.outIdx != SKIP)
+			result = result.next;
+			if (result.dx == HORIZONTAL && result.next.outIdx != SKIP) {
 				//nb: at the top of a bound, horizontals are added to the bound
 				//only when the preceding edge attaches to the horizontal's left vertex
 				//unless a Skip edge is encountered when that becomes the top divide
-				Horz = Result;
-				while (Horz.Prev.Dx == horizontal) Horz = Horz.Prev;
-				if (Horz.Prev.Top.X == Result.Next.Top.X) {
-					if (!LeftBoundIsForward) Result = Horz.Prev;
-				} else if (Horz.Prev.Top.X > Result.Next.Top.X) Result = Horz.Prev;
+				horz = result;
+				while (horz.prev.dx == HORIZONTAL) horz = horz.prev;
+				if (horz.prev.top.x == result.next.top.x) {
+					if (!leftBoundIsForward) result = horz.prev;
+				} else if (horz.prev.top.x > result.next.top.x) result = horz.prev;
 			}
-			while (E != Result) {
-				E.NextInLML = E.Next;
-				if (E.Dx == horizontal && E != EStart && E.Bot.X != E.Prev.Top.X) ReverseHorizontal(E);
-				E = E.Next;
+			while (e != result) {
+				e.nextInLML = e.next;
+				if (e.dx == HORIZONTAL && e != eStart && e.bot.x != e.prev.top.x) reverseHorizontal(e);
+				e = e.next;
 			}
-			if (E.Dx == horizontal && E != EStart && E.Bot.X != E.Prev.Top.X) ReverseHorizontal(E);
-			Result = Result.Next; //move to the edge just beyond current bound
+			if (e.dx == HORIZONTAL && e != eStart && e.bot.x != e.prev.top.x) reverseHorizontal(e);
+			result = result.next; //move to the edge just beyond current bound
 		} else {
-			while (Result.Top.Y == Result.Prev.Bot.Y && Result.Prev.OutIdx != Skip)
-			Result = Result.Prev;
-			if (Result.Dx == horizontal && Result.Prev.OutIdx != Skip) {
-				Horz = Result;
-				while (Horz.Next.Dx == horizontal) Horz = Horz.Next;
-				if (Horz.Next.Top.X == Result.Prev.Top.X) {
-					if (!LeftBoundIsForward) Result = Horz.Next;
-				} else if (Horz.Next.Top.X > Result.Prev.Top.X) Result = Horz.Next;
+			while (result.top.y == result.prev.bot.y && result.prev.outIdx != SKIP)
+			result = result.prev;
+			if (result.dx == HORIZONTAL && result.prev.outIdx != SKIP) {
+				horz = result;
+				while (horz.next.dx == HORIZONTAL) horz = horz.next;
+				if (horz.next.top.x == result.prev.top.x) {
+					if (!leftBoundIsForward) result = horz.next;
+				} else if (horz.next.top.x > result.prev.top.x) result = horz.next;
 			}
 
-			while (E != Result) {
-				E.NextInLML = E.Prev;
-				if (E.Dx == horizontal && E != EStart && E.Bot.X != E.Next.Top.X) ReverseHorizontal(E);
-				E = E.Prev;
+			while (e != result) {
+				e.nextInLML = e.prev;
+				if (e.dx == HORIZONTAL && e != eStart && e.bot.x != e.next.top.x) reverseHorizontal(e);
+				e = e.prev;
 			}
-			if (E.Dx == horizontal && E != EStart && E.Bot.X != E.Next.Top.X) ReverseHorizontal(E);
-			Result = Result.Prev; //move to the edge just beyond current bound
+			if (e.dx == HORIZONTAL && e != eStart && e.bot.x != e.next.top.x) reverseHorizontal(e);
+			result = result.prev; //move to the edge just beyond current bound
 		}
-		return Result;
+		return result;
 	}
 	//------------------------------------------------------------------------------
 
 
-	public function AddPath(pg:Path, polyType:PolyType, Closed:Bool):Bool {
+	public function addPath(path:Path, polyType:PolyType, closed:Bool):Bool {
 	#if USE_LINES
-		if (!Closed && polyType == PolyType.ptClip) throw new ClipperException("AddPath: Open paths must be subject.");
+		if (!closed && polyType == PolyType.PT_CLIP) throw new ClipperException("AddPath: Open paths must be subject.");
 	#else 
-		if (!Closed) throw new ClipperException("AddPath: Open paths have been disabled (define USE_LINES to enable them).");
+		if (!closed) throw new ClipperException("AddPath: Open paths have been disabled (define USE_LINES to enable them).");
 	#end
 		//TODO: why the cast
-		var highI = /*(int)*/ pg.length - 1;
-		if (Closed) while (highI > 0 && (pg[highI].equals(pg[0]))) --highI;
-		while (highI > 0 && (pg[highI].equals(pg[highI - 1]))) --highI;
-		if ((Closed && highI < 2) || (!Closed && highI < 1)) return false;
+		var highI = /*(int)*/ path.length - 1;
+		if (closed) while (highI > 0 && (path[highI].equals(path[0]))) --highI;
+		while (highI > 0 && (path[highI].equals(path[highI - 1]))) --highI;
+		if ((closed && highI < 2) || (!closed && highI < 1)) return false;
 
 		//create a new edge array ...
 		var edges = new Array<TEdge>(/*TODO:highI + 1*/);
 		for (i in 0...highI + 1) edges.push(new TEdge());
 
-		var IsFlat = true;
+		var isFlat = true;
 
 		//1. Basic (first) edge initialization ...
-		edges[1].Curr.copyFrom(pg[1]);
+		edges[1].curr.copyFrom(path[1]);
 		// TODO: check refs
-		RangeTest(pg[0], /*ref*/ m_UseFullRange);
-		RangeTest(pg[highI], /*ref*/ m_UseFullRange);
-		InitEdge(edges[0], edges[1], edges[highI], pg[0]);
-		InitEdge(edges[highI], edges[0], edges[highI - 1], pg[highI]);
+		mUseFullRange = rangeTest(path[0], /*ref*/ mUseFullRange);
+		mUseFullRange = rangeTest(path[highI], /*ref*/ mUseFullRange);
+		initEdge(edges[0], edges[1], edges[highI], path[0]);
+		initEdge(edges[highI], edges[0], edges[highI - 1], path[highI]);
 		// TODO: check loop
 		var i = highI - 1;
 		while (i >= 1) {
-			RangeTest(pg[i], /*ref*/ m_UseFullRange);
-			InitEdge(edges[i], edges[i + 1], edges[i - 1], pg[i]);
+			mUseFullRange = rangeTest(path[i], /*ref*/ mUseFullRange);
+			initEdge(edges[i], edges[i + 1], edges[i - 1], path[i]);
 			--i;
 		}
 		var eStart:TEdge = edges[0];
 
 		//2. Remove duplicate vertices, and (when closed) collinear edges ...
-		var E:TEdge = eStart, eLoopStop:TEdge = eStart;
+		var e:TEdge = eStart, eLoopStop:TEdge = eStart;
 		while (true) {
 			//nb: allows matching start and end points when not Closed ...
-			if (E.Curr.equals(E.Next.Curr) && (Closed || E.Next != eStart)) {
-				if (E == E.Next) break;
-				if (E == eStart) eStart = E.Next;
-				E = RemoveEdge(E);
-				eLoopStop = E;
+			if (e.curr.equals(e.next.curr) && (closed || e.next != eStart)) {
+				if (e == e.next) break;
+				if (e == eStart) eStart = e.next;
+				e = removeEdge(e);
+				eLoopStop = e;
 				continue;
 			}
-			if (E.Prev == E.Next) break; //only two vertices
-			else if (Closed && ClipperBase.SlopesEqual3(E.Prev.Curr, E.Curr, E.Next.Curr, m_UseFullRange) 
-					 && (!PreserveCollinear || !Pt2IsBetweenPt1AndPt3(E.Prev.Curr, E.Curr, E.Next.Curr))) 
+			if (e.prev == e.next) break; //only two vertices
+			else if (closed && ClipperBase.slopesEqual3(e.prev.curr, e.curr, e.next.curr, mUseFullRange) 
+					 && (!preserveCollinear || !pt2IsBetweenPt1AndPt3(e.prev.curr, e.curr, e.next.curr))) 
 			{
 				//Collinear edges are allowed for open paths but in closed paths
 				//the default is to merge adjacent collinear edges into a single edge.
 				//However, if the PreserveCollinear property is enabled, only overlapping
 				//collinear edges (ie spikes) will be removed from closed paths.
-				if (E == eStart) eStart = E.Next;
-				E = RemoveEdge(E);
-				E = E.Prev;
-				eLoopStop = E;
+				if (e == eStart) eStart = e.next;
+				e = removeEdge(e);
+				e = e.prev;
+				eLoopStop = e;
 				continue;
 			}
-			E = E.Next;
-			if ((E == eLoopStop) || (!Closed && E.Next == eStart)) break;
+			e = e.next;
+			if ((e == eLoopStop) || (!closed && e.next == eStart)) break;
 		}
 
-		if ((!Closed && (E == E.Next)) || (Closed && (E.Prev == E.Next))) return false;
+		if ((!closed && (e == e.next)) || (closed && (e.prev == e.next))) return false;
 
-		if (!Closed) {
-			m_HasOpenPaths = true;
-			eStart.Prev.OutIdx = Skip;
+		if (!closed) {
+			mHasOpenPaths = true;
+			eStart.prev.outIdx = SKIP;
 		}
 
 		//3. Do second stage of edge initialization ...
-		E = eStart;
+		e = eStart;
 		do {
-			InitEdge2(E, polyType);
-			E = E.Next;
-			if (IsFlat && E.Curr.Y != eStart.Curr.Y) IsFlat = false;
-		} while (E != eStart);
+			initEdge2(e, polyType);
+			e = e.next;
+			if (isFlat && e.curr.y != eStart.curr.y) isFlat = false;
+		} while (e != eStart);
 
 		//4. Finally, add edge bounds to LocalMinima list ...
 
 		//Totally flat paths must be handled differently when adding them
 		//to LocalMinima list to avoid endless loops etc ...
-		if (IsFlat) {
-			if (Closed) return false;
-			E.Prev.OutIdx = Skip;
+		if (isFlat) {
+			if (closed) return false;
+			e.prev.outIdx = SKIP;
 			var locMin = new LocalMinima();
-			locMin.Next = null;
-			locMin.Y = E.Bot.Y;
-			locMin.LeftBound = null;
-			locMin.RightBound = E;
-			locMin.RightBound.Side = EdgeSide.esRight;
-			locMin.RightBound.WindDelta = 0;
+			locMin.next = null;
+			locMin.y = e.bot.y;
+			locMin.leftBound = null;
+			locMin.rightBound = e;
+			locMin.rightBound.edgeSide = EdgeSide.ES_RIGHT;
+			locMin.rightBound.windDelta = 0;
 			while (true) {
-				if (E.Bot.X != E.Prev.Top.X) ReverseHorizontal(E);
-				if (E.Next.OutIdx == Skip) break;
-				E.NextInLML = E.Next;
-				E = E.Next;
+				if (e.bot.x != e.prev.top.x) reverseHorizontal(e);
+				if (e.next.outIdx == SKIP) break;
+				e.nextInLML = e.next;
+				e = e.next;
 			}
-			InsertLocalMinima(locMin);
-			m_edges.push(edges);
+			insertLocalMinima(locMin);
+			mEdges.push(edges);
 			return true;
 		}
 
-		m_edges.push(edges);
+		mEdges.push(edges);
 		var leftBoundIsForward:Bool;
-		var EMin:TEdge = null;
+		var eMin:TEdge = null;
 
 		//workaround to avoid an endless loop in the while loop below when
 		//open paths have matching start and end points ...
-		if (E.Prev.Bot.equals(E.Prev.Top)) E = E.Next;
+		if (e.prev.bot.equals(e.prev.top)) e = e.next;
 
 		while (true) {
-			E = FindNextLocMin(E);
-			if (E == EMin) break;
-			else if (EMin == null) EMin = E;
+			e = findNextLocMin(e);
+			if (e == eMin) break;
+			else if (eMin == null) eMin = e;
 
-			//E and E.Prev now share a local minima (left aligned if horizontal).
+			//E and E.prev now share a local minima (left aligned if horizontal).
 			//Compare their slopes to find which starts which bound ...
 			var locMin = new LocalMinima();
-			locMin.Next = null;
-			locMin.Y = E.Bot.Y;
-			if (E.Dx < E.Prev.Dx) {
-				locMin.LeftBound = E.Prev;
-				locMin.RightBound = E;
+			locMin.next = null;
+			locMin.y = e.bot.y;
+			if (e.dx < e.prev.dx) {
+				locMin.leftBound = e.prev;
+				locMin.rightBound = e;
 				leftBoundIsForward = false; //Q.nextInLML = Q.prev
 			} else {
-				locMin.LeftBound = E;
-				locMin.RightBound = E.Prev;
+				locMin.leftBound = e;
+				locMin.rightBound = e.prev;
 				leftBoundIsForward = true; //Q.nextInLML = Q.next
 			}
-			locMin.LeftBound.Side = EdgeSide.esLeft;
-			locMin.RightBound.Side = EdgeSide.esRight;
+			locMin.leftBound.edgeSide = EdgeSide.ES_LEFT;
+			locMin.rightBound.edgeSide = EdgeSide.ES_RIGHT;
 
-			if (!Closed) locMin.LeftBound.WindDelta = 0;
-			else if (locMin.LeftBound.Next == locMin.RightBound) locMin.LeftBound.WindDelta = -1;
-			else locMin.LeftBound.WindDelta = 1;
-			locMin.RightBound.WindDelta = -locMin.LeftBound.WindDelta;
+			if (!closed) locMin.leftBound.windDelta = 0;
+			else if (locMin.leftBound.next == locMin.rightBound) locMin.leftBound.windDelta = -1;
+			else locMin.leftBound.windDelta = 1;
+			locMin.rightBound.windDelta = -locMin.leftBound.windDelta;
 
-			E = ProcessBound(locMin.LeftBound, leftBoundIsForward);
-			if (E.OutIdx == Skip) E = ProcessBound(E, leftBoundIsForward);
+			e = processBound(locMin.leftBound, leftBoundIsForward);
+			if (e.outIdx == SKIP) e = processBound(e, leftBoundIsForward);
 
-			var E2:TEdge = ProcessBound(locMin.RightBound, !leftBoundIsForward);
-			if (E2.OutIdx == Skip) E2 = ProcessBound(E2, !leftBoundIsForward);
+			var E2:TEdge = processBound(locMin.rightBound, !leftBoundIsForward);
+			if (E2.outIdx == SKIP) E2 = processBound(E2, !leftBoundIsForward);
 
-			if (locMin.LeftBound.OutIdx == Skip) locMin.LeftBound = null;
-			else if (locMin.RightBound.OutIdx == Skip) locMin.RightBound = null;
-			InsertLocalMinima(locMin);
-			if (!leftBoundIsForward) E = E2;
+			if (locMin.leftBound.outIdx == SKIP) locMin.leftBound = null;
+			else if (locMin.rightBound.outIdx == SKIP) locMin.rightBound = null;
+			insertLocalMinima(locMin);
+			if (!leftBoundIsForward) e = E2;
 		}
 		return true;
 
 	}
 	//------------------------------------------------------------------------------
 
-	public function AddPaths(ppg:Paths, polyType:PolyType, closed:Bool):Bool {
+	public function addPaths(paths:Paths, polyType:PolyType, closed:Bool):Bool {
 		var result = false;
-		for (i in 0...ppg.length) {
-			if (AddPath(ppg[i], polyType, closed)) result = true;
+		for (i in 0...paths.length) {
+			if (addPath(paths[i], polyType, closed)) result = true;
 		}
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function Pt2IsBetweenPt1AndPt3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint):Bool {
+	/*internal*/ public function pt2IsBetweenPt1AndPt3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint):Bool {
 		if ((pt1.equals(pt3)) || (pt1.equals(pt2)) || (pt3.equals(pt2))) return false;
-		else if (pt1.X != pt3.X) return (pt2.X > pt1.X) == (pt2.X < pt3.X);
-		else return (pt2.Y > pt1.Y) == (pt2.Y < pt3.Y);
+		else if (pt1.x != pt3.x) return (pt2.x > pt1.x) == (pt2.x < pt3.x);
+		else return (pt2.y > pt1.y) == (pt2.y < pt3.y);
 	}
 	//------------------------------------------------------------------------------
 
-	function RemoveEdge(e:TEdge):TEdge {
+	function removeEdge(e:TEdge):TEdge {
 		//removes e from double_linked_list (but without removing from memory)
-		e.Prev.Next = e.Next;
-		e.Next.Prev = e.Prev;
-		var result = e.Next;
-		e.Prev = null; //flag as removed (see ClipperBase.Clear)
+		e.prev.next = e.next;
+		e.next.prev = e.prev;
+		var result = e.next;
+		e.prev = null; //flag as removed (see ClipperBase.Clear)
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	function SetDx(e:TEdge):Void {
-		e.Delta.X = (e.Top.X - e.Bot.X);
-		e.Delta.Y = (e.Top.Y - e.Bot.Y);
-		if (e.Delta.Y == 0) e.Dx = horizontal;
+	function setDx(e:TEdge):Void {
+		e.delta.x = (e.top.x - e.bot.x);
+		e.delta.y = (e.top.y - e.bot.y);
+		if (e.delta.y == 0) e.dx = HORIZONTAL;
 		else {	// TODO: check cast to float
-			var deltaX:Float = e.Delta.X;
-			e.Dx = deltaX / (e.Delta.Y);
+			var deltaX:Float = e.delta.x;
+			e.dx = deltaX / (e.delta.y);
 		}
 	}
 	//---------------------------------------------------------------------------
 
-	function InsertLocalMinima(newLm:LocalMinima):Void {
-		if (m_MinimaList == null) {
-			m_MinimaList = newLm;
-		} else if (newLm.Y >= m_MinimaList.Y) {
-			newLm.Next = m_MinimaList;
-			m_MinimaList = newLm;
+	function insertLocalMinima(newLm:LocalMinima):Void {
+		if (mMinimaList == null) {
+			mMinimaList = newLm;
+		} else if (newLm.y >= mMinimaList.y) {
+			newLm.next = mMinimaList;
+			mMinimaList = newLm;
 		} else {
-			var tmpLm:LocalMinima = m_MinimaList;
+			var tmpLm:LocalMinima = mMinimaList;
 			// TODO: check this loop
-			while (tmpLm.Next != null && (newLm.Y < tmpLm.Next.Y)) {
-				tmpLm = tmpLm.Next;
+			while (tmpLm.next != null && (newLm.y < tmpLm.next.y)) {
+				tmpLm = tmpLm.next;
 			}
-			newLm.Next = tmpLm.Next;
-			tmpLm.Next = newLm;
+			newLm.next = tmpLm.next;
+			tmpLm.next = newLm;
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function PopLocalMinima():Void {
-		if (m_CurrentLM == null) return;
-		m_CurrentLM = m_CurrentLM.Next;
+	function popLocalMinima():Void {
+		if (mCurrentLM == null) return;
+		mCurrentLM = mCurrentLM.next;
 	}
 	//------------------------------------------------------------------------------
 
 	// TODO: check refs
-	function ReverseHorizontal(e:TEdge):Void {
+	function reverseHorizontal(e:TEdge):Void {
 		//swap horizontal edges' top and bottom x's so they follow the natural
 		//progression of the bounds - ie so their xbots will align with the
 		//adjoining lower edge. [Helpful in the ProcessHorizontal() method.]
-		var tmp = e.Top.X;
-		e.Top.X = e.Bot.X;
-		e.Bot.X = tmp;
+		var tmp = e.top.x;
+		e.top.x = e.bot.x;
+		e.bot.x = tmp;
 	#if USE_XYZ 
-		var tmp = e.Top.Z;
-		e.Top.Z = e.Bot.Z;
-		e.Bot.Z = tmp;
+		var tmp = e.top.z;
+		e.top.z = e.bot.z;
+		e.bot.z = tmp;
 	#end
 	}
 	//------------------------------------------------------------------------------
 
-	function Reset():Void {
-		m_CurrentLM = m_MinimaList;
-		if (m_CurrentLM == null) return; //ie nothing to process
+	function reset():Void {
+		mCurrentLM = mMinimaList;
+		if (mCurrentLM == null) return; //ie nothing to process
 
 		//reset all edges ...
-		var lm:LocalMinima = m_MinimaList;
+		var lm:LocalMinima = mMinimaList;
 		while (lm != null) {
-			var e:TEdge = lm.LeftBound;
+			var e:TEdge = lm.leftBound;
 			if (e != null) {
-				e.Curr.copyFrom(e.Bot);
-				e.Side = EdgeSide.esLeft;
-				e.OutIdx = Unassigned;
+				e.curr.copyFrom(e.bot);
+				e.edgeSide = EdgeSide.ES_LEFT;
+				e.outIdx = UNASSIGNED;
 			}
-			e = lm.RightBound;
+			e = lm.rightBound;
 			if (e != null) {
-				e.Curr.copyFrom(e.Bot);
-				e.Side = EdgeSide.esRight;
-				e.OutIdx = Unassigned;
+				e.curr.copyFrom(e.bot);
+				e.edgeSide = EdgeSide.ES_RIGHT;
+				e.outIdx = UNASSIGNED;
 			}
-			lm = lm.Next;
+			lm = lm.next;
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	static public function GetBounds(paths:Paths):IntRect {
+	static public function getBounds(paths:Paths):IntRect {
 		var i:Int = 0, cnt:Int = paths.length;
 		while (i < cnt && paths[i].length == 0) i++;
 		if (i == cnt) return new IntRect(0, 0, 0, 0);
 		var result = new IntRect(0, 0, 0, 0);
-		result.left = paths[i][0].X;
+		result.left = paths[i][0].x;
 		result.right = result.left;
-		result.top = paths[i][0].Y;
+		result.top = paths[i][0].y;
 		result.bottom = result.top;
 		// TODO: check nested loops
 		while (i < cnt) {
 			for (j in 0...paths[i].length) {
-				if (paths[i][j].X < result.left) result.left = paths[i][j].X;
-				else if (paths[i][j].X > result.right) result.right = paths[i][j].X;
-				if (paths[i][j].Y < result.top) result.top = paths[i][j].Y;
-				else if (paths[i][j].Y > result.bottom) result.bottom = paths[i][j].Y;
+				if (paths[i][j].x < result.left) result.left = paths[i][j].x;
+				else if (paths[i][j].x > result.right) result.right = paths[i][j].x;
+				if (paths[i][j].y < result.top) result.top = paths[i][j].y;
+				else if (paths[i][j].y > result.bottom) result.bottom = paths[i][j].y;
 			}
 			i++;
 		}
@@ -1128,27 +1140,35 @@ class ClipperBase
 
 typedef IntersectNodeComparer = IntersectNode->IntersectNode->Int;
 
+@:enum
+abstract ClipOptions(Int) from Int to Int
+{
+	var CO_REVERSE_SOLUTION = 1;
+	var CO_STRICTLY_SIMPLE = 2;
+	var CO_PRESERVE_COLLINEAR = 4;
+}
+
 class Clipper extends ClipperBase 
 {
 	//InitOptions that can be passed to the constructor ...
-	//TODO: check constants and constructor behaviour (maybe turn into enum)
-	inline static public var ioReverseSolution:Int = 1;
+	//TODO: check constants and constructor behaviour (maybe turn into enum) - done: see ClipOptions
+	/*inline static public var ioReverseSolution:Int = 1;
 	inline static public var ioStrictlySimple:Int = 2;
-	inline static public var ioPreserveCollinear:Int = 4;
+	inline static public var ioPreserveCollinear:Int = 4;*/
 
-	var m_PolyOuts:Array<OutRec>;
-	var m_ClipType:ClipType;
-	var m_Scanbeam:Scanbeam;
-	var m_ActiveEdges:TEdge;
-	var m_SortedEdges:TEdge;
-	var m_IntersectList:Array<IntersectNode>;
-	var m_IntersectNodeComparer:IntersectNodeComparer;
-	var m_ExecuteLocked:Bool;
-	var m_ClipFillType:PolyFillType;
-	var m_SubjFillType:PolyFillType;
-	var m_Joins:Array<Join>;
-	var m_GhostJoins:Array<Join>;
-	var m_UsingPolyTree:Bool;
+	var mPolyOuts:Array<OutRec>;
+	var mClipType:ClipType;
+	var mScanbeam:Scanbeam;
+	var mActiveEdges:TEdge;
+	var mSortedEdges:TEdge;
+	var mIntersectList:Array<IntersectNode>;
+	var mIntersectNodeComparer:IntersectNodeComparer;
+	var mExecuteLocked:Bool;
+	var mClipFillType:PolyFillType;
+	var mSubjFillType:PolyFillType;
+	var mJoins:Array<Join>;
+	var mGhostJoins:Array<Join>;
+	var mUsingPolyTree:Bool;
 #if USE_XYZ 
 	// TODO: ref here
 	public delegate void ZFillCallback(bot1:IntPoint, top1:IntPoint, bot2:IntPoint, top2:IntPoint, /*ref*/ pt:IntPoint);
@@ -1158,21 +1178,21 @@ class Clipper extends ClipperBase
 	}
 #end
 	// TODO: check constructor (:base()/super())
-	public function new(InitOptions:Int = 0) { //constructor
+	public function new(initOptions:ClipOptions = 0) { //constructor
 		super();
-		m_Scanbeam = null;
-		m_ActiveEdges = null;
-		m_SortedEdges = null;
-		m_IntersectList = new Array<IntersectNode>();
-		m_IntersectNodeComparer = compare;
-		m_ExecuteLocked = false;
-		m_UsingPolyTree = false;
-		m_PolyOuts = new Array<OutRec>();
-		m_Joins = new Array<Join>();
-		m_GhostJoins = new Array<Join>();
-		ReverseSolution = (ioReverseSolution & InitOptions) != 0;
-		StrictlySimple = (ioStrictlySimple & InitOptions) != 0;
-		PreserveCollinear = (ioPreserveCollinear & InitOptions) != 0;
+		mScanbeam = null;
+		mActiveEdges = null;
+		mSortedEdges = null;
+		mIntersectList = new Array<IntersectNode>();
+		mIntersectNodeComparer = compare;
+		mExecuteLocked = false;
+		mUsingPolyTree = false;
+		mPolyOuts = new Array<OutRec>();
+		mJoins = new Array<Join>();
+		mGhostJoins = new Array<Join>();
+		reverseSolution = (CO_REVERSE_SOLUTION & initOptions) != 0;
+		strictlySimple = (CO_STRICTLY_SIMPLE & initOptions) != 0;
+		preserveCollinear = (CO_PRESERVE_COLLINEAR & initOptions) != 0;
 	#if USE_XYZ 
 		ZFillFunction = null;
 	#end
@@ -1180,698 +1200,698 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	static function compare(node1:IntersectNode, node2:IntersectNode):Int {
-		var i:CInt = node2.Pt.Y - node1.Pt.Y;
+		var i:CInt = node2.pt.y - node1.pt.y;
 		if (i > 0) return 1;
 		else if (i < 0) return -1;
 		else return 0;
 	}
 	
-	function DisposeScanbeamList():Void {
-		while (m_Scanbeam != null) {
-			var sb2:Scanbeam = m_Scanbeam.Next;
-			m_Scanbeam = null;
-			m_Scanbeam = sb2;
+	function disposeScanbeamList():Void {
+		while (mScanbeam != null) {
+			var sb2:Scanbeam = mScanbeam.next;
+			mScanbeam = null;
+			mScanbeam = sb2;
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	override function Reset():Void {
-		super.Reset();
-		m_Scanbeam = null;
-		m_ActiveEdges = null;
-		m_SortedEdges = null;
-		var lm:LocalMinima = m_MinimaList;
+	override function reset():Void {
+		super.reset();
+		mScanbeam = null;
+		mActiveEdges = null;
+		mSortedEdges = null;
+		var lm:LocalMinima = mMinimaList;
 		while (lm != null) {
-			InsertScanbeam(lm.Y);
-			lm = lm.Next;
+			insertScanbeam(lm.y);
+			lm = lm.next;
 		}
 	}
 	//------------------------------------------------------------------------------
 
 	// TODO: check this prop
-	public var ReverseSolution(default, default):Bool;
+	public var reverseSolution(default, default):Bool;
 	//------------------------------------------------------------------------------
 
-	public var StrictlySimple(default, default):Bool;
+	public var strictlySimple(default, default):Bool;
 	//------------------------------------------------------------------------------
 
-	function InsertScanbeam(Y:CInt):Void {
-		if (m_Scanbeam == null) {
-			m_Scanbeam = new Scanbeam();
-			m_Scanbeam.Next = null;
-			m_Scanbeam.Y = Y;
-		} else if (Y > m_Scanbeam.Y) {
+	function insertScanbeam(y:CInt):Void {
+		if (mScanbeam == null) {
+			mScanbeam = new Scanbeam();
+			mScanbeam.next = null;
+			mScanbeam.y = y;
+		} else if (y > mScanbeam.y) {
 			var newSb = new Scanbeam();
-			newSb.Y = Y;
-			newSb.Next = m_Scanbeam;
-			m_Scanbeam = newSb;
+			newSb.y = y;
+			newSb.next = mScanbeam;
+			mScanbeam = newSb;
 		} else {
-			var sb2 = m_Scanbeam;
-			while (sb2.Next != null && (Y <= sb2.Next.Y)) sb2 = sb2.Next;
-			if (Y == sb2.Y) return; //ie ignores duplicates
+			var sb2 = mScanbeam;
+			while (sb2.next != null && (y <= sb2.next.y)) sb2 = sb2.next;
+			if (y == sb2.y) return; //ie ignores duplicates
 			var newSb = new Scanbeam();
-			newSb.Y = Y;
-			newSb.Next = sb2.Next;
-			sb2.Next = newSb;
+			newSb.y = y;
+			newSb.next = sb2.next;
+			sb2.next = newSb;
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	public function ExecutePaths(clipType:ClipType, solution:Paths, subjFillType:PolyFillType, clipFillType:PolyFillType):Bool {
-		if (m_ExecuteLocked) return false;
-		if (m_HasOpenPaths) throw new ClipperException("Error: PolyTree struct is needed for open path clipping.");
+	public function executePaths(clipType:ClipType, solution:Paths, subjFillType:PolyFillType, clipFillType:PolyFillType):Bool {
+		if (mExecuteLocked) return false;
+		if (mHasOpenPaths) throw new ClipperException("Error: PolyTree struct is needed for open path clipping.");
 
-		m_ExecuteLocked = true;
+		mExecuteLocked = true;
 		solution.clear();
-		m_SubjFillType = subjFillType;
-		m_ClipFillType = clipFillType;
-		m_ClipType = clipType;
-		m_UsingPolyTree = false;
+		mSubjFillType = subjFillType;
+		mClipFillType = clipFillType;
+		mClipType = clipType;
+		mUsingPolyTree = false;
 		var succeeded:Bool = false;
 		// TODO: finally?
 		try {
-			succeeded = ExecuteInternal();
+			succeeded = executeInternal();
 			//build the return polygons ...
-			if (succeeded) BuildResult(solution);
+			if (succeeded) buildResult(solution);
 		} /*finally {
 			DisposeAllPolyPts();
-			m_ExecuteLocked = false;
+			mExecuteLocked = false;
 		}*/
-		DisposeAllPolyPts();
-		m_ExecuteLocked = false;
-		m_Joins.clear();
-		m_GhostJoins.clear();
+		disposeAllPolyPts();
+		mExecuteLocked = false;
+		mJoins.clear();
+		mGhostJoins.clear();
 		return succeeded;
 	}
 	//------------------------------------------------------------------------------
 
-	public function ExecutePolyTree(clipType:ClipType, polytree:PolyTree, subjFillType:PolyFillType, clipFillType:PolyFillType):Bool {
-		if (m_ExecuteLocked) return false;
-		m_ExecuteLocked = true;
-		m_SubjFillType = subjFillType;
-		m_ClipFillType = clipFillType;
-		m_ClipType = clipType;
-		m_UsingPolyTree = true;
+	public function executePolyTree(clipType:ClipType, polytree:PolyTree, subjFillType:PolyFillType, clipFillType:PolyFillType):Bool {
+		if (mExecuteLocked) return false;
+		mExecuteLocked = true;
+		mSubjFillType = subjFillType;
+		mClipFillType = clipFillType;
+		mClipType = clipType;
+		mUsingPolyTree = true;
 		var succeeded:Bool = false;
 		// TODO: finally?
 		try {
-			succeeded = ExecuteInternal();
+			succeeded = executeInternal();
 			//build the return polygons ...
-			if (succeeded) BuildResult2(polytree);
+			if (succeeded) buildResult2(polytree);
 		} /*finally {
 			DisposeAllPolyPts();
-			m_ExecuteLocked = false;
+			mExecuteLocked = false;
 		}*/
-		DisposeAllPolyPts();
-		m_ExecuteLocked = false;
-		m_Joins.clear();
-		m_GhostJoins.clear();
+		disposeAllPolyPts();
+		mExecuteLocked = false;
+		mJoins.clear();
+		mGhostJoins.clear();
 		return succeeded;
 	}
 	//------------------------------------------------------------------------------
 
-	public function Execute(clipType:ClipType, solution:Dynamic):Bool {
+	public function execute(clipType:ClipType, solution:Dynamic):Bool {
 		if (Std.is(solution, Paths)) {
-			return ExecutePaths(clipType, solution, PolyFillType.pftEvenOdd, PolyFillType.pftEvenOdd);
+			return executePaths(clipType, solution, PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_EVEN_ODD);
 		} else if (Std.is(solution, PolyTree)) {
-			return ExecutePolyTree(clipType, solution, PolyFillType.pftEvenOdd, PolyFillType.pftEvenOdd);
+			return executePolyTree(clipType, solution, PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_EVEN_ODD);
 		} else {
 			throw new ClipperException("`solution` must be either a Paths or a PolyTree");
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function FixHoleLinkage(outRec:OutRec):Void {
+	/*internal*/ public function fixHoleLinkage(outRec:OutRec):Void {
 		//skip if an outermost polygon or
 		//already already points to the correct FirstLeft ...
-		if (outRec.FirstLeft == null || (outRec.IsHole != outRec.FirstLeft.IsHole && outRec.FirstLeft.Pts != null)) return;
+		if (outRec.firstLeft == null || (outRec.isHole != outRec.firstLeft.isHole && outRec.firstLeft.pts != null)) return;
 
-		var orfl:OutRec = outRec.FirstLeft;
+		var orfl:OutRec = outRec.firstLeft;
 		// TODO: check while
-		while (orfl != null && ((orfl.IsHole == outRec.IsHole) || orfl.Pts == null)) {
-			orfl = orfl.FirstLeft;
+		while (orfl != null && ((orfl.isHole == outRec.isHole) || orfl.pts == null)) {
+			orfl = orfl.firstLeft;
 		}
-		outRec.FirstLeft = orfl;
+		outRec.firstLeft = orfl;
 	}
 	//------------------------------------------------------------------------------
 
-	function ExecuteInternal():Bool {
+	function executeInternal():Bool {
 		try {
-			Reset();
-			if (m_CurrentLM == null) return false;
+			reset();
+			if (mCurrentLM == null) return false;
 
-			var botY:CInt = PopScanbeam();
+			var botY:CInt = popScanbeam();
 			do {
-				InsertLocalMinimaIntoAEL(botY);
-				m_GhostJoins.clear();
-				ProcessHorizontals(false);
-				if (m_Scanbeam == null) break;
-				var topY:CInt = PopScanbeam();
-				if (!ProcessIntersections(topY)) return false;
-				ProcessEdgesAtTopOfScanbeam(topY);
+				insertLocalMinimaIntoAEL(botY);
+				mGhostJoins.clear();
+				processHorizontals(false);
+				if (mScanbeam == null) break;
+				var topY:CInt = popScanbeam();
+				if (!processIntersections(topY)) return false;
+				processEdgesAtTopOfScanbeam(topY);
 				botY = topY;
-			} while (m_Scanbeam != null || m_CurrentLM != null);
+			} while (mScanbeam != null || mCurrentLM != null);
 
 			//fix orientations ...
-			for (i in 0...m_PolyOuts.length) {
-				var outRec:OutRec = m_PolyOuts[i];
-				if (outRec.Pts == null || outRec.IsOpen) continue;
-				if ((outRec.IsHole.xor(ReverseSolution)) == (AreaOfOutRec(outRec) > 0)) ReversePolyPtLinks(outRec.Pts);
+			for (i in 0...mPolyOuts.length) {
+				var outRec:OutRec = mPolyOuts[i];
+				if (outRec.pts == null || outRec.isOpen) continue;
+				if ((outRec.isHole.xor(reverseSolution)) == (areaOfOutRec(outRec) > 0)) reversePolyPtLinks(outRec.pts);
 			}
 
-			JoinCommonEdges();
+			joinCommonEdges();
 
-			for (i in 0...m_PolyOuts.length) {
-				var outRec:OutRec = m_PolyOuts[i];
-				if (outRec.Pts != null && !outRec.IsOpen) FixupOutPolygon(outRec);
+			for (i in 0...mPolyOuts.length) {
+				var outRec:OutRec = mPolyOuts[i];
+				if (outRec.pts != null && !outRec.isOpen) fixupOutPolygon(outRec);
 			}
 
-			if (StrictlySimple) DoSimplePolygons();
+			if (strictlySimple) doSimplePolygons();
 			return true;
 		}
 		//catch { return false; }
 		// TODO: finally? moved into caller
 		/*finally {
-			m_Joins.clear();
-			m_GhostJoins.clear();
+			mJoins.clear();
+			mGhostJoins.clear();
 		}*/
 	}
 	//------------------------------------------------------------------------------
 
-	function PopScanbeam():CInt {
-		var Y:CInt = m_Scanbeam.Y;
-		m_Scanbeam = m_Scanbeam.Next;
-		return Y;
+	function popScanbeam():CInt {
+		var y:CInt = mScanbeam.y;
+		mScanbeam = mScanbeam.next;
+		return y;
 	}
 	//------------------------------------------------------------------------------
 
-	function DisposeAllPolyPts():Void {
-		for (i in 0...m_PolyOuts.length) DisposeOutRec(i);
-		m_PolyOuts.clear();
+	function disposeAllPolyPts():Void {
+		for (i in 0...mPolyOuts.length) disposeOutRec(i);
+		mPolyOuts.clear();
 	}
 	//------------------------------------------------------------------------------
 
-	function DisposeOutRec(index:Int):Void {
-		var outRec:OutRec = m_PolyOuts[index];
-		outRec.Pts = null;
+	function disposeOutRec(index:Int):Void {
+		var outRec:OutRec = mPolyOuts[index];
+		outRec.pts = null;
 		outRec = null;
-		m_PolyOuts[index] = null;
+		mPolyOuts[index] = null;
 	}
 	//------------------------------------------------------------------------------
 
-	function AddJoin(Op1:OutPt, Op2:OutPt, OffPt:IntPoint):Void {
+	function addJoin(op1:OutPt, op2:OutPt, offPt:IntPoint):Void {
 		var j = new Join();
-		j.OutPt1 = Op1;
-		j.OutPt2 = Op2;
-		j.OffPt.copyFrom(OffPt);
-		m_Joins.push(j);
+		j.outPt1 = op1;
+		j.outPt2 = op2;
+		j.offPt.copyFrom(offPt);
+		mJoins.push(j);
 	}
 	//------------------------------------------------------------------------------
 
-	function AddGhostJoin(Op:OutPt, OffPt:IntPoint):Void {
+	function addGhostJoin(op:OutPt, offPt:IntPoint):Void {
 		var j = new Join();
-		j.OutPt1 = Op;
-		j.OffPt.copyFrom(OffPt);
-		m_GhostJoins.push(j);
+		j.outPt1 = op;
+		j.offPt.copyFrom(offPt);
+		mGhostJoins.push(j);
 	}
 	//------------------------------------------------------------------------------
 
 #if USE_XYZ 
 	// TODO: ref?
-	/*internal*/ public function SetZ(/*ref*/ pt:IntPoint, e1:TEdge, e2:TEdge):Void {
-		if (pt.Z != 0 || ZFillFunction == null) return;
-		else if (pt.equals(e1.Bot)) pt.Z = e1.Bot.Z;
-		else if (pt.equals(e1.Top)) pt.Z = e1.Top.Z;
-		else if (pt.equals(e2.Bot)) pt.Z = e2.Bot.Z;
-		else if (pt.equals(e2.Top)) pt.Z = e2.Top.Z;
-		else ZFillFunction(e1.Bot, e1.Top, e2.Bot, e2.Top, ref pt);
+	/*internal*/ public function setZ(/*ref*/ pt:IntPoint, e1:TEdge, e2:TEdge):Void {
+		if (pt.z != 0 || ZFillFunction == null) return;
+		else if (pt.equals(e1.bot)) pt.z = e1.bot.z;
+		else if (pt.equals(e1.top)) pt.z = e1.top.z;
+		else if (pt.equals(e2.bot)) pt.z = e2.bot.z;
+		else if (pt.equals(e2.top)) pt.z = e2.top.z;
+		else zFillFunction(e1.bot, e1.top, e2.bot, e2.top, ref pt);
 	}
 	//------------------------------------------------------------------------------
 #end
 
-	function InsertLocalMinimaIntoAEL(botY:CInt):Void {
-		while (m_CurrentLM != null && (m_CurrentLM.Y == botY)) {
-			var lb:TEdge = m_CurrentLM.LeftBound;
-			var rb:TEdge = m_CurrentLM.RightBound;
-			PopLocalMinima();
+	function insertLocalMinimaIntoAEL(botY:CInt):Void {
+		while (mCurrentLM != null && (mCurrentLM.y == botY)) {
+			var lb:TEdge = mCurrentLM.leftBound;
+			var rb:TEdge = mCurrentLM.rightBound;
+			popLocalMinima();
 
-			var Op1:OutPt = null;
+			var op1:OutPt = null;
 			if (lb == null) {
-				InsertEdgeIntoAEL(rb, null);
-				SetWindingCount(rb);
-				if (IsContributing(rb)) 
-					Op1 = AddOutPt(rb, rb.Bot);
+				insertEdgeIntoAEL(rb, null);
+				setWindingCount(rb);
+				if (isContributing(rb)) 
+					op1 = addOutPt(rb, rb.bot);
 			} else if (rb == null) {
-				InsertEdgeIntoAEL(lb, null);
-				SetWindingCount(lb);
-				if (IsContributing(lb)) 
-					Op1 = AddOutPt(lb, lb.Bot);
-				InsertScanbeam(lb.Top.Y);
+				insertEdgeIntoAEL(lb, null);
+				setWindingCount(lb);
+				if (isContributing(lb)) 
+					op1 = addOutPt(lb, lb.bot);
+				insertScanbeam(lb.top.y);
 			} else {
-				InsertEdgeIntoAEL(lb, null);
-				InsertEdgeIntoAEL(rb, lb);
-				SetWindingCount(lb);
-				rb.WindCnt = lb.WindCnt;
-				rb.WindCnt2 = lb.WindCnt2;
-				if (IsContributing(lb)) 
-					Op1 = AddLocalMinPoly(lb, rb, lb.Bot);
-				InsertScanbeam(lb.Top.Y);
+				insertEdgeIntoAEL(lb, null);
+				insertEdgeIntoAEL(rb, lb);
+				setWindingCount(lb);
+				rb.windCnt = lb.windCnt;
+				rb.windCnt2 = lb.windCnt2;
+				if (isContributing(lb)) 
+					op1 = addLocalMinPoly(lb, rb, lb.bot);
+				insertScanbeam(lb.top.y);
 			}
 
 			if (rb != null) {
-				if (ClipperBase.IsHorizontal(rb)) AddEdgeToSEL(rb);
-				else InsertScanbeam(rb.Top.Y);
+				if (ClipperBase.isHorizontal(rb)) addEdgeToSEL(rb);
+				else insertScanbeam(rb.top.y);
 			}
 
 			if (lb == null || rb == null) continue;
 
 			//if output polygons share an Edge with a horizontal rb, they'll need joining later ...
-			if (Op1 != null && ClipperBase.IsHorizontal(rb) && m_GhostJoins.length > 0 && rb.WindDelta != 0) {
-				for (i in 0...m_GhostJoins.length) {
+			if (op1 != null && ClipperBase.isHorizontal(rb) && mGhostJoins.length > 0 && rb.windDelta != 0) {
+				for (i in 0...mGhostJoins.length) {
 					//if the horizontal Rb and a 'ghost' horizontal overlap, then convert
 					//the 'ghost' join to a real join ready for later ...
-					var j:Join = m_GhostJoins[i];
-					if (HorzSegmentsOverlap(j.OutPt1.Pt.X, j.OffPt.X, rb.Bot.X, rb.Top.X)) AddJoin(j.OutPt1, Op1, j.OffPt);
+					var j:Join = mGhostJoins[i];
+					if (horzSegmentsOverlap(j.outPt1.pt.x, j.offPt.x, rb.bot.x, rb.top.x)) addJoin(j.outPt1, op1, j.offPt);
 				}
 			}
 
-			if (lb.OutIdx >= 0 && lb.PrevInAEL != null && lb.PrevInAEL.Curr.X == lb.Bot.X && lb.PrevInAEL.OutIdx >= 0 
-				&& ClipperBase.SlopesEqual(lb.PrevInAEL, lb, m_UseFullRange) && lb.WindDelta != 0 && lb.PrevInAEL.WindDelta != 0) 
+			if (lb.outIdx >= 0 && lb.prevInAEL != null && lb.prevInAEL.curr.x == lb.bot.x && lb.prevInAEL.outIdx >= 0 
+				&& ClipperBase.slopesEqual(lb.prevInAEL, lb, mUseFullRange) && lb.windDelta != 0 && lb.prevInAEL.windDelta != 0) 
 			{
-				var Op2:OutPt = AddOutPt(lb.PrevInAEL, lb.Bot);
-				AddJoin(Op1, Op2, lb.Top);
+				var op2:OutPt = addOutPt(lb.prevInAEL, lb.bot);
+				addJoin(op1, op2, lb.top);
 			}
 
-			if (lb.NextInAEL != rb) {
+			if (lb.nextInAEL != rb) {
 
-				if (rb.OutIdx >= 0 && rb.PrevInAEL.OutIdx >= 0 && ClipperBase.SlopesEqual(rb.PrevInAEL, rb, m_UseFullRange) 
-					&& rb.WindDelta != 0 && rb.PrevInAEL.WindDelta != 0) 
+				if (rb.outIdx >= 0 && rb.prevInAEL.outIdx >= 0 && ClipperBase.slopesEqual(rb.prevInAEL, rb, mUseFullRange) 
+					&& rb.windDelta != 0 && rb.prevInAEL.windDelta != 0) 
 				{
-					var Op2:OutPt = AddOutPt(rb.PrevInAEL, rb.Bot);
-					AddJoin(Op1, Op2, rb.Top);
+					var op2:OutPt = addOutPt(rb.prevInAEL, rb.bot);
+					addJoin(op1, op2, rb.top);
 				}
 
-				var e:TEdge = lb.NextInAEL;
+				var e:TEdge = lb.nextInAEL;
 				if (e != null) while (e != rb) {
 					//nb: For calculating winding counts etc, IntersectEdges() assumes
 					//that param1 will be to the right of param2 ABOVE the intersection ...
-					IntersectEdges(rb, e, lb.Curr); //order important here
-					e = e.NextInAEL;
+					intersectEdges(rb, e, lb.curr); //order important here
+					e = e.nextInAEL;
 				}
 			}
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function InsertEdgeIntoAEL(edge:TEdge, startEdge:TEdge):Void {
-		if (m_ActiveEdges == null) {
-			edge.PrevInAEL = null;
-			edge.NextInAEL = null;
-			m_ActiveEdges = edge;
-		} else if (startEdge == null && E2InsertsBeforeE1(m_ActiveEdges, edge)) {
-			edge.PrevInAEL = null;
-			edge.NextInAEL = m_ActiveEdges;
-			m_ActiveEdges.PrevInAEL = edge;
-			m_ActiveEdges = edge;
+	function insertEdgeIntoAEL(edge:TEdge, startEdge:TEdge):Void {
+		if (mActiveEdges == null) {
+			edge.prevInAEL = null;
+			edge.nextInAEL = null;
+			mActiveEdges = edge;
+		} else if (startEdge == null && e2InsertsBeforeE1(mActiveEdges, edge)) {
+			edge.prevInAEL = null;
+			edge.nextInAEL = mActiveEdges;
+			mActiveEdges.prevInAEL = edge;
+			mActiveEdges = edge;
 		} else {
-			if (startEdge == null) startEdge = m_ActiveEdges;
-			while (startEdge.NextInAEL != null && !E2InsertsBeforeE1(startEdge.NextInAEL, edge)) {
-				startEdge = startEdge.NextInAEL;
+			if (startEdge == null) startEdge = mActiveEdges;
+			while (startEdge.nextInAEL != null && !e2InsertsBeforeE1(startEdge.nextInAEL, edge)) {
+				startEdge = startEdge.nextInAEL;
 			}
-			edge.NextInAEL = startEdge.NextInAEL;
-			if (startEdge.NextInAEL != null) startEdge.NextInAEL.PrevInAEL = edge;
-			edge.PrevInAEL = startEdge;
-			startEdge.NextInAEL = edge;
+			edge.nextInAEL = startEdge.nextInAEL;
+			if (startEdge.nextInAEL != null) startEdge.nextInAEL.prevInAEL = edge;
+			edge.prevInAEL = startEdge;
+			startEdge.nextInAEL = edge;
 		}
 	}
 	//----------------------------------------------------------------------
 
-	function E2InsertsBeforeE1(e1:TEdge, e2:TEdge):Bool {
-		if (e2.Curr.X == e1.Curr.X) {
-			if (e2.Top.Y > e1.Top.Y) return e2.Top.X < TopX(e1, e2.Top.Y);
-			else return e1.Top.X > TopX(e2, e1.Top.Y);
-		} else return e2.Curr.X < e1.Curr.X;
+	function e2InsertsBeforeE1(e1:TEdge, e2:TEdge):Bool {
+		if (e2.curr.x == e1.curr.x) {
+			if (e2.top.y > e1.top.y) return e2.top.x < topX(e1, e2.top.y);
+			else return e1.top.x > topX(e2, e1.top.y);
+		} else return e2.curr.x < e1.curr.x;
 	}
 	//------------------------------------------------------------------------------
 
-	function IsEvenOddFillType(edge:TEdge):Bool {
-		if (edge.PolyTyp == PolyType.ptSubject) return m_SubjFillType == PolyFillType.pftEvenOdd;
-		else return m_ClipFillType == PolyFillType.pftEvenOdd;
+	function isEvenOddFillType(edge:TEdge):Bool {
+		if (edge.polyType == PolyType.PT_SUBJECT) return mSubjFillType == PolyFillType.PFT_EVEN_ODD;
+		else return mClipFillType == PolyFillType.PFT_EVEN_ODD;
 	}
 	//------------------------------------------------------------------------------
 
-	function IsEvenOddAltFillType(edge:TEdge):Bool {
-		if (edge.PolyTyp == PolyType.ptSubject) return m_ClipFillType == PolyFillType.pftEvenOdd;
-		else return m_SubjFillType == PolyFillType.pftEvenOdd;
+	function isEvenOddAltFillType(edge:TEdge):Bool {
+		if (edge.polyType == PolyType.PT_SUBJECT) return mClipFillType == PolyFillType.PFT_EVEN_ODD;
+		else return mSubjFillType == PolyFillType.PFT_EVEN_ODD;
 	}
 	//------------------------------------------------------------------------------
 
-	function IsContributing(edge:TEdge):Bool {
+	function isContributing(edge:TEdge):Bool {
 		var pft:PolyFillType, pft2:PolyFillType;
-		if (edge.PolyTyp == PolyType.ptSubject) {
-			pft = m_SubjFillType;
-			pft2 = m_ClipFillType;
+		if (edge.polyType == PolyType.PT_SUBJECT) {
+			pft = mSubjFillType;
+			pft2 = mClipFillType;
 		} else {
-			pft = m_ClipFillType;
-			pft2 = m_SubjFillType;
+			pft = mClipFillType;
+			pft2 = mSubjFillType;
 		}
 
 		switch (pft) {
-			case PolyFillType.pftEvenOdd:
+			case PolyFillType.PFT_EVEN_ODD:
 				//return false if a subj line has been flagged as inside a subj polygon
-				if (edge.WindDelta == 0 && edge.WindCnt != 1) return false;
-			case PolyFillType.pftNonZero:
-				if (Math.abs(edge.WindCnt) != 1) return false;
-			case PolyFillType.pftPositive:
-				if (edge.WindCnt != 1) return false;
+				if (edge.windDelta == 0 && edge.windCnt != 1) return false;
+			case PolyFillType.PFT_NON_ZERO:
+				if (Math.abs(edge.windCnt) != 1) return false;
+			case PolyFillType.PFT_POSITIVE:
+				if (edge.windCnt != 1) return false;
 			default:
 				//PolyFillType.pftNegative
-				if (edge.WindCnt != -1) return false;
+				if (edge.windCnt != -1) return false;
 		}
 
-		switch (m_ClipType) {
-			case ClipType.ctIntersection:
+		switch (mClipType) {
+			case ClipType.CT_INTERSECTION:
 				switch (pft2) {
-					case PolyFillType.pftEvenOdd, PolyFillType.pftNonZero:
-						return (edge.WindCnt2 != 0);
-					case PolyFillType.pftPositive:
-						return (edge.WindCnt2 > 0);
+					case PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_NON_ZERO:
+						return (edge.windCnt2 != 0);
+					case PolyFillType.PFT_POSITIVE:
+						return (edge.windCnt2 > 0);
 					default:
-						return (edge.WindCnt2 < 0);
+						return (edge.windCnt2 < 0);
 				}
-			case ClipType.ctUnion:
+			case ClipType.CT_UNION:
 				switch (pft2) {
-					case PolyFillType.pftEvenOdd, PolyFillType.pftNonZero:
-						return (edge.WindCnt2 == 0);
-					case PolyFillType.pftPositive:
-						return (edge.WindCnt2 <= 0);
+					case PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_NON_ZERO:
+						return (edge.windCnt2 == 0);
+					case PolyFillType.PFT_POSITIVE:
+						return (edge.windCnt2 <= 0);
 					default:
-						return (edge.WindCnt2 >= 0);
+						return (edge.windCnt2 >= 0);
 				}
-			case ClipType.ctDifference:
-				if (edge.PolyTyp == PolyType.ptSubject) switch (pft2) {
-					case PolyFillType.pftEvenOdd, PolyFillType.pftNonZero:
-						return (edge.WindCnt2 == 0);
-					case PolyFillType.pftPositive:
-						return (edge.WindCnt2 <= 0);
+			case ClipType.CT_DIFFERENCE:
+				if (edge.polyType == PolyType.PT_SUBJECT) switch (pft2) {
+					case PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_NON_ZERO:
+						return (edge.windCnt2 == 0);
+					case PolyFillType.PFT_POSITIVE:
+						return (edge.windCnt2 <= 0);
 					default:
-						return (edge.WindCnt2 >= 0);
+						return (edge.windCnt2 >= 0);
 				} else switch (pft2) {
-					case PolyFillType.pftEvenOdd, PolyFillType.pftNonZero:
-						return (edge.WindCnt2 != 0);
-					case PolyFillType.pftPositive:
-						return (edge.WindCnt2 > 0);
+					case PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_NON_ZERO:
+						return (edge.windCnt2 != 0);
+					case PolyFillType.PFT_POSITIVE:
+						return (edge.windCnt2 > 0);
 					default:
-						return (edge.WindCnt2 < 0);
+						return (edge.windCnt2 < 0);
 				}
-			case ClipType.ctXor:
-				if (edge.WindDelta == 0) //XOr always contributing unless open
+			case ClipType.CT_XOR:
+				if (edge.windDelta == 0) //XOr always contributing unless open
 					switch (pft2) {
-						case PolyFillType.pftEvenOdd, PolyFillType.pftNonZero:
-							return (edge.WindCnt2 == 0);
-						case PolyFillType.pftPositive:
-							return (edge.WindCnt2 <= 0);
+						case PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_NON_ZERO:
+							return (edge.windCnt2 == 0);
+						case PolyFillType.PFT_POSITIVE:
+							return (edge.windCnt2 <= 0);
 						default:
-							return (edge.WindCnt2 >= 0);
+							return (edge.windCnt2 >= 0);
 				} else return true;
 		}
 		return true;
 	}
 	//------------------------------------------------------------------------------
 
-	function SetWindingCount(edge:TEdge):Void {
-		var e:TEdge = edge.PrevInAEL;
+	function setWindingCount(edge:TEdge):Void {
+		var e:TEdge = edge.prevInAEL;
 		//find the edge of the same polytype that immediately preceeds 'edge' in AEL
-		while (e != null && ((e.PolyTyp != edge.PolyTyp) || (e.WindDelta == 0))) e = e.PrevInAEL;
+		while (e != null && ((e.polyType != edge.polyType) || (e.windDelta == 0))) e = e.prevInAEL;
 		if (e == null) {
-			edge.WindCnt = (edge.WindDelta == 0 ? 1 : edge.WindDelta);
-			edge.WindCnt2 = 0;
-			e = m_ActiveEdges; //ie get ready to calc WindCnt2
-		} else if (edge.WindDelta == 0 && m_ClipType != ClipType.ctUnion) {
-			edge.WindCnt = 1;
-			edge.WindCnt2 = e.WindCnt2;
-			e = e.NextInAEL; //ie get ready to calc WindCnt2
-		} else if (IsEvenOddFillType(edge)) {
+			edge.windCnt = (edge.windDelta == 0 ? 1 : edge.windDelta);
+			edge.windCnt2 = 0;
+			e = mActiveEdges; //ie get ready to calc WindCnt2
+		} else if (edge.windDelta == 0 && mClipType != ClipType.CT_UNION) {
+			edge.windCnt = 1;
+			edge.windCnt2 = e.windCnt2;
+			e = e.nextInAEL; //ie get ready to calc WindCnt2
+		} else if (isEvenOddFillType(edge)) {
 			//EvenOdd filling ...
-			if (edge.WindDelta == 0) {
+			if (edge.windDelta == 0) {
 				//are we inside a subj polygon ...
-				var Inside = true;
-				var e2:TEdge = e.PrevInAEL;
+				var inside = true;
+				var e2:TEdge = e.prevInAEL;
 				while (e2 != null) {
-					if (e2.PolyTyp == e.PolyTyp && e2.WindDelta != 0) Inside = !Inside;
-					e2 = e2.PrevInAEL;
+					if (e2.polyType == e.polyType && e2.windDelta != 0) inside = !inside;
+					e2 = e2.prevInAEL;
 				}
-				edge.WindCnt = (Inside ? 0 : 1);
+				edge.windCnt = (inside ? 0 : 1);
 			} else {
-				edge.WindCnt = edge.WindDelta;
+				edge.windCnt = edge.windDelta;
 			}
-			edge.WindCnt2 = e.WindCnt2;
-			e = e.NextInAEL; //ie get ready to calc WindCnt2
+			edge.windCnt2 = e.windCnt2;
+			e = e.nextInAEL; //ie get ready to calc WindCnt2
 		} else {
 			//nonZero, Positive or Negative filling ...
-			if (e.WindCnt * e.WindDelta < 0) {
+			if (e.windCnt * e.windDelta < 0) {
 				//prev edge is 'decreasing' WindCount (WC) toward zero
 				//so we're outside the previous polygon ...
-				if (Math.abs(e.WindCnt) > 1) {
+				if (Math.abs(e.windCnt) > 1) {
 					//outside prev poly but still inside another.
 					//when reversing direction of prev poly use the same WC 
-					if (e.WindDelta * edge.WindDelta < 0) edge.WindCnt = e.WindCnt;
+					if (e.windDelta * edge.windDelta < 0) edge.windCnt = e.windCnt;
 					//otherwise continue to 'decrease' WC ...
-					else edge.WindCnt = e.WindCnt + edge.WindDelta;
+					else edge.windCnt = e.windCnt + edge.windDelta;
 				} else
 				//now outside all polys of same polytype so set own WC ...
-				edge.WindCnt = (edge.WindDelta == 0 ? 1 : edge.WindDelta);
+				edge.windCnt = (edge.windDelta == 0 ? 1 : edge.windDelta);
 			} else {
 				//prev edge is 'increasing' WindCount (WC) away from zero
 				//so we're inside the previous polygon ...
-				if (edge.WindDelta == 0) edge.WindCnt = (e.WindCnt < 0 ? e.WindCnt - 1 : e.WindCnt + 1);
+				if (edge.windDelta == 0) edge.windCnt = (e.windCnt < 0 ? e.windCnt - 1 : e.windCnt + 1);
 				//if wind direction is reversing prev then use same WC
-				else if (e.WindDelta * edge.WindDelta < 0) edge.WindCnt = e.WindCnt;
+				else if (e.windDelta * edge.windDelta < 0) edge.windCnt = e.windCnt;
 				//otherwise add to WC ...
-				else edge.WindCnt = e.WindCnt + edge.WindDelta;
+				else edge.windCnt = e.windCnt + edge.windDelta;
 			}
-			edge.WindCnt2 = e.WindCnt2;
-			e = e.NextInAEL; //ie get ready to calc WindCnt2
+			edge.windCnt2 = e.windCnt2;
+			e = e.nextInAEL; //ie get ready to calc WindCnt2
 		}
 
 		//update WindCnt2 ...
-		if (IsEvenOddAltFillType(edge)) {
+		if (isEvenOddAltFillType(edge)) {
 			//EvenOdd filling ...
 			while (e != edge) {
-				if (e.WindDelta != 0) edge.WindCnt2 = (edge.WindCnt2 == 0 ? 1 : 0);
-				e = e.NextInAEL;
+				if (e.windDelta != 0) edge.windCnt2 = (edge.windCnt2 == 0 ? 1 : 0);
+				e = e.nextInAEL;
 			}
 		} else {
 			//nonZero, Positive or Negative filling ...
 			while (e != edge) {
-				edge.WindCnt2 += e.WindDelta;
-				e = e.NextInAEL;
+				edge.windCnt2 += e.windDelta;
+				e = e.nextInAEL;
 			}
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function AddEdgeToSEL(edge:TEdge):Void {
+	function addEdgeToSEL(edge:TEdge):Void {
 		//SEL pointers in PEdge are reused to build a list of horizontal edges.
 		//However, we don't need to worry about order with horizontal edge processing.
-		if (m_SortedEdges == null) {
-			m_SortedEdges = edge;
-			edge.PrevInSEL = null;
-			edge.NextInSEL = null;
+		if (mSortedEdges == null) {
+			mSortedEdges = edge;
+			edge.prevInSEL = null;
+			edge.nextInSEL = null;
 		} else {
-			edge.NextInSEL = m_SortedEdges;
-			edge.PrevInSEL = null;
-			m_SortedEdges.PrevInSEL = edge;
-			m_SortedEdges = edge;
+			edge.nextInSEL = mSortedEdges;
+			edge.prevInSEL = null;
+			mSortedEdges.prevInSEL = edge;
+			mSortedEdges = edge;
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function CopyAELToSEL():Void {
-		var e:TEdge = m_ActiveEdges;
-		m_SortedEdges = e;
+	function copyAELToSEL():Void {
+		var e:TEdge = mActiveEdges;
+		mSortedEdges = e;
 		while (e != null) {
-			e.PrevInSEL = e.PrevInAEL;
-			e.NextInSEL = e.NextInAEL;
-			e = e.NextInAEL;
+			e.prevInSEL = e.prevInAEL;
+			e.nextInSEL = e.nextInAEL;
+			e = e.nextInAEL;
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function SwapPositionsInAEL(edge1:TEdge, edge2:TEdge):Void {
+	function swapPositionsInAEL(edge1:TEdge, edge2:TEdge):Void {
 		//check that one or other edge hasn't already been removed from AEL ...
-		if (edge1.NextInAEL == edge1.PrevInAEL || edge2.NextInAEL == edge2.PrevInAEL) return;
+		if (edge1.nextInAEL == edge1.prevInAEL || edge2.nextInAEL == edge2.prevInAEL) return;
 
-		if (edge1.NextInAEL == edge2) {
-			var next:TEdge = edge2.NextInAEL;
-			if (next != null) next.PrevInAEL = edge1;
-			var prev:TEdge = edge1.PrevInAEL;
-			if (prev != null) prev.NextInAEL = edge2;
-			edge2.PrevInAEL = prev;
-			edge2.NextInAEL = edge1;
-			edge1.PrevInAEL = edge2;
-			edge1.NextInAEL = next;
-		} else if (edge2.NextInAEL == edge1) {
-			var next:TEdge = edge1.NextInAEL;
-			if (next != null) next.PrevInAEL = edge2;
-			var prev:TEdge = edge2.PrevInAEL;
-			if (prev != null) prev.NextInAEL = edge1;
-			edge1.PrevInAEL = prev;
-			edge1.NextInAEL = edge2;
-			edge2.PrevInAEL = edge1;
-			edge2.NextInAEL = next;
+		if (edge1.nextInAEL == edge2) {
+			var next:TEdge = edge2.nextInAEL;
+			if (next != null) next.prevInAEL = edge1;
+			var prev:TEdge = edge1.prevInAEL;
+			if (prev != null) prev.nextInAEL = edge2;
+			edge2.prevInAEL = prev;
+			edge2.nextInAEL = edge1;
+			edge1.prevInAEL = edge2;
+			edge1.nextInAEL = next;
+		} else if (edge2.nextInAEL == edge1) {
+			var next:TEdge = edge1.nextInAEL;
+			if (next != null) next.prevInAEL = edge2;
+			var prev:TEdge = edge2.prevInAEL;
+			if (prev != null) prev.nextInAEL = edge1;
+			edge1.prevInAEL = prev;
+			edge1.nextInAEL = edge2;
+			edge2.prevInAEL = edge1;
+			edge2.nextInAEL = next;
 		} else {
-			var next:TEdge = edge1.NextInAEL;
-			var prev:TEdge = edge1.PrevInAEL;
-			edge1.NextInAEL = edge2.NextInAEL;
-			if (edge1.NextInAEL != null) edge1.NextInAEL.PrevInAEL = edge1;
-			edge1.PrevInAEL = edge2.PrevInAEL;
-			if (edge1.PrevInAEL != null) edge1.PrevInAEL.NextInAEL = edge1;
-			edge2.NextInAEL = next;
-			if (edge2.NextInAEL != null) edge2.NextInAEL.PrevInAEL = edge2;
-			edge2.PrevInAEL = prev;
-			if (edge2.PrevInAEL != null) edge2.PrevInAEL.NextInAEL = edge2;
+			var next:TEdge = edge1.nextInAEL;
+			var prev:TEdge = edge1.prevInAEL;
+			edge1.nextInAEL = edge2.nextInAEL;
+			if (edge1.nextInAEL != null) edge1.nextInAEL.prevInAEL = edge1;
+			edge1.prevInAEL = edge2.prevInAEL;
+			if (edge1.prevInAEL != null) edge1.prevInAEL.nextInAEL = edge1;
+			edge2.nextInAEL = next;
+			if (edge2.nextInAEL != null) edge2.nextInAEL.prevInAEL = edge2;
+			edge2.prevInAEL = prev;
+			if (edge2.prevInAEL != null) edge2.prevInAEL.nextInAEL = edge2;
 		}
 
-		if (edge1.PrevInAEL == null) m_ActiveEdges = edge1;
-		else if (edge2.PrevInAEL == null) m_ActiveEdges = edge2;
+		if (edge1.prevInAEL == null) mActiveEdges = edge1;
+		else if (edge2.prevInAEL == null) mActiveEdges = edge2;
 	}
 	//------------------------------------------------------------------------------
 
-	function SwapPositionsInSEL(edge1:TEdge, edge2:TEdge):Void {
-		if (edge1.NextInSEL == null && edge1.PrevInSEL == null) return;
-		if (edge2.NextInSEL == null && edge2.PrevInSEL == null) return;
+	function swapPositionsInSEL(edge1:TEdge, edge2:TEdge):Void {
+		if (edge1.nextInSEL == null && edge1.prevInSEL == null) return;
+		if (edge2.nextInSEL == null && edge2.prevInSEL == null) return;
 
-		if (edge1.NextInSEL == edge2) {
-			var next:TEdge = edge2.NextInSEL;
-			if (next != null) next.PrevInSEL = edge1;
-			var prev:TEdge = edge1.PrevInSEL;
-			if (prev != null) prev.NextInSEL = edge2;
-			edge2.PrevInSEL = prev;
-			edge2.NextInSEL = edge1;
-			edge1.PrevInSEL = edge2;
-			edge1.NextInSEL = next;
-		} else if (edge2.NextInSEL == edge1) {
-			var next:TEdge = edge1.NextInSEL;
-			if (next != null) next.PrevInSEL = edge2;
-			var prev:TEdge = edge2.PrevInSEL;
-			if (prev != null) prev.NextInSEL = edge1;
-			edge1.PrevInSEL = prev;
-			edge1.NextInSEL = edge2;
-			edge2.PrevInSEL = edge1;
-			edge2.NextInSEL = next;
+		if (edge1.nextInSEL == edge2) {
+			var next:TEdge = edge2.nextInSEL;
+			if (next != null) next.prevInSEL = edge1;
+			var prev:TEdge = edge1.prevInSEL;
+			if (prev != null) prev.nextInSEL = edge2;
+			edge2.prevInSEL = prev;
+			edge2.nextInSEL = edge1;
+			edge1.prevInSEL = edge2;
+			edge1.nextInSEL = next;
+		} else if (edge2.nextInSEL == edge1) {
+			var next:TEdge = edge1.nextInSEL;
+			if (next != null) next.prevInSEL = edge2;
+			var prev:TEdge = edge2.prevInSEL;
+			if (prev != null) prev.nextInSEL = edge1;
+			edge1.prevInSEL = prev;
+			edge1.nextInSEL = edge2;
+			edge2.prevInSEL = edge1;
+			edge2.nextInSEL = next;
 		} else {
-			var next:TEdge = edge1.NextInSEL;
-			var prev:TEdge = edge1.PrevInSEL;
-			edge1.NextInSEL = edge2.NextInSEL;
-			if (edge1.NextInSEL != null) edge1.NextInSEL.PrevInSEL = edge1;
-			edge1.PrevInSEL = edge2.PrevInSEL;
-			if (edge1.PrevInSEL != null) edge1.PrevInSEL.NextInSEL = edge1;
-			edge2.NextInSEL = next;
-			if (edge2.NextInSEL != null) edge2.NextInSEL.PrevInSEL = edge2;
-			edge2.PrevInSEL = prev;
-			if (edge2.PrevInSEL != null) edge2.PrevInSEL.NextInSEL = edge2;
+			var next:TEdge = edge1.nextInSEL;
+			var prev:TEdge = edge1.prevInSEL;
+			edge1.nextInSEL = edge2.nextInSEL;
+			if (edge1.nextInSEL != null) edge1.nextInSEL.prevInSEL = edge1;
+			edge1.prevInSEL = edge2.prevInSEL;
+			if (edge1.prevInSEL != null) edge1.prevInSEL.nextInSEL = edge1;
+			edge2.nextInSEL = next;
+			if (edge2.nextInSEL != null) edge2.nextInSEL.prevInSEL = edge2;
+			edge2.prevInSEL = prev;
+			if (edge2.prevInSEL != null) edge2.prevInSEL.nextInSEL = edge2;
 		}
 
-		if (edge1.PrevInSEL == null) m_SortedEdges = edge1;
-		else if (edge2.PrevInSEL == null) m_SortedEdges = edge2;
+		if (edge1.prevInSEL == null) mSortedEdges = edge1;
+		else if (edge2.prevInSEL == null) mSortedEdges = edge2;
 	}
 	//------------------------------------------------------------------------------
 
 
-	function AddLocalMaxPoly(e1:TEdge, e2:TEdge, pt:IntPoint):Void {
-		AddOutPt(e1, pt);
-		if (e2.WindDelta == 0) AddOutPt(e2, pt);
-		if (e1.OutIdx == e2.OutIdx) {
-			e1.OutIdx = ClipperBase.Unassigned;
-			e2.OutIdx = ClipperBase.Unassigned;
-		} else if (e1.OutIdx < e2.OutIdx) AppendPolygon(e1, e2);
-		else AppendPolygon(e2, e1);
+	function addLocalMaxPoly(e1:TEdge, e2:TEdge, pt:IntPoint):Void {
+		addOutPt(e1, pt);
+		if (e2.windDelta == 0) addOutPt(e2, pt);
+		if (e1.outIdx == e2.outIdx) {
+			e1.outIdx = ClipperBase.UNASSIGNED;
+			e2.outIdx = ClipperBase.UNASSIGNED;
+		} else if (e1.outIdx < e2.outIdx) appendPolygon(e1, e2);
+		else appendPolygon(e2, e1);
 	}
 	//------------------------------------------------------------------------------
 
-	function AddLocalMinPoly(e1:TEdge, e2:TEdge, pt:IntPoint):OutPt {
+	function addLocalMinPoly(e1:TEdge, e2:TEdge, pt:IntPoint):OutPt {
 		var result:OutPt;
 		var e:TEdge, prevE:TEdge;
-		if (ClipperBase.IsHorizontal(e2) || (e1.Dx > e2.Dx)) {
-			result = AddOutPt(e1, pt);
-			e2.OutIdx = e1.OutIdx;
-			e1.Side = EdgeSide.esLeft;
-			e2.Side = EdgeSide.esRight;
+		if (ClipperBase.isHorizontal(e2) || (e1.dx > e2.dx)) {
+			result = addOutPt(e1, pt);
+			e2.outIdx = e1.outIdx;
+			e1.edgeSide = EdgeSide.ES_LEFT;
+			e2.edgeSide = EdgeSide.ES_RIGHT;
 			e = e1;
-			if (e.PrevInAEL == e2) prevE = e2.PrevInAEL;
-			else prevE = e.PrevInAEL;
+			if (e.prevInAEL == e2) prevE = e2.prevInAEL;
+			else prevE = e.prevInAEL;
 		} else {
-			result = AddOutPt(e2, pt);
-			e1.OutIdx = e2.OutIdx;
-			e1.Side = EdgeSide.esRight;
-			e2.Side = EdgeSide.esLeft;
+			result = addOutPt(e2, pt);
+			e1.outIdx = e2.outIdx;
+			e1.edgeSide = EdgeSide.ES_RIGHT;
+			e2.edgeSide = EdgeSide.ES_LEFT;
 			e = e2;
-			if (e.PrevInAEL == e1) prevE = e1.PrevInAEL;
-			else prevE = e.PrevInAEL;
+			if (e.prevInAEL == e1) prevE = e1.prevInAEL;
+			else prevE = e.prevInAEL;
 		}
 
-		if (prevE != null && prevE.OutIdx >= 0 && (TopX(prevE, pt.Y) == TopX(e, pt.Y)) 
-			&& ClipperBase.SlopesEqual(e, prevE, m_UseFullRange) && (e.WindDelta != 0) && (prevE.WindDelta != 0)) 
+		if (prevE != null && prevE.outIdx >= 0 && (topX(prevE, pt.y) == topX(e, pt.y)) 
+			&& ClipperBase.slopesEqual(e, prevE, mUseFullRange) && (e.windDelta != 0) && (prevE.windDelta != 0)) 
 		{
-			var outPt:OutPt = AddOutPt(prevE, pt);
-			AddJoin(result, outPt, e.Top);
+			var outPt:OutPt = addOutPt(prevE, pt);
+			addJoin(result, outPt, e.top);
 		}
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	function CreateOutRec():OutRec {
+	function createOutRec():OutRec {
 		var result = new OutRec();
-		result.Idx = ClipperBase.Unassigned;
-		result.IsHole = false;
-		result.IsOpen = false;
-		result.FirstLeft = null;
-		result.Pts = null;
-		result.BottomPt = null;
+		result.idx = ClipperBase.UNASSIGNED;
+		result.isHole = false;
+		result.isOpen = false;
+		result.firstLeft = null;
+		result.pts = null;
+		result.bottomPt = null;
 		result.polyNode = null;
-		m_PolyOuts.push(result);
-		result.Idx = m_PolyOuts.length - 1;
+		mPolyOuts.push(result);
+		result.idx = mPolyOuts.length - 1;
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	function AddOutPt(e:TEdge, pt:IntPoint):OutPt {
-		var ToFront = (e.Side == EdgeSide.esLeft);
-		if (e.OutIdx < 0) {
-			var outRec:OutRec = CreateOutRec();
-			outRec.IsOpen = (e.WindDelta == 0);
+	function addOutPt(e:TEdge, pt:IntPoint):OutPt {
+		var ToFront = (e.edgeSide == EdgeSide.ES_LEFT);
+		if (e.outIdx < 0) {
+			var outRec:OutRec = createOutRec();
+			outRec.isOpen = (e.windDelta == 0);
 			var newOp = new OutPt();
-			outRec.Pts = newOp;
-			newOp.Idx = outRec.Idx;
-			newOp.Pt.copyFrom(pt);
-			newOp.Next = newOp;
-			newOp.Prev = newOp;
-			if (!outRec.IsOpen) SetHoleState(e, outRec);
-			e.OutIdx = outRec.Idx; //nb: do this after SetZ !
+			outRec.pts = newOp;
+			newOp.idx = outRec.idx;
+			newOp.pt.copyFrom(pt);
+			newOp.next = newOp;
+			newOp.prev = newOp;
+			if (!outRec.isOpen) setHoleState(e, outRec);
+			e.outIdx = outRec.idx; //nb: do this after SetZ !
 			return newOp;
 		} else {
-			var outRec:OutRec = m_PolyOuts[e.OutIdx];
-			//OutRec.Pts is the 'Left-most' point & OutRec.Pts.Prev is the 'Right-most'
-			var op:OutPt = outRec.Pts;
-			if (ToFront && pt.equals(op.Pt)) return op;
-			else if (!ToFront && pt.equals(op.Prev.Pt)) return op.Prev;
+			var outRec:OutRec = mPolyOuts[e.outIdx];
+			//OutRec.pts is the 'Left-most' point & OutRec.pts.prev is the 'Right-most'
+			var op:OutPt = outRec.pts;
+			if (ToFront && pt.equals(op.pt)) return op;
+			else if (!ToFront && pt.equals(op.prev.pt)) return op.prev;
 
 			var newOp = new OutPt();
-			newOp.Idx = outRec.Idx;
-			newOp.Pt.copyFrom(pt);
-			newOp.Next = op;
-			newOp.Prev = op.Prev;
-			newOp.Prev.Next = newOp;
-			op.Prev = newOp;
-			if (ToFront) outRec.Pts = newOp;
+			newOp.idx = outRec.idx;
+			newOp.pt.copyFrom(pt);
+			newOp.next = op;
+			newOp.prev = op.prev;
+			newOp.prev.next = newOp;
+			op.prev = newOp;
+			if (ToFront) outRec.pts = newOp;
 			return newOp;
 		}
 	}
 	//------------------------------------------------------------------------------
 
 	//TODO: ref?
-	/*internal*/ function SwapPoints(/*ref*/ pt1:IntPoint, /*ref*/ pt2:IntPoint):Void {
+	/*internal*/ function swapPoints(/*ref*/ pt1:IntPoint, /*ref*/ pt2:IntPoint):Void {
 		var tmp = pt1.clone();
 		pt1.copyFrom(pt2);
 		pt2.copyFrom(tmp);
@@ -1879,7 +1899,7 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	// TODO: ref/swap
-	function HorzSegmentsOverlap(seg1a:CInt, seg1b:CInt, seg2a:CInt, seg2b:CInt):Bool {
+	function horzSegmentsOverlap(seg1a:CInt, seg1b:CInt, seg2a:CInt, seg2b:CInt):Bool {
 		if (seg1a > seg1b) {
 			var tmp:CInt = seg1a;
 			seg1a = seg1b;
@@ -1894,259 +1914,259 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function SetHoleState(e:TEdge, outRec:OutRec):Void {
+	function setHoleState(e:TEdge, outRec:OutRec):Void {
 		var isHole = false;
-		var e2:TEdge = e.PrevInAEL;
+		var e2:TEdge = e.prevInAEL;
 		while (e2 != null) {
-			if (e2.OutIdx >= 0 && e2.WindDelta != 0) {
+			if (e2.outIdx >= 0 && e2.windDelta != 0) {
 				isHole = !isHole;
-				if (outRec.FirstLeft == null) outRec.FirstLeft = m_PolyOuts[e2.OutIdx];
+				if (outRec.firstLeft == null) outRec.firstLeft = mPolyOuts[e2.outIdx];
 			}
-			e2 = e2.PrevInAEL;
+			e2 = e2.prevInAEL;
 		}
-		if (isHole) outRec.IsHole = true;
+		if (isHole) outRec.isHole = true;
 	}
 	//------------------------------------------------------------------------------
 
-	function GetDx(pt1:IntPoint, pt2:IntPoint):Float {
-		if (pt1.Y == pt2.Y) return ClipperBase.horizontal;
+	function getDx(pt1:IntPoint, pt2:IntPoint):Float {
+		if (pt1.y == pt2.y) return ClipperBase.HORIZONTAL;
 		else {
-			var dx:Float = (pt2.X - pt1.X);
-			var dy:Float = (pt2.Y - pt1.Y);
+			var dx:Float = (pt2.x - pt1.x);
+			var dy:Float = (pt2.y - pt1.y);
 			return dy / dy;
 		}
 	}
 	//---------------------------------------------------------------------------
 
-	function FirstIsBottomPt(btmPt1:OutPt, btmPt2:OutPt):Bool {
-		var p:OutPt = btmPt1.Prev;
-		while ((p.Pt.equals(btmPt1.Pt)) && (p != btmPt1)) p = p.Prev;
-		var dx1p:Float = Math.abs(GetDx(btmPt1.Pt, p.Pt));
-		p = btmPt1.Next;
-		while ((p.Pt.equals(btmPt1.Pt)) && (p != btmPt1)) p = p.Next;
-		var dx1n:Float = Math.abs(GetDx(btmPt1.Pt, p.Pt));
+	function firstIsBottomPt(btmPt1:OutPt, btmPt2:OutPt):Bool {
+		var p:OutPt = btmPt1.prev;
+		while ((p.pt.equals(btmPt1.pt)) && (p != btmPt1)) p = p.prev;
+		var dx1p:Float = Math.abs(getDx(btmPt1.pt, p.pt));
+		p = btmPt1.next;
+		while ((p.pt.equals(btmPt1.pt)) && (p != btmPt1)) p = p.next;
+		var dx1n:Float = Math.abs(getDx(btmPt1.pt, p.pt));
 
-		p = btmPt2.Prev;
-		while ((p.Pt.equals(btmPt2.Pt)) && (p != btmPt2)) p = p.Prev;
-		var dx2p:Float = Math.abs(GetDx(btmPt2.Pt, p.Pt));
-		p = btmPt2.Next;
-		while ((p.Pt.equals(btmPt2.Pt)) && (p != btmPt2)) p = p.Next;
-		var dx2n:Float = Math.abs(GetDx(btmPt2.Pt, p.Pt));
+		p = btmPt2.prev;
+		while ((p.pt.equals(btmPt2.pt)) && (p != btmPt2)) p = p.prev;
+		var dx2p:Float = Math.abs(getDx(btmPt2.pt, p.pt));
+		p = btmPt2.next;
+		while ((p.pt.equals(btmPt2.pt)) && (p != btmPt2)) p = p.next;
+		var dx2n:Float = Math.abs(getDx(btmPt2.pt, p.pt));
 		return (dx1p >= dx2p && dx1p >= dx2n) || (dx1n >= dx2p && dx1n >= dx2n);
 	}
 	//------------------------------------------------------------------------------
 
-	function GetBottomPt(pp:OutPt):OutPt {
+	function getBottomPt(pp:OutPt):OutPt {
 		var dups:OutPt = null;
-		var p:OutPt = pp.Next;
+		var p:OutPt = pp.next;
 		while (p != pp) {
-			if (p.Pt.Y > pp.Pt.Y) {
+			if (p.pt.y > pp.pt.y) {
 				pp = p;
 				dups = null;
-			} else if (p.Pt.Y == pp.Pt.Y && p.Pt.X <= pp.Pt.X) {
-				if (p.Pt.X < pp.Pt.X) {
+			} else if (p.pt.y == pp.pt.y && p.pt.x <= pp.pt.x) {
+				if (p.pt.x < pp.pt.x) {
 					dups = null;
 					pp = p;
 				} else {
-					if (p.Next != pp && p.Prev != pp) dups = p;
+					if (p.next != pp && p.prev != pp) dups = p;
 				}
 			}
-			p = p.Next;
+			p = p.next;
 		}
 		if (dups != null) {
 			//there appears to be at least 2 vertices at bottomPt so ...
 			while (dups != p) {
-				if (!FirstIsBottomPt(p, dups)) pp = dups;
-				dups = dups.Next;
-				while (!dups.Pt.equals(pp.Pt)) dups = dups.Next;
+				if (!firstIsBottomPt(p, dups)) pp = dups;
+				dups = dups.next;
+				while (!dups.pt.equals(pp.pt)) dups = dups.next;
 			}
 		}
 		return pp;
 	}
 	//------------------------------------------------------------------------------
 
-	function GetLowermostRec(outRec1:OutRec, outRec2:OutRec):OutRec {
+	function getLowermostRec(outRec1:OutRec, outRec2:OutRec):OutRec {
 		//work out which polygon fragment has the correct hole state ...
-		if (outRec1.BottomPt == null) outRec1.BottomPt = GetBottomPt(outRec1.Pts);
-		if (outRec2.BottomPt == null) outRec2.BottomPt = GetBottomPt(outRec2.Pts);
-		var bPt1:OutPt = outRec1.BottomPt;
-		var bPt2:OutPt = outRec2.BottomPt;
-		if (bPt1.Pt.Y > bPt2.Pt.Y) return outRec1;
-		else if (bPt1.Pt.Y < bPt2.Pt.Y) return outRec2;
-		else if (bPt1.Pt.X < bPt2.Pt.X) return outRec1;
-		else if (bPt1.Pt.X > bPt2.Pt.X) return outRec2;
-		else if (bPt1.Next == bPt1) return outRec2;
-		else if (bPt2.Next == bPt2) return outRec1;
-		else if (FirstIsBottomPt(bPt1, bPt2)) return outRec1;
+		if (outRec1.bottomPt == null) outRec1.bottomPt = getBottomPt(outRec1.pts);
+		if (outRec2.bottomPt == null) outRec2.bottomPt = getBottomPt(outRec2.pts);
+		var bPt1:OutPt = outRec1.bottomPt;
+		var bPt2:OutPt = outRec2.bottomPt;
+		if (bPt1.pt.y > bPt2.pt.y) return outRec1;
+		else if (bPt1.pt.y < bPt2.pt.y) return outRec2;
+		else if (bPt1.pt.x < bPt2.pt.x) return outRec1;
+		else if (bPt1.pt.x > bPt2.pt.x) return outRec2;
+		else if (bPt1.next == bPt1) return outRec2;
+		else if (bPt2.next == bPt2) return outRec1;
+		else if (firstIsBottomPt(bPt1, bPt2)) return outRec1;
 		else return outRec2;
 	}
 	//------------------------------------------------------------------------------
 
-	function Param1RightOfParam2(outRec1:OutRec, outRec2:OutRec):Bool {
+	function param1RightOfParam2(outRec1:OutRec, outRec2:OutRec):Bool {
 		do {
-			outRec1 = outRec1.FirstLeft;
+			outRec1 = outRec1.firstLeft;
 			if (outRec1 == outRec2) return true;
 		} while (outRec1 != null);
 		return false;
 	}
 	//------------------------------------------------------------------------------
 
-	function GetOutRec(idx:Int):OutRec {
-		var outrec:OutRec = m_PolyOuts[idx];
-		while (outrec != m_PolyOuts[outrec.Idx])
-		outrec = m_PolyOuts[outrec.Idx];
+	function getOutRec(idx:Int):OutRec {
+		var outrec:OutRec = mPolyOuts[idx];
+		while (outrec != mPolyOuts[outrec.idx])
+		outrec = mPolyOuts[outrec.idx];
 		return outrec;
 	}
 	//------------------------------------------------------------------------------
 
-	function AppendPolygon(e1:TEdge, e2:TEdge):Void {
+	function appendPolygon(e1:TEdge, e2:TEdge):Void {
 		//get the start and ends of both output polygons ...
-		var outRec1:OutRec = m_PolyOuts[e1.OutIdx];
-		var outRec2:OutRec = m_PolyOuts[e2.OutIdx];
+		var outRec1:OutRec = mPolyOuts[e1.outIdx];
+		var outRec2:OutRec = mPolyOuts[e2.outIdx];
 
 		var holeStateRec:OutRec;
-		if (Param1RightOfParam2(outRec1, outRec2)) holeStateRec = outRec2;
-		else if (Param1RightOfParam2(outRec2, outRec1)) holeStateRec = outRec1;
-		else holeStateRec = GetLowermostRec(outRec1, outRec2);
+		if (param1RightOfParam2(outRec1, outRec2)) holeStateRec = outRec2;
+		else if (param1RightOfParam2(outRec2, outRec1)) holeStateRec = outRec1;
+		else holeStateRec = getLowermostRec(outRec1, outRec2);
 
-		var p1_lft:OutPt = outRec1.Pts;
-		var p1_rt:OutPt = p1_lft.Prev;
-		var p2_lft:OutPt = outRec2.Pts;
-		var p2_rt:OutPt = p2_lft.Prev;
+		var p1_lft:OutPt = outRec1.pts;
+		var p1_rt:OutPt = p1_lft.prev;
+		var p2_lft:OutPt = outRec2.pts;
+		var p2_rt:OutPt = p2_lft.prev;
 
 		var side:EdgeSide;
 		//join e2 poly onto e1 poly and delete pointers to e2 ...
-		if (e1.Side == EdgeSide.esLeft) {
-			if (e2.Side == EdgeSide.esLeft) {
+		if (e1.edgeSide == EdgeSide.ES_LEFT) {
+			if (e2.edgeSide == EdgeSide.ES_LEFT) {
 				//z y x a b c
-				ReversePolyPtLinks(p2_lft);
-				p2_lft.Next = p1_lft;
-				p1_lft.Prev = p2_lft;
-				p1_rt.Next = p2_rt;
-				p2_rt.Prev = p1_rt;
-				outRec1.Pts = p2_rt;
+				reversePolyPtLinks(p2_lft);
+				p2_lft.next = p1_lft;
+				p1_lft.prev = p2_lft;
+				p1_rt.next = p2_rt;
+				p2_rt.prev = p1_rt;
+				outRec1.pts = p2_rt;
 			} else {
 				//x y z a b c
-				p2_rt.Next = p1_lft;
-				p1_lft.Prev = p2_rt;
-				p2_lft.Prev = p1_rt;
-				p1_rt.Next = p2_lft;
-				outRec1.Pts = p2_lft;
+				p2_rt.next = p1_lft;
+				p1_lft.prev = p2_rt;
+				p2_lft.prev = p1_rt;
+				p1_rt.next = p2_lft;
+				outRec1.pts = p2_lft;
 			}
-			side = EdgeSide.esLeft;
+			side = EdgeSide.ES_LEFT;
 		} else {
-			if (e2.Side == EdgeSide.esRight) {
+			if (e2.edgeSide == EdgeSide.ES_RIGHT) {
 				//a b c z y x
-				ReversePolyPtLinks(p2_lft);
-				p1_rt.Next = p2_rt;
-				p2_rt.Prev = p1_rt;
-				p2_lft.Next = p1_lft;
-				p1_lft.Prev = p2_lft;
+				reversePolyPtLinks(p2_lft);
+				p1_rt.next = p2_rt;
+				p2_rt.prev = p1_rt;
+				p2_lft.next = p1_lft;
+				p1_lft.prev = p2_lft;
 			} else {
 				//a b c x y z
-				p1_rt.Next = p2_lft;
-				p2_lft.Prev = p1_rt;
-				p1_lft.Prev = p2_rt;
-				p2_rt.Next = p1_lft;
+				p1_rt.next = p2_lft;
+				p2_lft.prev = p1_rt;
+				p1_lft.prev = p2_rt;
+				p2_rt.next = p1_lft;
 			}
-			side = EdgeSide.esRight;
+			side = EdgeSide.ES_RIGHT;
 		}
 
-		outRec1.BottomPt = null;
+		outRec1.bottomPt = null;
 		if (holeStateRec == outRec2) {
-			if (outRec2.FirstLeft != outRec1) outRec1.FirstLeft = outRec2.FirstLeft;
-			outRec1.IsHole = outRec2.IsHole;
+			if (outRec2.firstLeft != outRec1) outRec1.firstLeft = outRec2.firstLeft;
+			outRec1.isHole = outRec2.isHole;
 		}
-		outRec2.Pts = null;
-		outRec2.BottomPt = null;
+		outRec2.pts = null;
+		outRec2.bottomPt = null;
 
-		outRec2.FirstLeft = outRec1;
+		outRec2.firstLeft = outRec1;
 
-		var OKIdx:Int = e1.OutIdx;
-		var ObsoleteIdx:Int = e2.OutIdx;
+		var OKIdx:Int = e1.outIdx;
+		var ObsoleteIdx:Int = e2.outIdx;
 
-		e1.OutIdx = ClipperBase.Unassigned; //nb: safe because we only get here via AddLocalMaxPoly
-		e2.OutIdx = ClipperBase.Unassigned;
+		e1.outIdx = ClipperBase.UNASSIGNED; //nb: safe because we only get here via AddLocalMaxPoly
+		e2.outIdx = ClipperBase.UNASSIGNED;
 
-		var e:TEdge = m_ActiveEdges;
+		var e:TEdge = mActiveEdges;
 		while (e != null) {
-			if (e.OutIdx == ObsoleteIdx) {
-				e.OutIdx = OKIdx;
-				e.Side = side;
+			if (e.outIdx == ObsoleteIdx) {
+				e.outIdx = OKIdx;
+				e.edgeSide = side;
 				break;
 			}
-			e = e.NextInAEL;
+			e = e.nextInAEL;
 		}
-		outRec2.Idx = outRec1.Idx;
+		outRec2.idx = outRec1.idx;
 	}
 	//------------------------------------------------------------------------------
 
-	function ReversePolyPtLinks(pp:OutPt):Void {
+	function reversePolyPtLinks(pp:OutPt):Void {
 		if (pp == null) return;
 		var pp1:OutPt;
 		var pp2:OutPt;
 		pp1 = pp;
 		do {
-			pp2 = pp1.Next;
-			pp1.Next = pp1.Prev;
-			pp1.Prev = pp2;
+			pp2 = pp1.next;
+			pp1.next = pp1.prev;
+			pp1.prev = pp2;
 			pp1 = pp2;
 		} while (pp1 != pp);
 	}
 	//------------------------------------------------------------------------------
 
-	static function SwapSides(edge1:TEdge, edge2:TEdge):Void {
-		var side:EdgeSide = edge1.Side;
-		edge1.Side = edge2.Side;
-		edge2.Side = side;
+	static function swapSides(edge1:TEdge, edge2:TEdge):Void {
+		var side:EdgeSide = edge1.edgeSide;
+		edge1.edgeSide = edge2.edgeSide;
+		edge2.edgeSide = side;
 	}
 	//------------------------------------------------------------------------------
 
-	static function SwapPolyIndexes(edge1:TEdge, edge2:TEdge):Void {
-		var outIdx:Int = edge1.OutIdx;
-		edge1.OutIdx = edge2.OutIdx;
-		edge2.OutIdx = outIdx;
+	static function swapPolyIndexes(edge1:TEdge, edge2:TEdge):Void {
+		var outIdx:Int = edge1.outIdx;
+		edge1.outIdx = edge2.outIdx;
+		edge2.outIdx = outIdx;
 	}
 	//------------------------------------------------------------------------------
 
-	function IntersectEdges(e1:TEdge, e2:TEdge, pt:IntPoint):Void {
+	function intersectEdges(e1:TEdge, e2:TEdge, pt:IntPoint):Void {
 		//e1 will be to the left of e2 BELOW the intersection. Therefore e1 is before
 		//e2 in AEL except when e1 is being inserted at the intersection point ...
 
-		var e1Contributing = (e1.OutIdx >= 0);
-		var e2Contributing = (e2.OutIdx >= 0);
+		var e1Contributing = (e1.outIdx >= 0);
+		var e2Contributing = (e2.outIdx >= 0);
 
 		// TODO: ref
 	#if USE_XYZ 
-		SetZ(/*ref*/ pt, e1, e2);
+		setZ(/*ref*/ pt, e1, e2);
 	#end
 
 	#if USE_LINES
 		//if either edge is on an OPEN path ...
-		if (e1.WindDelta == 0 || e2.WindDelta == 0) {
+		if (e1.windDelta == 0 || e2.windDelta == 0) {
 			//ignore subject-subject open path intersections UNLESS they
 			//are both open paths, AND they are both 'contributing maximas' ...
-			if (e1.WindDelta == 0 && e2.WindDelta == 0) return;
+			if (e1.windDelta == 0 && e2.windDelta == 0) return;
 			//if intersecting a subj line with a subj poly ...
-			else if (e1.PolyTyp == e2.PolyTyp && e1.WindDelta != e2.WindDelta && m_ClipType == ClipType.ctUnion) {
-				if (e1.WindDelta == 0) {
+			else if (e1.polyType == e2.polyType && e1.windDelta != e2.windDelta && mClipType == ClipType.CT_UNION) {
+				if (e1.windDelta == 0) {
 					if (e2Contributing) {
-						AddOutPt(e1, pt);
-						if (e1Contributing) e1.OutIdx = ClipperBase.Unassigned;
+						addOutPt(e1, pt);
+						if (e1Contributing) e1.outIdx = ClipperBase.UNASSIGNED;
 					}
 				} else {
 					if (e1Contributing) {
-						AddOutPt(e2, pt);
-						if (e2Contributing) e2.OutIdx = ClipperBase.Unassigned;
+						addOutPt(e2, pt);
+						if (e2Contributing) e2.outIdx = ClipperBase.UNASSIGNED;
 					}
 				}
-			} else if (e1.PolyTyp != e2.PolyTyp) {
-				if ((e1.WindDelta == 0) && Math.abs(e2.WindCnt) == 1 && (m_ClipType != ClipType.ctUnion || e2.WindCnt2 == 0)) {
-					AddOutPt(e1, pt);
-					if (e1Contributing) e1.OutIdx = ClipperBase.Unassigned;
-				} else if ((e2.WindDelta == 0) && (Math.abs(e1.WindCnt) == 1) && (m_ClipType != ClipType.ctUnion || e1.WindCnt2 == 0)) {
-					AddOutPt(e2, pt);
-					if (e2Contributing) e2.OutIdx = ClipperBase.Unassigned;
+			} else if (e1.polyType != e2.polyType) {
+				if ((e1.windDelta == 0) && Math.abs(e2.windCnt) == 1 && (mClipType != ClipType.CT_UNION || e2.windCnt2 == 0)) {
+					addOutPt(e1, pt);
+					if (e1Contributing) e1.outIdx = ClipperBase.UNASSIGNED;
+				} else if ((e2.windDelta == 0) && (Math.abs(e1.windCnt) == 1) && (mClipType != ClipType.CT_UNION || e1.windCnt2 == 0)) {
+					addOutPt(e2, pt);
+					if (e2Contributing) e2.outIdx = ClipperBase.UNASSIGNED;
 				}
 			}
 			return;
@@ -2155,322 +2175,322 @@ class Clipper extends ClipperBase
 
 		//update winding counts...
 		//assumes that e1 will be to the Right of e2 ABOVE the intersection
-		if (e1.PolyTyp == e2.PolyTyp) {
-			if (IsEvenOddFillType(e1)) {
-				var oldE1WindCnt:Int = e1.WindCnt;
-				e1.WindCnt = e2.WindCnt;
-				e2.WindCnt = oldE1WindCnt;
+		if (e1.polyType == e2.polyType) {
+			if (isEvenOddFillType(e1)) {
+				var oldE1WindCnt:Int = e1.windCnt;
+				e1.windCnt = e2.windCnt;
+				e2.windCnt = oldE1WindCnt;
 			} else {
-				if (e1.WindCnt + e2.WindDelta == 0) e1.WindCnt = -e1.WindCnt;
-				else e1.WindCnt += e2.WindDelta;
-				if (e2.WindCnt - e1.WindDelta == 0) e2.WindCnt = -e2.WindCnt;
-				else e2.WindCnt -= e1.WindDelta;
+				if (e1.windCnt + e2.windDelta == 0) e1.windCnt = -e1.windCnt;
+				else e1.windCnt += e2.windDelta;
+				if (e2.windCnt - e1.windDelta == 0) e2.windCnt = -e2.windCnt;
+				else e2.windCnt -= e1.windDelta;
 			}
 		} else {
-			if (!IsEvenOddFillType(e2)) e1.WindCnt2 += e2.WindDelta;
-			else e1.WindCnt2 = (e1.WindCnt2 == 0) ? 1 : 0;
-			if (!IsEvenOddFillType(e1)) e2.WindCnt2 -= e1.WindDelta;
-			else e2.WindCnt2 = (e2.WindCnt2 == 0) ? 1 : 0;
+			if (!isEvenOddFillType(e2)) e1.windCnt2 += e2.windDelta;
+			else e1.windCnt2 = (e1.windCnt2 == 0) ? 1 : 0;
+			if (!isEvenOddFillType(e1)) e2.windCnt2 -= e1.windDelta;
+			else e2.windCnt2 = (e2.windCnt2 == 0) ? 1 : 0;
 		}
 
 		var e1FillType, e2FillType, e1FillType2, e2FillType2;
-		if (e1.PolyTyp == PolyType.ptSubject) {
-			e1FillType = m_SubjFillType;
-			e1FillType2 = m_ClipFillType;
+		if (e1.polyType == PolyType.PT_SUBJECT) {
+			e1FillType = mSubjFillType;
+			e1FillType2 = mClipFillType;
 		} else {
-			e1FillType = m_ClipFillType;
-			e1FillType2 = m_SubjFillType;
+			e1FillType = mClipFillType;
+			e1FillType2 = mSubjFillType;
 		}
-		if (e2.PolyTyp == PolyType.ptSubject) {
-			e2FillType = m_SubjFillType;
-			e2FillType2 = m_ClipFillType;
+		if (e2.polyType == PolyType.PT_SUBJECT) {
+			e2FillType = mSubjFillType;
+			e2FillType2 = mClipFillType;
 		} else {
-			e2FillType = m_ClipFillType;
-			e2FillType2 = m_SubjFillType;
+			e2FillType = mClipFillType;
+			e2FillType2 = mSubjFillType;
 		}
 
 		var e1Wc:Int, e2Wc:Int;
 		switch (e1FillType) {
-			case PolyFillType.pftPositive:
-				e1Wc = e1.WindCnt;
-			case PolyFillType.pftNegative:
-				e1Wc = -e1.WindCnt;
+			case PolyFillType.PFT_POSITIVE:
+				e1Wc = e1.windCnt;
+			case PolyFillType.PFT_NEGATIVE:
+				e1Wc = -e1.windCnt;
 			default:
-				e1Wc = Std.int(Math.abs(e1.WindCnt));
+				e1Wc = Std.int(Math.abs(e1.windCnt));
 		}
 		switch (e2FillType) {
-			case PolyFillType.pftPositive:
-				e2Wc = e2.WindCnt;
-			case PolyFillType.pftNegative:
-				e2Wc = -e2.WindCnt;
+			case PolyFillType.PFT_POSITIVE:
+				e2Wc = e2.windCnt;
+			case PolyFillType.PFT_NEGATIVE:
+				e2Wc = -e2.windCnt;
 			default:
-				e2Wc = Std.int(Math.abs(e2.WindCnt));
+				e2Wc = Std.int(Math.abs(e2.windCnt));
 		}
 
 		if (e1Contributing && e2Contributing) {
-			if ((e1Wc != 0 && e1Wc != 1) || (e2Wc != 0 && e2Wc != 1) || (e1.PolyTyp != e2.PolyTyp && m_ClipType != ClipType.ctXor)) {
-				AddLocalMaxPoly(e1, e2, pt);
+			if ((e1Wc != 0 && e1Wc != 1) || (e2Wc != 0 && e2Wc != 1) || (e1.polyType != e2.polyType && mClipType != ClipType.CT_XOR)) {
+				addLocalMaxPoly(e1, e2, pt);
 			} else {
-				AddOutPt(e1, pt);
-				AddOutPt(e2, pt);
-				SwapSides(e1, e2);
-				SwapPolyIndexes(e1, e2);
+				addOutPt(e1, pt);
+				addOutPt(e2, pt);
+				swapSides(e1, e2);
+				swapPolyIndexes(e1, e2);
 			}
 		} else if (e1Contributing) {
 			if (e2Wc == 0 || e2Wc == 1) {
-				AddOutPt(e1, pt);
-				SwapSides(e1, e2);
-				SwapPolyIndexes(e1, e2);
+				addOutPt(e1, pt);
+				swapSides(e1, e2);
+				swapPolyIndexes(e1, e2);
 			}
 
 		} else if (e2Contributing) {
 			if (e1Wc == 0 || e1Wc == 1) {
-				AddOutPt(e2, pt);
-				SwapSides(e1, e2);
-				SwapPolyIndexes(e1, e2);
+				addOutPt(e2, pt);
+				swapSides(e1, e2);
+				swapPolyIndexes(e1, e2);
 			}
 		} else if ((e1Wc == 0 || e1Wc == 1) && (e2Wc == 0 || e2Wc == 1)) {
 			//neither edge is currently contributing ...
 			// TODO: check double def of these ints, and Math.abs cast
 			var e1Wc2:CInt, e2Wc2:CInt;
 			switch (e1FillType2) {
-				case PolyFillType.pftPositive:
-					e1Wc2 = e1.WindCnt2;
-				case PolyFillType.pftNegative:
-					e1Wc2 = -e1.WindCnt2;
+				case PolyFillType.PFT_POSITIVE:
+					e1Wc2 = e1.windCnt2;
+				case PolyFillType.PFT_NEGATIVE:
+					e1Wc2 = -e1.windCnt2;
 				default:
-					e1Wc2 = Std.int(Math.abs(e1.WindCnt2));
+					e1Wc2 = Std.int(Math.abs(e1.windCnt2));
 			}
 			switch (e2FillType2) {
-				case PolyFillType.pftPositive:
-					e2Wc2 = e2.WindCnt2;
-				case PolyFillType.pftNegative:
-					e2Wc2 = -e2.WindCnt2;
+				case PolyFillType.PFT_POSITIVE:
+					e2Wc2 = e2.windCnt2;
+				case PolyFillType.PFT_NEGATIVE:
+					e2Wc2 = -e2.windCnt2;
 				default:
-					e2Wc2 = Std.int(Math.abs(e2.WindCnt2));
+					e2Wc2 = Std.int(Math.abs(e2.windCnt2));
 			}
 
-			if (e1.PolyTyp != e2.PolyTyp) {
-				AddLocalMinPoly(e1, e2, pt);
-			} else if (e1Wc == 1 && e2Wc == 1) switch (m_ClipType) {
-				case ClipType.ctIntersection:
-					if (e1Wc2 > 0 && e2Wc2 > 0) AddLocalMinPoly(e1, e2, pt);
-				case ClipType.ctUnion:
-					if (e1Wc2 <= 0 && e2Wc2 <= 0) AddLocalMinPoly(e1, e2, pt);
-				case ClipType.ctDifference:
-					if (((e1.PolyTyp == PolyType.ptClip) && (e1Wc2 > 0) && (e2Wc2 > 0)) 
-						|| ((e1.PolyTyp == PolyType.ptSubject) && (e1Wc2 <= 0) && (e2Wc2 <= 0))) 
+			if (e1.polyType != e2.polyType) {
+				addLocalMinPoly(e1, e2, pt);
+			} else if (e1Wc == 1 && e2Wc == 1) switch (mClipType) {
+				case ClipType.CT_INTERSECTION:
+					if (e1Wc2 > 0 && e2Wc2 > 0) addLocalMinPoly(e1, e2, pt);
+				case ClipType.CT_UNION:
+					if (e1Wc2 <= 0 && e2Wc2 <= 0) addLocalMinPoly(e1, e2, pt);
+				case ClipType.CT_DIFFERENCE:
+					if (((e1.polyType == PolyType.PT_CLIP) && (e1Wc2 > 0) && (e2Wc2 > 0)) 
+						|| ((e1.polyType == PolyType.PT_SUBJECT) && (e1Wc2 <= 0) && (e2Wc2 <= 0))) 
 					{
-						AddLocalMinPoly(e1, e2, pt);
+						addLocalMinPoly(e1, e2, pt);
 					}
-				case ClipType.ctXor:
-					AddLocalMinPoly(e1, e2, pt);
-			} else SwapSides(e1, e2);
+				case ClipType.CT_XOR:
+					addLocalMinPoly(e1, e2, pt);
+			} else swapSides(e1, e2);
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function DeleteFromAEL(e:TEdge):Void {
-		var AelPrev:TEdge = e.PrevInAEL;
-		var AelNext:TEdge = e.NextInAEL;
-		if (AelPrev == null && AelNext == null && (e != m_ActiveEdges)) return; //already deleted
-		if (AelPrev != null) AelPrev.NextInAEL = AelNext;
-		else m_ActiveEdges = AelNext;
-		if (AelNext != null) AelNext.PrevInAEL = AelPrev;
-		e.NextInAEL = null;
-		e.PrevInAEL = null;
+	function deleteFromAEL(e:TEdge):Void {
+		var aelPrev:TEdge = e.prevInAEL;
+		var aelNext:TEdge = e.nextInAEL;
+		if (aelPrev == null && aelNext == null && (e != mActiveEdges)) return; //already deleted
+		if (aelPrev != null) aelPrev.nextInAEL = aelNext;
+		else mActiveEdges = aelNext;
+		if (aelNext != null) aelNext.prevInAEL = aelPrev;
+		e.nextInAEL = null;
+		e.prevInAEL = null;
 	}
 	//------------------------------------------------------------------------------
 
-	function DeleteFromSEL(e:TEdge):Void {
-		var SelPrev:TEdge = e.PrevInSEL;
-		var SelNext:TEdge = e.NextInSEL;
-		if (SelPrev == null && SelNext == null && (e != m_SortedEdges)) return; //already deleted
-		if (SelPrev != null) SelPrev.NextInSEL = SelNext;
-		else m_SortedEdges = SelNext;
-		if (SelNext != null) SelNext.PrevInSEL = SelPrev;
-		e.NextInSEL = null;
-		e.PrevInSEL = null;
+	function deleteFromSEL(e:TEdge):Void {
+		var selPrev:TEdge = e.prevInSEL;
+		var selNext:TEdge = e.nextInSEL;
+		if (selPrev == null && selNext == null && (e != mSortedEdges)) return; //already deleted
+		if (selPrev != null) selPrev.nextInSEL = selNext;
+		else mSortedEdges = selNext;
+		if (selNext != null) selNext.prevInSEL = selPrev;
+		e.nextInSEL = null;
+		e.prevInSEL = null;
 	}
 	//------------------------------------------------------------------------------
 
 	// TODO: ref (updated to return the modified edge)
-	function UpdateEdgeIntoAEL(/*ref*/ e:TEdge):TEdge {
-		if (e.NextInLML == null) throw new ClipperException("UpdateEdgeIntoAEL: invalid call");
-		var AelPrev:TEdge = e.PrevInAEL;
-		var AelNext:TEdge = e.NextInAEL;
-		e.NextInLML.OutIdx = e.OutIdx;
-		if (AelPrev != null) AelPrev.NextInAEL = e.NextInLML;
-		else m_ActiveEdges = e.NextInLML;
-		if (AelNext != null) AelNext.PrevInAEL = e.NextInLML;
-		e.NextInLML.Side = e.Side;
-		e.NextInLML.WindDelta = e.WindDelta;
-		e.NextInLML.WindCnt = e.WindCnt;
-		e.NextInLML.WindCnt2 = e.WindCnt2;
-		e = e.NextInLML;
-		e.Curr.copyFrom(e.Bot);
-		e.PrevInAEL = AelPrev;
-		e.NextInAEL = AelNext;
-		if (!ClipperBase.IsHorizontal(e)) InsertScanbeam(e.Top.Y);
+	function updateEdgeIntoAEL(/*ref*/ e:TEdge):TEdge {
+		if (e.nextInLML == null) throw new ClipperException("UpdateEdgeIntoAEL: invalid call");
+		var aelPrev:TEdge = e.prevInAEL;
+		var aelNext:TEdge = e.nextInAEL;
+		e.nextInLML.outIdx = e.outIdx;
+		if (aelPrev != null) aelPrev.nextInAEL = e.nextInLML;
+		else mActiveEdges = e.nextInLML;
+		if (aelNext != null) aelNext.prevInAEL = e.nextInLML;
+		e.nextInLML.edgeSide = e.edgeSide;
+		e.nextInLML.windDelta = e.windDelta;
+		e.nextInLML.windCnt = e.windCnt;
+		e.nextInLML.windCnt2 = e.windCnt2;
+		e = e.nextInLML;
+		e.curr.copyFrom(e.bot);
+		e.prevInAEL = aelPrev;
+		e.nextInAEL = aelNext;
+		if (!ClipperBase.isHorizontal(e)) insertScanbeam(e.top.y);
 		return e;
 	}
 	//------------------------------------------------------------------------------
 
-	function ProcessHorizontals(isTopOfScanbeam:Bool):Void {
-		var horzEdge:TEdge = m_SortedEdges;
+	function processHorizontals(isTopOfScanbeam:Bool):Void {
+		var horzEdge:TEdge = mSortedEdges;
 		while (horzEdge != null) {
-			DeleteFromSEL(horzEdge);
-			ProcessHorizontal(horzEdge, isTopOfScanbeam);
-			horzEdge = m_SortedEdges;
+			deleteFromSEL(horzEdge);
+			processHorizontal(horzEdge, isTopOfScanbeam);
+			horzEdge = mSortedEdges;
 		}
 	}
 	//------------------------------------------------------------------------------
 
 	// TODO: check out
-	function GetHorzDirection(HorzEdge:TEdge, outParams:{/*out*/ Dir:Direction, /*out*/ Left:CInt, /*out*/Right:CInt}):Void {
-		if (HorzEdge.Bot.X < HorzEdge.Top.X) {
-			outParams.Left = HorzEdge.Bot.X;
-			outParams.Right = HorzEdge.Top.X;
-			outParams.Dir = Direction.dLeftToRight;
+	function getHorzDirection(horzEdge:TEdge, outParams:{/*out*/ dir:Direction, /*out*/ left:CInt, /*out*/right:CInt}):Void {
+		if (horzEdge.bot.x < horzEdge.top.x) {
+			outParams.left = horzEdge.bot.x;
+			outParams.right = horzEdge.top.x;
+			outParams.dir = Direction.D_LEFT_TO_RIGHT;
 		} else {
-			outParams.Left = HorzEdge.Top.X;
-			outParams.Right = HorzEdge.Bot.X;
-			outParams.Dir = Direction.dRightToLeft;
+			outParams.left = horzEdge.top.x;
+			outParams.right = horzEdge.bot.x;
+			outParams.dir = Direction.D_RIGHT_TO_LEFT;
 		}
 	}
 	//------------------------------------------------------------------------
 
-	function ProcessHorizontal(horzEdge:TEdge, isTopOfScanbeam:Bool):Void {
+	function processHorizontal(horzEdge:TEdge, isTopOfScanbeam:Bool):Void {
 		var dir:Direction = null;
 		var horzLeft:CInt = 0, horzRight:CInt = 0;
 
 		// TODO: out
-		var outParams = {/*out*/ Dir:dir, /*out*/ Left:horzLeft, /*out*/ Right:horzRight};
-		GetHorzDirection(horzEdge, outParams);
-		dir = outParams.Dir;
-		horzLeft = outParams.Left;
-		horzRight = outParams.Right;
+		var outParams = {/*out*/ dir:dir, /*out*/ left:horzLeft, /*out*/ right:horzRight};
+		getHorzDirection(horzEdge, outParams);
+		dir = outParams.dir;
+		horzLeft = outParams.left;
+		horzRight = outParams.right;
 
 		var eLastHorz:TEdge = horzEdge, eMaxPair:TEdge = null;
-		while (eLastHorz.NextInLML != null && ClipperBase.IsHorizontal(eLastHorz.NextInLML)) eLastHorz = eLastHorz.NextInLML;
-		if (eLastHorz.NextInLML == null) eMaxPair = GetMaximaPair(eLastHorz);
+		while (eLastHorz.nextInLML != null && ClipperBase.isHorizontal(eLastHorz.nextInLML)) eLastHorz = eLastHorz.nextInLML;
+		if (eLastHorz.nextInLML == null) eMaxPair = getMaximaPair(eLastHorz);
 
 		while (true) {
-			var IsLastHorz = (horzEdge == eLastHorz);
-			var e:TEdge = GetNextInAEL(horzEdge, dir);
+			var isLastHorz = (horzEdge == eLastHorz);
+			var e:TEdge = getNextInAEL(horzEdge, dir);
 			while (e != null) {
 				//Break if we've got to the end of an intermediate horizontal edge ...
 				//nb: Smaller Dx's are to the right of larger Dx's ABOVE the horizontal.
-				if (e.Curr.X == horzEdge.Top.X && horzEdge.NextInLML != null && e.Dx < horzEdge.NextInLML.Dx) break;
+				if (e.curr.x == horzEdge.top.x && horzEdge.nextInLML != null && e.dx < horzEdge.nextInLML.dx) break;
 
-				var eNext:TEdge = GetNextInAEL(e, dir); //saves eNext for later
+				var eNext:TEdge = getNextInAEL(e, dir); //saves eNext for later
 
-				if ((dir == Direction.dLeftToRight && e.Curr.X <= horzRight) || (dir == Direction.dRightToLeft && e.Curr.X >= horzLeft)) {
+				if ((dir == Direction.D_LEFT_TO_RIGHT && e.curr.x <= horzRight) || (dir == Direction.D_RIGHT_TO_LEFT && e.curr.x >= horzLeft)) {
 					//so far we're still in range of the horizontal Edge  but make sure
 					//we're at the last of consec. horizontals when matching with eMaxPair
-					if (e == eMaxPair && IsLastHorz) {
-						if (horzEdge.OutIdx >= 0) {
-							var op1:OutPt = AddOutPt(horzEdge, horzEdge.Top);
-							var eNextHorz:TEdge = m_SortedEdges;
+					if (e == eMaxPair && isLastHorz) {
+						if (horzEdge.outIdx >= 0) {
+							var op1:OutPt = addOutPt(horzEdge, horzEdge.top);
+							var eNextHorz:TEdge = mSortedEdges;
 							while (eNextHorz != null) {
-								if (eNextHorz.OutIdx >= 0 && HorzSegmentsOverlap(horzEdge.Bot.X,
-								horzEdge.Top.X, eNextHorz.Bot.X, eNextHorz.Top.X)) {
-									var op2:OutPt = AddOutPt(eNextHorz, eNextHorz.Bot);
-									AddJoin(op2, op1, eNextHorz.Top);
+								if (eNextHorz.outIdx >= 0 && horzSegmentsOverlap(horzEdge.bot.x,
+								horzEdge.top.x, eNextHorz.bot.x, eNextHorz.top.x)) {
+									var op2:OutPt = addOutPt(eNextHorz, eNextHorz.bot);
+									addJoin(op2, op1, eNextHorz.top);
 								}
-								eNextHorz = eNextHorz.NextInSEL;
+								eNextHorz = eNextHorz.nextInSEL;
 							}
-							AddGhostJoin(op1, horzEdge.Bot);
-							AddLocalMaxPoly(horzEdge, eMaxPair, horzEdge.Top);
+							addGhostJoin(op1, horzEdge.bot);
+							addLocalMaxPoly(horzEdge, eMaxPair, horzEdge.top);
 						}
-						DeleteFromAEL(horzEdge);
-						DeleteFromAEL(eMaxPair);
+						deleteFromAEL(horzEdge);
+						deleteFromAEL(eMaxPair);
 						return;
-					} else if (dir == Direction.dLeftToRight) {
-						var Pt = new IntPoint(e.Curr.X, horzEdge.Curr.Y);
-						IntersectEdges(horzEdge, e, Pt);
+					} else if (dir == Direction.D_LEFT_TO_RIGHT) {
+						var Pt = new IntPoint(e.curr.x, horzEdge.curr.y);
+						intersectEdges(horzEdge, e, Pt);
 					} else {
-						var Pt = new IntPoint(e.Curr.X, horzEdge.Curr.Y);
-						IntersectEdges(e, horzEdge, Pt);
+						var Pt = new IntPoint(e.curr.x, horzEdge.curr.y);
+						intersectEdges(e, horzEdge, Pt);
 					}
-					SwapPositionsInAEL(horzEdge, e);
-				} else if ((dir == Direction.dLeftToRight && e.Curr.X >= horzRight) 
-						   || (dir == Direction.dRightToLeft && e.Curr.X <= horzLeft)) 
+					swapPositionsInAEL(horzEdge, e);
+				} else if ((dir == Direction.D_LEFT_TO_RIGHT && e.curr.x >= horzRight) 
+						   || (dir == Direction.D_RIGHT_TO_LEFT && e.curr.x <= horzLeft)) 
 				{
 					break;
 				}
 				e = eNext;
 			} //end while
 
-			if (horzEdge.NextInLML != null && ClipperBase.IsHorizontal(horzEdge.NextInLML)) {
+			if (horzEdge.nextInLML != null && ClipperBase.isHorizontal(horzEdge.nextInLML)) {
 				// TODO: ref
-				horzEdge = UpdateEdgeIntoAEL(/*ref*/ horzEdge);
-				if (horzEdge.OutIdx >= 0) AddOutPt(horzEdge, horzEdge.Bot);
+				horzEdge = updateEdgeIntoAEL(/*ref*/ horzEdge);
+				if (horzEdge.outIdx >= 0) addOutPt(horzEdge, horzEdge.bot);
 				// TODO: out
-				GetHorzDirection(horzEdge, outParams);
-				dir = outParams.Dir;
-				horzLeft = outParams.Left;
-				horzRight = outParams.Right;
+				getHorzDirection(horzEdge, outParams);
+				dir = outParams.dir;
+				horzLeft = outParams.left;
+				horzRight = outParams.right;
 			} else break;
 		} //end for (;;)
 
-		if (horzEdge.NextInLML != null) {
-			if (horzEdge.OutIdx >= 0) {
-				var op1:OutPt = AddOutPt(horzEdge, horzEdge.Top);
-				if (isTopOfScanbeam) AddGhostJoin(op1, horzEdge.Bot);
+		if (horzEdge.nextInLML != null) {
+			if (horzEdge.outIdx >= 0) {
+				var op1:OutPt = addOutPt(horzEdge, horzEdge.top);
+				if (isTopOfScanbeam) addGhostJoin(op1, horzEdge.bot);
 
 				// TODO: ref
-				horzEdge = UpdateEdgeIntoAEL(/*ref*/ horzEdge);
-				if (horzEdge.WindDelta == 0) return;
+				horzEdge = updateEdgeIntoAEL(/*ref*/ horzEdge);
+				if (horzEdge.windDelta == 0) return;
 				//nb: HorzEdge is no longer horizontal here
-				var ePrev:TEdge = horzEdge.PrevInAEL;
-				var eNext:TEdge = horzEdge.NextInAEL;
-				if (ePrev != null && ePrev.Curr.X == horzEdge.Bot.X && ePrev.Curr.Y == horzEdge.Bot.Y && ePrev.WindDelta != 0 
-					&& (ePrev.OutIdx >= 0 && ePrev.Curr.Y > ePrev.Top.Y && ClipperBase.SlopesEqual(horzEdge, ePrev, m_UseFullRange))) 
+				var ePrev:TEdge = horzEdge.prevInAEL;
+				var eNext:TEdge = horzEdge.nextInAEL;
+				if (ePrev != null && ePrev.curr.x == horzEdge.bot.x && ePrev.curr.y == horzEdge.bot.y && ePrev.windDelta != 0 
+					&& (ePrev.outIdx >= 0 && ePrev.curr.y > ePrev.top.y && ClipperBase.slopesEqual(horzEdge, ePrev, mUseFullRange))) 
 				{
-					var op2:OutPt = AddOutPt(ePrev, horzEdge.Bot);
-					AddJoin(op1, op2, horzEdge.Top);
-				} else if (eNext != null && eNext.Curr.X == horzEdge.Bot.X && eNext.Curr.Y == horzEdge.Bot.Y && eNext.WindDelta != 0 
-						   && eNext.OutIdx >= 0 && eNext.Curr.Y > eNext.Top.Y && ClipperBase.SlopesEqual(horzEdge, eNext, m_UseFullRange)) 
+					var op2:OutPt = addOutPt(ePrev, horzEdge.bot);
+					addJoin(op1, op2, horzEdge.top);
+				} else if (eNext != null && eNext.curr.x == horzEdge.bot.x && eNext.curr.y == horzEdge.bot.y && eNext.windDelta != 0 
+						   && eNext.outIdx >= 0 && eNext.curr.y > eNext.top.y && ClipperBase.slopesEqual(horzEdge, eNext, mUseFullRange)) 
 				{
-					var op2:OutPt = AddOutPt(eNext, horzEdge.Bot);
-					AddJoin(op1, op2, horzEdge.Top);
+					var op2:OutPt = addOutPt(eNext, horzEdge.bot);
+					addJoin(op1, op2, horzEdge.top);
 				}
 				// TODO: ref
-			} else horzEdge = UpdateEdgeIntoAEL(/*ref*/ horzEdge);
+			} else horzEdge = updateEdgeIntoAEL(/*ref*/ horzEdge);
 		} else {
-			if (horzEdge.OutIdx >= 0) AddOutPt(horzEdge, horzEdge.Top);
-			DeleteFromAEL(horzEdge);
+			if (horzEdge.outIdx >= 0) addOutPt(horzEdge, horzEdge.top);
+			deleteFromAEL(horzEdge);
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function GetNextInAEL(e:TEdge, direction:Direction):TEdge {
-		return direction == Direction.dLeftToRight ? e.NextInAEL : e.PrevInAEL;
+	function getNextInAEL(e:TEdge, direction:Direction):TEdge {
+		return direction == Direction.D_LEFT_TO_RIGHT ? e.nextInAEL : e.prevInAEL;
 	}
 	//------------------------------------------------------------------------------
 
-	function IsMinima(e:TEdge):Bool {
-		return e != null && (e.Prev.NextInLML != e) && (e.Next.NextInLML != e);
+	function isMinima(e:TEdge):Bool {
+		return e != null && (e.prev.nextInLML != e) && (e.next.nextInLML != e);
 	}
 	//------------------------------------------------------------------------------
 
-	function IsMaxima(e:TEdge, Y:Float):Bool {
-		return (e != null && e.Top.Y == Y && e.NextInLML == null);
+	function isMaxima(e:TEdge, y:Float):Bool {
+		return (e != null && e.top.y == y && e.nextInLML == null);
 	}
 	//------------------------------------------------------------------------------
 
-	function IsIntermediate(e:TEdge, Y:Float):Bool {
-		return (e.Top.Y == Y && e.NextInLML != null);
+	function isIntermediate(e:TEdge, y:Float):Bool {
+		return (e.top.y == y && e.nextInLML != null);
 	}
 	//------------------------------------------------------------------------------
 
-	function GetMaximaPair(e:TEdge):TEdge {
+	function getMaximaPair(e:TEdge):TEdge {
 		var result:TEdge = null;
-		if ((e.Next.Top.equals(e.Top)) && e.Next.NextInLML == null) result = e.Next;
-		else if ((e.Prev.Top.equals(e.Top)) && e.Prev.NextInLML == null) result = e.Prev;
-		if (result != null && (result.OutIdx == ClipperBase.Skip || (result.NextInAEL == result.PrevInAEL 
-			&& !ClipperBase.IsHorizontal(result)))) 
+		if ((e.next.top.equals(e.top)) && e.next.nextInLML == null) result = e.next;
+		else if ((e.prev.top.equals(e.top)) && e.prev.nextInLML == null) result = e.prev;
+		if (result != null && (result.outIdx == ClipperBase.SKIP || (result.nextInAEL == result.prevInAEL 
+			&& !ClipperBase.isHorizontal(result)))) 
 		{
 			return null;
 		}
@@ -2478,525 +2498,525 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function ProcessIntersections(topY:CInt):Bool {
-		if (m_ActiveEdges == null) return true;
+	function processIntersections(topY:CInt):Bool {
+		if (mActiveEdges == null) return true;
 		try {
-			BuildIntersectList(topY);
-			if (m_IntersectList.length == 0) return true;
-			if (m_IntersectList.length == 1 || FixupIntersectionOrder()) ProcessIntersectList();
+			buildIntersectList(topY);
+			if (mIntersectList.length == 0) return true;
+			if (mIntersectList.length == 1 || fixupIntersectionOrder()) processIntersectList();
 			else return false;
 		} catch (e:Dynamic) {
-			m_SortedEdges = null;
-			m_IntersectList.clear();
+			mSortedEdges = null;
+			mIntersectList.clear();
 			throw new ClipperException("ProcessIntersections error");
 		}
-		m_SortedEdges = null;
+		mSortedEdges = null;
 		return true;
 	}
 	//------------------------------------------------------------------------------
 
-	function BuildIntersectList(topY:CInt):Void {
-		if (m_ActiveEdges == null) return;
+	function buildIntersectList(topY:CInt):Void {
+		if (mActiveEdges == null) return;
 
 		//prepare for sorting ...
-		var e:TEdge = m_ActiveEdges;
-		m_SortedEdges = e;
+		var e:TEdge = mActiveEdges;
+		mSortedEdges = e;
 		while (e != null) {
-			e.PrevInSEL = e.PrevInAEL;
-			e.NextInSEL = e.NextInAEL;
-			e.Curr.X = TopX(e, topY);
-			e = e.NextInAEL;
+			e.prevInSEL = e.prevInAEL;
+			e.nextInSEL = e.nextInAEL;
+			e.curr.x = topX(e, topY);
+			e = e.nextInAEL;
 		}
 
 		//bubblesort ...
 		var isModified = true;
-		while (isModified && m_SortedEdges != null) {
+		while (isModified && mSortedEdges != null) {
 			isModified = false;
-			e = m_SortedEdges;
-			while (e.NextInSEL != null) {
-				var eNext:TEdge = e.NextInSEL;
+			e = mSortedEdges;
+			while (e.nextInSEL != null) {
+				var eNext:TEdge = e.nextInSEL;
 				var pt:IntPoint = new IntPoint();
-				if (e.Curr.X > eNext.Curr.X) {
+				if (e.curr.x > eNext.curr.x) {
 					// TODO: out
-					IntersectPoint(e, eNext, /*out*/ pt);
+					intersectPoint(e, eNext, /*out*/ pt);
 					var newNode = new IntersectNode();
-					newNode.Edge1 = e;
-					newNode.Edge2 = eNext;
-					newNode.Pt.copyFrom(pt);
-					m_IntersectList.push(newNode);
+					newNode.edge1 = e;
+					newNode.edge2 = eNext;
+					newNode.pt.copyFrom(pt);
+					mIntersectList.push(newNode);
 
-					SwapPositionsInSEL(e, eNext);
+					swapPositionsInSEL(e, eNext);
 					isModified = true;
 				} else e = eNext;
 			}
-			if (e.PrevInSEL != null) e.PrevInSEL.NextInSEL = null;
+			if (e.prevInSEL != null) e.prevInSEL.nextInSEL = null;
 			else break;
 		}
-		m_SortedEdges = null;
+		mSortedEdges = null;
 	}
 	//------------------------------------------------------------------------------
 
-	function EdgesAdjacent(inode:IntersectNode):Bool {
-		return (inode.Edge1.NextInSEL == inode.Edge2) || (inode.Edge1.PrevInSEL == inode.Edge2);
+	function edgesAdjacent(inode:IntersectNode):Bool {
+		return (inode.edge1.nextInSEL == inode.edge2) || (inode.edge1.prevInSEL == inode.edge2);
 	}
 	//------------------------------------------------------------------------------
 
-	static function IntersectNodeSort(node1:IntersectNode, node2:IntersectNode):Int {
+	static function intersectNodeSort(node1:IntersectNode, node2:IntersectNode):Int {
 		//the following typecast is safe because the differences in Pt.Y will
 		//be limited to the height of the scanbeam.
 		// TODO: check cast
-		return Std.int(node2.Pt.Y - node1.Pt.Y);
+		return Std.int(node2.pt.y - node1.pt.y);
 	}
 	//------------------------------------------------------------------------------
 
-	function FixupIntersectionOrder():Bool {
+	function fixupIntersectionOrder():Bool {
 		//pre-condition: intersections are sorted bottom-most first.
 		//Now it's crucial that intersections are made only between adjacent edges,
 		//so to ensure this the order of intersections may need adjusting ...
-		ArraySort.sort(m_IntersectList, m_IntersectNodeComparer);
+		ArraySort.sort(mIntersectList, mIntersectNodeComparer);
 
-		CopyAELToSEL();
-		var cnt:Int = m_IntersectList.length;
+		copyAELToSEL();
+		var cnt:Int = mIntersectList.length;
 		for (i in 0...cnt) {
-			if (!EdgesAdjacent(m_IntersectList[i])) {
+			if (!edgesAdjacent(mIntersectList[i])) {
 				var j = i + 1;
-				while (j < cnt && !EdgesAdjacent(m_IntersectList[j])) j++;
+				while (j < cnt && !edgesAdjacent(mIntersectList[j])) j++;
 				if (j == cnt) return false;
 
-				var tmp:IntersectNode = m_IntersectList[i];
-				m_IntersectList[i] = m_IntersectList[j];
-				m_IntersectList[j] = tmp;
+				var tmp:IntersectNode = mIntersectList[i];
+				mIntersectList[i] = mIntersectList[j];
+				mIntersectList[j] = tmp;
 
 			}
-			SwapPositionsInSEL(m_IntersectList[i].Edge1, m_IntersectList[i].Edge2);
+			swapPositionsInSEL(mIntersectList[i].edge1, mIntersectList[i].edge2);
 		}
 		return true;
 	}
 	//------------------------------------------------------------------------------
 
-	function ProcessIntersectList():Void {
-		for (i in 0...m_IntersectList.length) {
-			var iNode:IntersectNode = m_IntersectList[i]; {
-				IntersectEdges(iNode.Edge1, iNode.Edge2, iNode.Pt);
-				SwapPositionsInAEL(iNode.Edge1, iNode.Edge2);
+	function processIntersectList():Void {
+		for (i in 0...mIntersectList.length) {
+			var iNode:IntersectNode = mIntersectList[i]; {
+				intersectEdges(iNode.edge1, iNode.edge2, iNode.pt);
+				swapPositionsInAEL(iNode.edge1, iNode.edge2);
 			}
 		}
-		m_IntersectList.clear();
+		mIntersectList.clear();
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function Round(value:Float):CInt {
+	/*internal*/ static public function round(value:Float):CInt {
 		// TODO: check how to cast
 		return value < 0 ? /*(cInt)*/Std.int(value - 0.5) : /*(cInt)*/Std.int(value + 0.5);
 	}
 	//------------------------------------------------------------------------------
 
-	static function TopX(edge:TEdge, currentY:CInt):CInt {
-		if (currentY == edge.Top.Y) return edge.Top.X;
-		return edge.Bot.X + Round(edge.Dx * (currentY - edge.Bot.Y));
+	static function topX(edge:TEdge, currentY:CInt):CInt {
+		if (currentY == edge.top.y) return edge.top.x;
+		return edge.bot.x + round(edge.dx * (currentY - edge.bot.y));
 	}
 	//------------------------------------------------------------------------------
 
 	// TODO: check out
-	function IntersectPoint(edge1:TEdge, edge2:TEdge, /*out*/ ip:IntPoint):Void {
+	function intersectPoint(edge1:TEdge, edge2:TEdge, /*out*/ ip:IntPoint):Void {
 		// TODO: check this ip and the out ip
 		//ip = new IntPoint();
 		var b1:Float, b2:Float;
 		//nb: with very large coordinate values, it's possible for SlopesEqual() to 
 		//return false but for the edge.Dx value be equal due to double precision rounding.
-		if (edge1.Dx == edge2.Dx) {
-			ip.Y = edge1.Curr.Y;
-			ip.X = TopX(edge1, ip.Y);
+		if (edge1.dx == edge2.dx) {
+			ip.y = edge1.curr.y;
+			ip.x = topX(edge1, ip.y);
 			return;
 		}
 
-		if (edge1.Delta.X == 0) {
-			ip.X = edge1.Bot.X;
-			if (ClipperBase.IsHorizontal(edge2)) {
-				ip.Y = edge2.Bot.Y;
+		if (edge1.delta.x == 0) {
+			ip.x = edge1.bot.x;
+			if (ClipperBase.isHorizontal(edge2)) {
+				ip.y = edge2.bot.y;
 			} else {
-				b2 = edge2.Bot.Y - (edge2.Bot.X / edge2.Dx);
-				ip.Y = Round(ip.X / edge2.Dx + b2);
+				b2 = edge2.bot.y - (edge2.bot.x / edge2.dx);
+				ip.y = round(ip.x / edge2.dx + b2);
 			}
-		} else if (edge2.Delta.X == 0) {
-			ip.X = edge2.Bot.X;
-			if (ClipperBase.IsHorizontal(edge1)) {
-				ip.Y = edge1.Bot.Y;
+		} else if (edge2.delta.x == 0) {
+			ip.x = edge2.bot.x;
+			if (ClipperBase.isHorizontal(edge1)) {
+				ip.y = edge1.bot.y;
 			} else {
-				b1 = edge1.Bot.Y - (edge1.Bot.X / edge1.Dx);
-				ip.Y = Round(ip.X / edge1.Dx + b1);
+				b1 = edge1.bot.y - (edge1.bot.x / edge1.dx);
+				ip.y = round(ip.x / edge1.dx + b1);
 			}
 		} else {
-			b1 = edge1.Bot.X - edge1.Bot.Y * edge1.Dx;
-			b2 = edge2.Bot.X - edge2.Bot.Y * edge2.Dx;
-			var q:Float = (b2 - b1) / (edge1.Dx - edge2.Dx);
-			ip.Y = Round(q);
-			if (Math.abs(edge1.Dx) < Math.abs(edge2.Dx)) ip.X = Round(edge1.Dx * q + b1);
-			else ip.X = Round(edge2.Dx * q + b2);
+			b1 = edge1.bot.x - edge1.bot.y * edge1.dx;
+			b2 = edge2.bot.x - edge2.bot.y * edge2.dx;
+			var q:Float = (b2 - b1) / (edge1.dx - edge2.dx);
+			ip.y = round(q);
+			if (Math.abs(edge1.dx) < Math.abs(edge2.dx)) ip.x = round(edge1.dx * q + b1);
+			else ip.x = round(edge2.dx * q + b2);
 		}
 
-		if (ip.Y < edge1.Top.Y || ip.Y < edge2.Top.Y) {
-			if (edge1.Top.Y > edge2.Top.Y) ip.Y = edge1.Top.Y;
-			else ip.Y = edge2.Top.Y;
-			if (Math.abs(edge1.Dx) < Math.abs(edge2.Dx)) ip.X = TopX(edge1, ip.Y);
-			else ip.X = TopX(edge2, ip.Y);
+		if (ip.y < edge1.top.y || ip.y < edge2.top.y) {
+			if (edge1.top.y > edge2.top.y) ip.y = edge1.top.y;
+			else ip.y = edge2.top.y;
+			if (Math.abs(edge1.dx) < Math.abs(edge2.dx)) ip.x = topX(edge1, ip.y);
+			else ip.x = topX(edge2, ip.y);
 		}
 		//finally, don't allow 'ip' to be BELOW curr.Y (ie bottom of scanbeam) ...
-		if (ip.Y > edge1.Curr.Y) {
-			ip.Y = edge1.Curr.Y;
+		if (ip.y > edge1.curr.y) {
+			ip.y = edge1.curr.y;
 			//better to use the more vertical edge to derive X ...
-			if (Math.abs(edge1.Dx) > Math.abs(edge2.Dx)) ip.X = TopX(edge2, ip.Y);
-			else ip.X = TopX(edge1, ip.Y);
+			if (Math.abs(edge1.dx) > Math.abs(edge2.dx)) ip.x = topX(edge2, ip.y);
+			else ip.x = topX(edge1, ip.y);
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function ProcessEdgesAtTopOfScanbeam(topY:CInt):Void {
-		var e:TEdge = m_ActiveEdges;
+	function processEdgesAtTopOfScanbeam(topY:CInt):Void {
+		var e:TEdge = mActiveEdges;
 		while (e != null) {
 			//1. process maxima, treating them as if they're 'bent' horizontal edges,
 			//   but exclude maxima with horizontal edges. nb: e can't be a horizontal.
-			var IsMaximaEdge:Bool = IsMaxima(e, topY);
+			var isMaximaEdge:Bool = isMaxima(e, topY);
 
-			if (IsMaximaEdge) {
-				var eMaxPair:TEdge = GetMaximaPair(e);
-				IsMaximaEdge = (eMaxPair == null || !ClipperBase.IsHorizontal(eMaxPair));
+			if (isMaximaEdge) {
+				var eMaxPair:TEdge = getMaximaPair(e);
+				isMaximaEdge = (eMaxPair == null || !ClipperBase.isHorizontal(eMaxPair));
 			}
 
-			if (IsMaximaEdge) {
-				var ePrev:TEdge = e.PrevInAEL;
-				DoMaxima(e);
-				if (ePrev == null) e = m_ActiveEdges;
-				else e = ePrev.NextInAEL;
+			if (isMaximaEdge) {
+				var ePrev:TEdge = e.prevInAEL;
+				doMaxima(e);
+				if (ePrev == null) e = mActiveEdges;
+				else e = ePrev.nextInAEL;
 			} else {
 				//2. promote horizontal edges, otherwise update Curr.X and Curr.Y ...
-				if (IsIntermediate(e, topY) && ClipperBase.IsHorizontal(e.NextInLML)) {
+				if (isIntermediate(e, topY) && ClipperBase.isHorizontal(e.nextInLML)) {
 					// TODO: ref
-					e = UpdateEdgeIntoAEL(/*ref*/ e);
-					if (e.OutIdx >= 0) AddOutPt(e, e.Bot);
-					AddEdgeToSEL(e);
+					e = updateEdgeIntoAEL(/*ref*/ e);
+					if (e.outIdx >= 0) addOutPt(e, e.bot);
+					addEdgeToSEL(e);
 				} else {
-					e.Curr.X = TopX(e, topY);
-					e.Curr.Y = topY;
+					e.curr.x = topX(e, topY);
+					e.curr.y = topY;
 				}
 
-				if (StrictlySimple) {
-					var ePrev:TEdge = e.PrevInAEL;
-					if ((e.OutIdx >= 0) && (e.WindDelta != 0) && ePrev != null && (ePrev.OutIdx >= 0) 
-						&& (ePrev.Curr.X == e.Curr.X) && (ePrev.WindDelta != 0)) 
+				if (strictlySimple) {
+					var ePrev:TEdge = e.prevInAEL;
+					if ((e.outIdx >= 0) && (e.windDelta != 0) && ePrev != null && (ePrev.outIdx >= 0) 
+						&& (ePrev.curr.x == e.curr.x) && (ePrev.windDelta != 0)) 
 					{
 						// TODO: I foresee a compiler error here
-						var ip = e.Curr.clone();
+						var ip = e.curr.clone();
 					#if USE_XYZ 
-						SetZ(ref ip, ePrev, e);
+						setZ(ref ip, ePrev, e);
 					#end 
-						var op:OutPt = AddOutPt(ePrev, ip);
-						var op2:OutPt = AddOutPt(e, ip);
-						AddJoin(op, op2, ip); //StrictlySimple (type-3) join
+						var op:OutPt = addOutPt(ePrev, ip);
+						var op2:OutPt = addOutPt(e, ip);
+						addJoin(op, op2, ip); //StrictlySimple (type-3) join
 					}
 				}
 
-				e = e.NextInAEL;
+				e = e.nextInAEL;
 			}
 		}
 
 		//3. Process horizontals at the Top of the scanbeam ...
-		ProcessHorizontals(true);
+		processHorizontals(true);
 
 		//4. Promote intermediate vertices ...
-		e = m_ActiveEdges;
+		e = mActiveEdges;
 		while (e != null) {
-			if (IsIntermediate(e, topY)) {
+			if (isIntermediate(e, topY)) {
 				var op:OutPt = null;
-				if (e.OutIdx >= 0) op = AddOutPt(e, e.Top);
+				if (e.outIdx >= 0) op = addOutPt(e, e.top);
 				// TODO: ref
-				e = UpdateEdgeIntoAEL(/*ref*/ e);
+				e = updateEdgeIntoAEL(/*ref*/ e);
 
 				//if output polygons share an edge, they'll need joining later ...
-				var ePrev:TEdge = e.PrevInAEL;
-				var eNext:TEdge = e.NextInAEL;
-				if (ePrev != null && ePrev.Curr.X == e.Bot.X && ePrev.Curr.Y == e.Bot.Y && op != null && ePrev.OutIdx >= 0 
-					&& ePrev.Curr.Y > ePrev.Top.Y && ClipperBase.SlopesEqual(e, ePrev, m_UseFullRange) && (e.WindDelta != 0) && (ePrev.WindDelta != 0)) 
+				var ePrev:TEdge = e.prevInAEL;
+				var eNext:TEdge = e.nextInAEL;
+				if (ePrev != null && ePrev.curr.x == e.bot.x && ePrev.curr.y == e.bot.y && op != null && ePrev.outIdx >= 0 
+					&& ePrev.curr.y > ePrev.top.y && ClipperBase.slopesEqual(e, ePrev, mUseFullRange) && (e.windDelta != 0) && (ePrev.windDelta != 0)) 
 				{
-					var op2:OutPt = AddOutPt(ePrev, e.Bot);
-					AddJoin(op, op2, e.Top);
-				} else if (eNext != null && eNext.Curr.X == e.Bot.X && eNext.Curr.Y == e.Bot.Y && op != null && eNext.OutIdx >= 0 
-						   && eNext.Curr.Y > eNext.Top.Y && ClipperBase.SlopesEqual(e, eNext, m_UseFullRange) && (e.WindDelta != 0) && (eNext.WindDelta != 0)) 
+					var op2:OutPt = addOutPt(ePrev, e.bot);
+					addJoin(op, op2, e.top);
+				} else if (eNext != null && eNext.curr.x == e.bot.x && eNext.curr.y == e.bot.y && op != null && eNext.outIdx >= 0 
+						   && eNext.curr.y > eNext.top.y && ClipperBase.slopesEqual(e, eNext, mUseFullRange) && (e.windDelta != 0) && (eNext.windDelta != 0)) 
 				{
-					var op2:OutPt = AddOutPt(eNext, e.Bot);
-					AddJoin(op, op2, e.Top);
+					var op2:OutPt = addOutPt(eNext, e.bot);
+					addJoin(op, op2, e.top);
 				}
 			}
-			e = e.NextInAEL;
+			e = e.nextInAEL;
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function DoMaxima(e:TEdge):Void {
-		var eMaxPair:TEdge = GetMaximaPair(e);
+	function doMaxima(e:TEdge):Void {
+		var eMaxPair:TEdge = getMaximaPair(e);
 		if (eMaxPair == null) {
-			if (e.OutIdx >= 0) AddOutPt(e, e.Top);
-			DeleteFromAEL(e);
+			if (e.outIdx >= 0) addOutPt(e, e.top);
+			deleteFromAEL(e);
 			return;
 		}
 
-		var eNext:TEdge = e.NextInAEL;
+		var eNext:TEdge = e.nextInAEL;
 		while (eNext != null && eNext != eMaxPair) {
-			IntersectEdges(e, eNext, e.Top);
-			SwapPositionsInAEL(e, eNext);
-			eNext = e.NextInAEL;
+			intersectEdges(e, eNext, e.top);
+			swapPositionsInAEL(e, eNext);
+			eNext = e.nextInAEL;
 		}
 
-		if (e.OutIdx == ClipperBase.Unassigned && eMaxPair.OutIdx == ClipperBase.Unassigned) {
-			DeleteFromAEL(e);
-			DeleteFromAEL(eMaxPair);
-		} else if (e.OutIdx >= 0 && eMaxPair.OutIdx >= 0) {
-			if (e.OutIdx >= 0) AddLocalMaxPoly(e, eMaxPair, e.Top);
-			DeleteFromAEL(e);
-			DeleteFromAEL(eMaxPair);
+		if (e.outIdx == ClipperBase.UNASSIGNED && eMaxPair.outIdx == ClipperBase.UNASSIGNED) {
+			deleteFromAEL(e);
+			deleteFromAEL(eMaxPair);
+		} else if (e.outIdx >= 0 && eMaxPair.outIdx >= 0) {
+			if (e.outIdx >= 0) addLocalMaxPoly(e, eMaxPair, e.top);
+			deleteFromAEL(e);
+			deleteFromAEL(eMaxPair);
 		}
 	#if USE_LINES
-		else if (e.WindDelta == 0) {
-			if (e.OutIdx >= 0) {
-				AddOutPt(e, e.Top);
-				e.OutIdx = ClipperBase.Unassigned;
+		else if (e.windDelta == 0) {
+			if (e.outIdx >= 0) {
+				addOutPt(e, e.top);
+				e.outIdx = ClipperBase.UNASSIGNED;
 			}
-			DeleteFromAEL(e);
+			deleteFromAEL(e);
 
-			if (eMaxPair.OutIdx >= 0) {
-				AddOutPt(eMaxPair, e.Top);
-				eMaxPair.OutIdx = ClipperBase.Unassigned;
+			if (eMaxPair.outIdx >= 0) {
+				addOutPt(eMaxPair, e.top);
+				eMaxPair.outIdx = ClipperBase.UNASSIGNED;
 			}
-			DeleteFromAEL(eMaxPair);
+			deleteFromAEL(eMaxPair);
 		}
 	#end
 		else throw new ClipperException("DoMaxima error");
 	}
 	//------------------------------------------------------------------------------
 
-	static public function ReversePaths(polys:Paths):Void {
+	static public function reversePaths(polys:Paths):Void {
 		for (poly in polys) {
 			poly.reverse();
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	static public function Orientation(poly:Path):Bool {
-		return Area(poly) >= 0;
+	static public function orientation(poly:Path):Bool {
+		return area(poly) >= 0;
 	}
 	//------------------------------------------------------------------------------
 
-	function PointCount(pts:OutPt):Int {
+	function pointCount(pts:OutPt):Int {
 		if (pts == null) return 0;
 		var result:Int = 0;
 		var p:OutPt = pts;
 		do {
 			result++;
-			p = p.Next;
+			p = p.next;
 		}
 		while (p != pts);
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	function BuildResult(polyg:Paths):Void {
+	function buildResult(polyg:Paths):Void {
 		polyg.clear();
-		//TODO:polyg.Capacity = m_PolyOuts.length;
-		for (i in 0...m_PolyOuts.length) {
-			var outRec:OutRec = m_PolyOuts[i];
-			if (outRec.Pts == null) continue;
-			var p:OutPt = outRec.Pts.Prev;
-			var cnt:Int = PointCount(p);
+		//TODO:polyg.Capacity = mPolyOuts.length;
+		for (i in 0...mPolyOuts.length) {
+			var outRec:OutRec = mPolyOuts[i];
+			if (outRec.pts == null) continue;
+			var p:OutPt = outRec.pts.prev;
+			var cnt:Int = pointCount(p);
 			if (cnt < 2) continue;
 			var pg = new Path(/*TODO:cnt*/);
 			for (j in 0...cnt) {
-				pg.push(p.Pt);
-				p = p.Prev;
+				pg.push(p.pt);
+				p = p.prev;
 			}
 			polyg.push(pg);
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function BuildResult2(polytree:PolyTree):Void {
-		polytree.Clear();
+	function buildResult2(polytree:PolyTree):Void {
+		polytree.clear();
 
 		//add each output polygon/contour to polytree ...
-		//TODO:polytree.m_AllPolys.Capacity = m_PolyOuts.length;
-		for (i in 0...m_PolyOuts.length) {
-			var outRec:OutRec = m_PolyOuts[i];
-			var cnt:Int = PointCount(outRec.Pts);
-			if ((outRec.IsOpen && cnt < 2) || (!outRec.IsOpen && cnt < 3)) continue;
-			FixHoleLinkage(outRec);
+		//TODO:polytree.mAllPolys.Capacity = mPolyOuts.length;
+		for (i in 0...mPolyOuts.length) {
+			var outRec:OutRec = mPolyOuts[i];
+			var cnt:Int = pointCount(outRec.pts);
+			if ((outRec.isOpen && cnt < 2) || (!outRec.isOpen && cnt < 3)) continue;
+			fixHoleLinkage(outRec);
 			var pn = new PolyNode();
-			polytree.m_AllPolys.push(pn);
+			polytree.mAllPolys.push(pn);
 			outRec.polyNode = pn;
-			//TODO:pn.m_polygon.Capacity = cnt;
-			var op:OutPt = outRec.Pts.Prev;
+			//TODO:pn.mPolygon.Capacity = cnt;
+			var op:OutPt = outRec.pts.prev;
 			for (j in 0...cnt) {
-				pn.m_polygon.push(op.Pt);
-				op = op.Prev;
+				pn.mPolygon.push(op.pt);
+				op = op.prev;
 			}
 		}
 
 		//fixup PolyNode links etc ...
-		//TODO:polytree.m_Childs.Capacity = m_PolyOuts.length;
-		for (i in 0...m_PolyOuts.length) {
-			var outRec:OutRec = m_PolyOuts[i];
+		//TODO:polytree.mChilds.Capacity = mPolyOuts.length;
+		for (i in 0...mPolyOuts.length) {
+			var outRec:OutRec = mPolyOuts[i];
 			if (outRec.polyNode == null) continue;
-			else if (outRec.IsOpen) {
-				outRec.polyNode.IsOpen = true;
-				polytree.AddChild(outRec.polyNode);
-			} else if (outRec.FirstLeft != null && outRec.FirstLeft.polyNode != null) outRec.FirstLeft.polyNode.AddChild(outRec.polyNode);
-			else polytree.AddChild(outRec.polyNode);
+			else if (outRec.isOpen) {
+				outRec.polyNode.isOpen = true;
+				polytree.addChild(outRec.polyNode);
+			} else if (outRec.firstLeft != null && outRec.firstLeft.polyNode != null) outRec.firstLeft.polyNode.addChild(outRec.polyNode);
+			else polytree.addChild(outRec.polyNode);
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function FixupOutPolygon(outRec:OutRec):Void {
+	function fixupOutPolygon(outRec:OutRec):Void {
 		//FixupOutPolygon() - removes duplicate points and simplifies consecutive
 		//parallel edges by removing the middle vertex.
 		var lastOK:OutPt = null;
-		outRec.BottomPt = null;
-		var pp:OutPt = outRec.Pts;
+		outRec.bottomPt = null;
+		var pp:OutPt = outRec.pts;
 		while (true) {
-			if (pp.Prev == pp || pp.Prev == pp.Next) {
-				outRec.Pts = null;
+			if (pp.prev == pp || pp.prev == pp.next) {
+				outRec.pts = null;
 				return;
 			}
 			//test for duplicate points and collinear edges ...
-			if ((pp.Pt.equals(pp.Next.Pt)) || (pp.Pt.equals(pp.Prev.Pt)) || (ClipperBase.SlopesEqual3(pp.Prev.Pt, pp.Pt, pp.Next.Pt, m_UseFullRange) 
-				&& (!PreserveCollinear || !Pt2IsBetweenPt1AndPt3(pp.Prev.Pt, pp.Pt, pp.Next.Pt)))) 
+			if ((pp.pt.equals(pp.next.pt)) || (pp.pt.equals(pp.prev.pt)) || (ClipperBase.slopesEqual3(pp.prev.pt, pp.pt, pp.next.pt, mUseFullRange) 
+				&& (!preserveCollinear || !pt2IsBetweenPt1AndPt3(pp.prev.pt, pp.pt, pp.next.pt)))) 
 			{
 				lastOK = null;
-				pp.Prev.Next = pp.Next;
-				pp.Next.Prev = pp.Prev;
-				pp = pp.Prev;
+				pp.prev.next = pp.next;
+				pp.next.prev = pp.prev;
+				pp = pp.prev;
 			} else if (pp == lastOK) break;
 			else {
 				if (lastOK == null) lastOK = pp;
-				pp = pp.Next;
+				pp = pp.next;
 			}
 		}
-		outRec.Pts = pp;
+		outRec.pts = pp;
 	}
 	//------------------------------------------------------------------------------
 
-	function DupOutPt(outPt:OutPt, InsertAfter:Bool):OutPt {
+	function dupOutPt(outPt:OutPt, insertAfter:Bool):OutPt {
 		var result = new OutPt();
-		result.Pt.copyFrom(outPt.Pt);
-		result.Idx = outPt.Idx;
-		if (InsertAfter) {
-			result.Next = outPt.Next;
-			result.Prev = outPt;
-			outPt.Next.Prev = result;
-			outPt.Next = result;
+		result.pt.copyFrom(outPt.pt);
+		result.idx = outPt.idx;
+		if (insertAfter) {
+			result.next = outPt.next;
+			result.prev = outPt;
+			outPt.next.prev = result;
+			outPt.next = result;
 		} else {
-			result.Prev = outPt.Prev;
-			result.Next = outPt;
-			outPt.Prev.Next = result;
-			outPt.Prev = result;
+			result.prev = outPt.prev;
+			result.next = outPt;
+			outPt.prev.next = result;
+			outPt.prev = result;
 		}
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
 	// TODO: out
-	function GetOverlap(a1:CInt, a2:CInt, b1:CInt, b2:CInt, outParams:{/*out*/ Left:CInt, /*out*/ Right:CInt}):Bool {
+	function getOverlap(a1:CInt, a2:CInt, b1:CInt, b2:CInt, outParams:{/*out*/ left:CInt, /*out*/ right:CInt}):Bool {
 		if (a1 < a2) {
 			// TODO: check casts to CInt
 			if (b1 < b2) {
-				outParams.Left = Std.int(Math.max(a1, b1));
-				outParams.Right = Std.int(Math.min(a2, b2));
+				outParams.left = Std.int(Math.max(a1, b1));
+				outParams.right = Std.int(Math.min(a2, b2));
 			} else {
-				outParams.Left = Std.int(Math.max(a1, b2));
-				outParams.Right = Std.int(Math.min(a2, b1));
+				outParams.left = Std.int(Math.max(a1, b2));
+				outParams.right = Std.int(Math.min(a2, b1));
 			}
 		} else {
 			if (b1 < b2) {
-				outParams.Left = Std.int(Math.max(a2, b1));
-				outParams.Right = Std.int(Math.min(a1, b2));
+				outParams.left = Std.int(Math.max(a2, b1));
+				outParams.right = Std.int(Math.min(a1, b2));
 			} else {
-				outParams.Left = Std.int(Math.max(a2, b2));
-				outParams.Right = Std.int(Math.min(a1, b1));
+				outParams.left = Std.int(Math.max(a2, b2));
+				outParams.right = Std.int(Math.min(a1, b1));
 			}
 		}
-		return outParams.Left < outParams.Right;
+		return outParams.left < outParams.right;
 	}
 	//------------------------------------------------------------------------------
 
-	function JoinHorz(op1:OutPt, op1b:OutPt, op2:OutPt, op2b:OutPt,	Pt:IntPoint, DiscardLeft:Bool):Bool {
-		var Dir1:Direction = (op1.Pt.X > op1b.Pt.X ? Direction.dRightToLeft : Direction.dLeftToRight);
-		var Dir2:Direction = (op2.Pt.X > op2b.Pt.X ? Direction.dRightToLeft : Direction.dLeftToRight);
-		if (Dir1 == Dir2) return false;
+	function joinHorz(op1:OutPt, op1b:OutPt, op2:OutPt, op2b:OutPt,	pt:IntPoint, discardLeft:Bool):Bool {
+		var dir1:Direction = (op1.pt.x > op1b.pt.x ? Direction.D_RIGHT_TO_LEFT : Direction.D_LEFT_TO_RIGHT);
+		var dir2:Direction = (op2.pt.x > op2b.pt.x ? Direction.D_RIGHT_TO_LEFT : Direction.D_LEFT_TO_RIGHT);
+		if (dir1 == dir2) return false;
 
 		//When DiscardLeft, we want Op1b to be on the Left of Op1, otherwise we
 		//want Op1b to be on the Right. (And likewise with Op2 and Op2b.)
 		//So, to facilitate this while inserting Op1b and Op2b ...
 		//when DiscardLeft, make sure we're AT or RIGHT of Pt before adding Op1b,
 		//otherwise make sure we're AT or LEFT of Pt. (Likewise with Op2b.)
-		if (Dir1 == Direction.dLeftToRight) {
-			while (op1.Next.Pt.X <= Pt.X && op1.Next.Pt.X >= op1.Pt.X && op1.Next.Pt.Y == Pt.Y)
-			op1 = op1.Next;
-			if (DiscardLeft && (op1.Pt.X != Pt.X)) op1 = op1.Next;
-			op1b = DupOutPt(op1, !DiscardLeft);
-			if (!op1b.Pt.equals(Pt)) {
+		if (dir1 == Direction.D_LEFT_TO_RIGHT) {
+			while (op1.next.pt.x <= pt.x && op1.next.pt.x >= op1.pt.x && op1.next.pt.y == pt.y)
+			op1 = op1.next;
+			if (discardLeft && (op1.pt.x != pt.x)) op1 = op1.next;
+			op1b = dupOutPt(op1, !discardLeft);
+			if (!op1b.pt.equals(pt)) {
 				op1 = op1b;
-				op1.Pt.copyFrom(Pt);
-				op1b = DupOutPt(op1, !DiscardLeft);
+				op1.pt.copyFrom(pt);
+				op1b = dupOutPt(op1, !discardLeft);
 			}
 		} else {
-			while (op1.Next.Pt.X >= Pt.X && op1.Next.Pt.X <= op1.Pt.X && op1.Next.Pt.Y == Pt.Y)
-			op1 = op1.Next;
-			if (!DiscardLeft && (op1.Pt.X != Pt.X)) op1 = op1.Next;
-			op1b = DupOutPt(op1, DiscardLeft);
-			if (!op1b.Pt.equals(Pt)) {
+			while (op1.next.pt.x >= pt.x && op1.next.pt.x <= op1.pt.x && op1.next.pt.y == pt.y)
+			op1 = op1.next;
+			if (!discardLeft && (op1.pt.x != pt.x)) op1 = op1.next;
+			op1b = dupOutPt(op1, discardLeft);
+			if (!op1b.pt.equals(pt)) {
 				op1 = op1b;
-				op1.Pt.copyFrom(Pt);
-				op1b = DupOutPt(op1, DiscardLeft);
+				op1.pt.copyFrom(pt);
+				op1b = dupOutPt(op1, discardLeft);
 			}
 		}
 
-		if (Dir2 == Direction.dLeftToRight) {
-			while (op2.Next.Pt.X <= Pt.X && op2.Next.Pt.X >= op2.Pt.X && op2.Next.Pt.Y == Pt.Y)
-			op2 = op2.Next;
-			if (DiscardLeft && (op2.Pt.X != Pt.X)) op2 = op2.Next;
-			op2b = DupOutPt(op2, !DiscardLeft);
-			if (!op2b.Pt.equals(Pt)) {
+		if (dir2 == Direction.D_LEFT_TO_RIGHT) {
+			while (op2.next.pt.x <= pt.x && op2.next.pt.x >= op2.pt.x && op2.next.pt.y == pt.y)
+			op2 = op2.next;
+			if (discardLeft && (op2.pt.x != pt.x)) op2 = op2.next;
+			op2b = dupOutPt(op2, !discardLeft);
+			if (!op2b.pt.equals(pt)) {
 				op2 = op2b;
-				op2.Pt.copyFrom(Pt);
-				op2b = DupOutPt(op2, !DiscardLeft);
+				op2.pt.copyFrom(pt);
+				op2b = dupOutPt(op2, !discardLeft);
 			}
 		} else {
-			while (op2.Next.Pt.X >= Pt.X && op2.Next.Pt.X <= op2.Pt.X && op2.Next.Pt.Y == Pt.Y)
-			op2 = op2.Next;
-			if (!DiscardLeft && (op2.Pt.X != Pt.X)) op2 = op2.Next;
-			op2b = DupOutPt(op2, DiscardLeft);
-			if (!op2b.Pt.equals(Pt)) {
+			while (op2.next.pt.x >= pt.x && op2.next.pt.x <= op2.pt.x && op2.next.pt.y == pt.y)
+			op2 = op2.next;
+			if (!discardLeft && (op2.pt.x != pt.x)) op2 = op2.next;
+			op2b = dupOutPt(op2, discardLeft);
+			if (!op2b.pt.equals(pt)) {
 				op2 = op2b;
-				op2.Pt.copyFrom(Pt);
-				op2b = DupOutPt(op2, DiscardLeft);
+				op2.pt.copyFrom(pt);
+				op2b = dupOutPt(op2, discardLeft);
 			}
 		}
 
-		if ((Dir1 == Direction.dLeftToRight) == DiscardLeft) {
-			op1.Prev = op2;
-			op2.Next = op1;
-			op1b.Next = op2b;
-			op2b.Prev = op1b;
+		if ((dir1 == Direction.D_LEFT_TO_RIGHT) == discardLeft) {
+			op1.prev = op2;
+			op2.next = op1;
+			op1b.next = op2b;
+			op2b.prev = op1b;
 		} else {
-			op1.Next = op2;
-			op2.Prev = op1;
-			op1b.Prev = op2b;
-			op2b.Next = op1b;
+			op1.next = op2;
+			op2.prev = op1;
+			op1b.prev = op2b;
+			op2b.next = op1b;
 		}
 		return true;
 	}
 	//------------------------------------------------------------------------------
 
-	function JoinPoints(j:Join, outRec1:OutRec, outRec2:OutRec):Bool {
-		var op1:OutPt = j.OutPt1, op1b;
-		var op2:OutPt = j.OutPt2, op2b;
+	function joinPoints(j:Join, outRec1:OutRec, outRec2:OutRec):Bool {
+		var op1:OutPt = j.outPt1, op1b;
+		var op2:OutPt = j.outPt2, op2b;
 
 		//There are 3 kinds of joins for output polygons ...
 		//1. Horizontal joins where Join.OutPt1 & Join.OutPt2 are a vertices anywhere
@@ -3005,138 +3025,138 @@ class Clipper extends ClipperBase
 		//location at the Bottom of the overlapping segment (& Join.OffPt is above).
 		//3. StrictlySimple joins where edges touch but are not collinear and where
 		//Join.OutPt1, Join.OutPt2 & Join.OffPt all share the same point.
-		var isHorizontal:Bool = (j.OutPt1.Pt.Y == j.OffPt.Y);
+		var isHorizontal:Bool = (j.outPt1.pt.y == j.offPt.y);
 
-		if (isHorizontal && (j.OffPt.equals(j.OutPt1.Pt)) && (j.OffPt.equals(j.OutPt2.Pt))) {
+		if (isHorizontal && (j.offPt.equals(j.outPt1.pt)) && (j.offPt.equals(j.outPt2.pt))) {
 			//Strictly Simple join ...
 			if (outRec1 != outRec2) return false;
-			op1b = j.OutPt1.Next;
+			op1b = j.outPt1.next;
 			// TODO: check whiles
-			while (op1b != op1 && (op1b.Pt.equals(j.OffPt))) {
-				op1b = op1b.Next;
+			while (op1b != op1 && (op1b.pt.equals(j.offPt))) {
+				op1b = op1b.next;
 			}
-			var reverse1:Bool = (op1b.Pt.Y > j.OffPt.Y);
-			op2b = j.OutPt2.Next;
-			while (op2b != op2 && (op2b.Pt.equals(j.OffPt))) {
-				op2b = op2b.Next;
+			var reverse1:Bool = (op1b.pt.y > j.offPt.y);
+			op2b = j.outPt2.next;
+			while (op2b != op2 && (op2b.pt.equals(j.offPt))) {
+				op2b = op2b.next;
 			}
-			var reverse2:Bool = (op2b.Pt.Y > j.OffPt.Y);
+			var reverse2:Bool = (op2b.pt.y > j.offPt.y);
 			if (reverse1 == reverse2) return false;
 			if (reverse1) {
-				op1b = DupOutPt(op1, false);
-				op2b = DupOutPt(op2, true);
-				op1.Prev = op2;
-				op2.Next = op1;
-				op1b.Next = op2b;
-				op2b.Prev = op1b;
-				j.OutPt1 = op1;
-				j.OutPt2 = op1b;
+				op1b = dupOutPt(op1, false);
+				op2b = dupOutPt(op2, true);
+				op1.prev = op2;
+				op2.next = op1;
+				op1b.next = op2b;
+				op2b.prev = op1b;
+				j.outPt1 = op1;
+				j.outPt2 = op1b;
 				return true;
 			} else {
-				op1b = DupOutPt(op1, true);
-				op2b = DupOutPt(op2, false);
-				op1.Next = op2;
-				op2.Prev = op1;
-				op1b.Prev = op2b;
-				op2b.Next = op1b;
-				j.OutPt1 = op1;
-				j.OutPt2 = op1b;
+				op1b = dupOutPt(op1, true);
+				op2b = dupOutPt(op2, false);
+				op1.next = op2;
+				op2.prev = op1;
+				op1b.prev = op2b;
+				op2b.next = op1b;
+				j.outPt1 = op1;
+				j.outPt2 = op1b;
 				return true;
 			}
 		} else if (isHorizontal) {
 			//treat horizontal joins differently to non-horizontal joins since with
-			//them we're not yet sure where the overlapping is. OutPt1.Pt & OutPt2.Pt
+			//them we're not yet sure where the overlapping is. OutPt1.pt & OutPt2.pt
 			//may be anywhere along the horizontal edge.
 			op1b = op1;
-			while (op1.Prev.Pt.Y == op1.Pt.Y && op1.Prev != op1b && op1.Prev != op2) op1 = op1.Prev;
-			while (op1b.Next.Pt.Y == op1b.Pt.Y && op1b.Next != op1 && op1b.Next != op2) op1b = op1b.Next;
-			if (op1b.Next == op1 || op1b.Next == op2) return false; //a flat 'polygon'
+			while (op1.prev.pt.y == op1.pt.y && op1.prev != op1b && op1.prev != op2) op1 = op1.prev;
+			while (op1b.next.pt.y == op1b.pt.y && op1b.next != op1 && op1b.next != op2) op1b = op1b.next;
+			if (op1b.next == op1 || op1b.next == op2) return false; //a flat 'polygon'
 
 			op2b = op2;
-			while (op2.Prev.Pt.Y == op2.Pt.Y && op2.Prev != op2b && op2.Prev != op1b) op2 = op2.Prev;
-			while (op2b.Next.Pt.Y == op2b.Pt.Y && op2b.Next != op2 && op2b.Next != op1) op2b = op2b.Next;
-			if (op2b.Next == op2 || op2b.Next == op1) return false; //a flat 'polygon'
+			while (op2.prev.pt.y == op2.pt.y && op2.prev != op2b && op2.prev != op1b) op2 = op2.prev;
+			while (op2b.next.pt.y == op2b.pt.y && op2b.next != op2 && op2b.next != op1) op2b = op2b.next;
+			if (op2b.next == op2 || op2b.next == op1) return false; //a flat 'polygon'
 
-			var Left:CInt = 0, Right:CInt = 0;
+			var left:CInt = 0, right:CInt = 0;
 			//Op1 -. Op1b & Op2 -. Op2b are the extremites of the horizontal edges
 			// TODO: out
-			var outParams = { Left:Left, Right:Right };
-			if (!GetOverlap(op1.Pt.X, op1b.Pt.X, op2.Pt.X, op2b.Pt.X, outParams)) return false;
-			Left = outParams.Left;
-			Right = outParams.Right;
+			var outParams = { left:left, right:right };
+			if (!getOverlap(op1.pt.x, op1b.pt.x, op2.pt.x, op2b.pt.x, outParams)) return false;
+			left = outParams.left;
+			right = outParams.right;
 
 			//DiscardLeftSide: when overlapping edges are joined, a spike will created
 			//which needs to be cleaned up. However, we don't want Op1 or Op2 caught up
 			//on the discard Side as either may still be needed for other joins ...
-			var Pt:IntPoint = new IntPoint();
-			var DiscardLeftSide:Bool;
-			if (op1.Pt.X >= Left && op1.Pt.X <= Right) {
-				Pt.copyFrom(op1.Pt);
-				DiscardLeftSide = (op1.Pt.X > op1b.Pt.X);
-			} else if (op2.Pt.X >= Left && op2.Pt.X <= Right) {
-				Pt.copyFrom(op2.Pt);
-				DiscardLeftSide = (op2.Pt.X > op2b.Pt.X);
-			} else if (op1b.Pt.X >= Left && op1b.Pt.X <= Right) {
-				Pt.copyFrom(op1b.Pt);
-				DiscardLeftSide = op1b.Pt.X > op1.Pt.X;
+			var pt:IntPoint = new IntPoint();
+			var discardLeftSide:Bool;
+			if (op1.pt.x >= left && op1.pt.x <= right) {
+				pt.copyFrom(op1.pt);
+				discardLeftSide = (op1.pt.x > op1b.pt.x);
+			} else if (op2.pt.x >= left && op2.pt.x <= right) {
+				pt.copyFrom(op2.pt);
+				discardLeftSide = (op2.pt.x > op2b.pt.x);
+			} else if (op1b.pt.x >= left && op1b.pt.x <= right) {
+				pt.copyFrom(op1b.pt);
+				discardLeftSide = op1b.pt.x > op1.pt.x;
 			} else {
-				Pt.copyFrom(op2b.Pt);
-				DiscardLeftSide = (op2b.Pt.X > op2.Pt.X);
+				pt.copyFrom(op2b.pt);
+				discardLeftSide = (op2b.pt.x > op2.pt.x);
 			}
-			j.OutPt1 = op1;
-			j.OutPt2 = op2;
-			return JoinHorz(op1, op1b, op2, op2b, Pt, DiscardLeftSide);
+			j.outPt1 = op1;
+			j.outPt2 = op2;
+			return joinHorz(op1, op1b, op2, op2b, pt, discardLeftSide);
 		} else {
 			//nb: For non-horizontal joins ...
-			//    1. Jr.OutPt1.Pt.Y == Jr.OutPt2.Pt.Y
-			//    2. Jr.OutPt1.Pt > Jr.OffPt.Y
+			//    1. Jr.OutPt1.pt.Y == Jr.OutPt2.pt.Y
+			//    2. Jr.OutPt1.pt > Jr.OffPt.Y
 
 			//make sure the polygons are correctly oriented ...
-			op1b = op1.Next;
-			while ((op1b.Pt.equals(op1.Pt)) && (op1b != op1)) op1b = op1b.Next;
-			var Reverse1:Bool = ((op1b.Pt.Y > op1.Pt.Y) || !ClipperBase.SlopesEqual3(op1.Pt, op1b.Pt, j.OffPt, m_UseFullRange));
-			if (Reverse1) {
-				op1b = op1.Prev;
-				while ((op1b.Pt.equals(op1.Pt)) && (op1b != op1)) op1b = op1b.Prev;
-				if ((op1b.Pt.Y > op1.Pt.Y) || !ClipperBase.SlopesEqual3(op1.Pt, op1b.Pt, j.OffPt, m_UseFullRange)) return false;
+			op1b = op1.next;
+			while ((op1b.pt.equals(op1.pt)) && (op1b != op1)) op1b = op1b.next;
+			var reverse1:Bool = ((op1b.pt.y > op1.pt.y) || !ClipperBase.slopesEqual3(op1.pt, op1b.pt, j.offPt, mUseFullRange));
+			if (reverse1) {
+				op1b = op1.prev;
+				while ((op1b.pt.equals(op1.pt)) && (op1b != op1)) op1b = op1b.prev;
+				if ((op1b.pt.y > op1.pt.y) || !ClipperBase.slopesEqual3(op1.pt, op1b.pt, j.offPt, mUseFullRange)) return false;
 			}
-			op2b = op2.Next;
-			while ((op2b.Pt.equals(op2.Pt)) && (op2b != op2)) op2b = op2b.Next;
-			var Reverse2:Bool = ((op2b.Pt.Y > op2.Pt.Y) || !ClipperBase.SlopesEqual3(op2.Pt, op2b.Pt, j.OffPt, m_UseFullRange));
-			if (Reverse2) {
-				op2b = op2.Prev;
-				while ((op2b.Pt.equals(op2.Pt)) && (op2b != op2)) op2b = op2b.Prev;
-				if ((op2b.Pt.Y > op2.Pt.Y) || !ClipperBase.SlopesEqual3(op2.Pt, op2b.Pt, j.OffPt, m_UseFullRange)) return false;
+			op2b = op2.next;
+			while ((op2b.pt.equals(op2.pt)) && (op2b != op2)) op2b = op2b.next;
+			var reverse2:Bool = ((op2b.pt.y > op2.pt.y) || !ClipperBase.slopesEqual3(op2.pt, op2b.pt, j.offPt, mUseFullRange));
+			if (reverse2) {
+				op2b = op2.prev;
+				while ((op2b.pt.equals(op2.pt)) && (op2b != op2)) op2b = op2b.prev;
+				if ((op2b.pt.y > op2.pt.y) || !ClipperBase.slopesEqual3(op2.pt, op2b.pt, j.offPt, mUseFullRange)) return false;
 			}
 
-			if ((op1b == op1) || (op2b == op2) || (op1b == op2b) || ((outRec1 == outRec2) && (Reverse1 == Reverse2))) return false;
+			if ((op1b == op1) || (op2b == op2) || (op1b == op2b) || ((outRec1 == outRec2) && (reverse1 == reverse2))) return false;
 
-			if (Reverse1) {
-				op1b = DupOutPt(op1, false);
-				op2b = DupOutPt(op2, true);
-				op1.Prev = op2;
-				op2.Next = op1;
-				op1b.Next = op2b;
-				op2b.Prev = op1b;
-				j.OutPt1 = op1;
-				j.OutPt2 = op1b;
+			if (reverse1) {
+				op1b = dupOutPt(op1, false);
+				op2b = dupOutPt(op2, true);
+				op1.prev = op2;
+				op2.next = op1;
+				op1b.next = op2b;
+				op2b.prev = op1b;
+				j.outPt1 = op1;
+				j.outPt2 = op1b;
 				return true;
 			} else {
-				op1b = DupOutPt(op1, true);
-				op2b = DupOutPt(op2, false);
-				op1.Next = op2;
-				op2.Prev = op1;
-				op1b.Prev = op2b;
-				op2b.Next = op1b;
-				j.OutPt1 = op1;
-				j.OutPt2 = op1b;
+				op1b = dupOutPt(op1, true);
+				op2b = dupOutPt(op2, false);
+				op1.next = op2;
+				op2.prev = op1;
+				op1b.prev = op2b;
+				op2b.next = op1b;
+				j.outPt1 = op1;
+				j.outPt2 = op1b;
 				return true;
 			}
 		}
 	}
 	//----------------------------------------------------------------------
 
-	static public function PointInPolygon(pt:IntPoint, path:Path):Int {
+	static public function pointInPolygon(pt:IntPoint, path:Path):Int {
 		//returns 0 if false, +1 if true, -1 if pt ON polygon boundary
 		//See "The Point in Polygon Problem for Arbitrary Polygons" by Hormann & Agathos
 		//http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.5498&rep=rep1&type=pdf
@@ -3147,26 +3167,26 @@ class Clipper extends ClipperBase
 		var ipNext:IntPoint = new IntPoint();
 		for (i in 1...cnt + 1) {
 			ipNext.copyFrom((i == cnt ? path[0] : path[i]));
-			if (ipNext.Y == pt.Y) {
-				if ((ipNext.X == pt.X) || (ip.Y == pt.Y && ((ipNext.X > pt.X) == (ip.X < pt.X)))) return -1;
+			if (ipNext.y == pt.y) {
+				if ((ipNext.x == pt.x) || (ip.y == pt.y && ((ipNext.x > pt.x) == (ip.x < pt.x)))) return -1;
 			}
-			if ((ip.Y < pt.Y) != (ipNext.Y < pt.Y)) {
-				if (ip.X >= pt.X) {
-					if (ipNext.X > pt.X) result = 1 - result;
+			if ((ip.y < pt.y) != (ipNext.y < pt.y)) {
+				if (ip.x >= pt.x) {
+					if (ipNext.x > pt.x) result = 1 - result;
 					else {
-						var dx:Float = /*(double)*/(ip.X - pt.X);
-						var dy:Float = /*(double)*/(ip.Y - pt.Y);
-						var d:Float =  dx * (ipNext.Y - pt.Y) - (ipNext.X - pt.X) * dy;
+						var dx:Float = /*(double)*/(ip.x - pt.x);
+						var dy:Float = /*(double)*/(ip.y - pt.y);
+						var d:Float =  dx * (ipNext.y - pt.y) - (ipNext.x - pt.x) * dy;
 						if (d == 0) return -1;
-						else if ((d > 0) == (ipNext.Y > ip.Y)) result = 1 - result;
+						else if ((d > 0) == (ipNext.y > ip.y)) result = 1 - result;
 					}
 				} else {
-					if (ipNext.X > pt.X) {
-						var dx:Float = /*(double)*/(ip.X - pt.X);
-						var dy:Float = /*(double)*/(ip.Y - pt.Y);
-						var d:Float =  dx * (ipNext.Y - pt.Y) - (ipNext.X - pt.X) * dy;
+					if (ipNext.x > pt.x) {
+						var dx:Float = /*(double)*/(ip.x - pt.x);
+						var dy:Float = /*(double)*/(ip.y - pt.y);
+						var d:Float =  dx * (ipNext.y - pt.y) - (ipNext.x - pt.x) * dy;
 						if (d == 0) return -1;
-						else if ((d > 0) == (ipNext.Y > ip.Y)) result = 1 - result;
+						else if ((d > 0) == (ipNext.y > ip.y)) result = 1 - result;
 					}
 				}
 			}
@@ -3176,17 +3196,17 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	static function PointInOutPt(pt:IntPoint, op:OutPt):Int {
+	static function pointInOutPt(pt:IntPoint, op:OutPt):Int {
 		//returns 0 if false, +1 if true, -1 if pt ON polygon boundary
 		//See "The Point in Polygon Problem for Arbitrary Polygons" by Hormann & Agathos
 		//http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.5498&rep=rep1&type=pdf
 		var result:Int = 0;
 		var startOp:OutPt = op;
-		var ptx:CInt = pt.X, pty:CInt = pt.Y;
-		var poly0x:CInt = op.Pt.X, poly0y:CInt = op.Pt.Y;
+		var ptx:CInt = pt.x, pty:CInt = pt.y;
+		var poly0x:CInt = op.pt.x, poly0y:CInt = op.pt.y;
 		do {
-			op = op.Next;
-			var poly1x:CInt = op.Pt.X, poly1y:CInt = op.Pt.Y;
+			op = op.next;
+			var poly1x:CInt = op.pt.x, poly1y:CInt = op.pt.y;
 
 			if (poly1y == pty) {
 				if ((poly1x == ptx) || (poly0y == pty && ((poly1x > ptx) == (poly0x < ptx)))) return -1;
@@ -3219,192 +3239,192 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	static function Poly2ContainsPoly1(outPt1:OutPt, outPt2:OutPt):Bool {
+	static function poly2ContainsPoly1(outPt1:OutPt, outPt2:OutPt):Bool {
 		var op:OutPt = outPt1;
 		do {
 			//nb: PointInPolygon returns 0 if false, +1 if true, -1 if pt on polygon
 			// TODO: rename two versions of PointInPolygon
-			var res:Int = PointInOutPt(op.Pt, outPt2);
+			var res:Int = pointInOutPt(op.pt, outPt2);
 			if (res >= 0) return res > 0;
-			op = op.Next;
+			op = op.next;
 		} while (op != outPt1);
 		return true;
 	}
 	//----------------------------------------------------------------------
 
-	function FixupFirstLefts1(OldOutRec:OutRec, NewOutRec:OutRec):Void {
-		for (i in 0...m_PolyOuts.length) {
-			var outRec:OutRec = m_PolyOuts[i];
-			if (outRec.Pts == null || outRec.FirstLeft == null) continue;
-			var firstLeft:OutRec = ParseFirstLeft(outRec.FirstLeft);
-			if (firstLeft == OldOutRec) {
-				if (Poly2ContainsPoly1(outRec.Pts, NewOutRec.Pts)) outRec.FirstLeft = NewOutRec;
+	function fixupFirstLefts1(oldOutRec:OutRec, newOutRec:OutRec):Void {
+		for (i in 0...mPolyOuts.length) {
+			var outRec:OutRec = mPolyOuts[i];
+			if (outRec.pts == null || outRec.firstLeft == null) continue;
+			var firstLeft:OutRec = parseFirstLeft(outRec.firstLeft);
+			if (firstLeft == oldOutRec) {
+				if (poly2ContainsPoly1(outRec.pts, newOutRec.pts)) outRec.firstLeft = newOutRec;
 			}
 		}
 	}
 	//----------------------------------------------------------------------
 
-	function FixupFirstLefts2(OldOutRec:OutRec, NewOutRec:OutRec):Void {
-		for (outRec in m_PolyOuts)
-			if (outRec.FirstLeft == OldOutRec) outRec.FirstLeft = NewOutRec;
+	function fixupFirstLefts2(oldOutRec:OutRec, newOutRec:OutRec):Void {
+		for (outRec in mPolyOuts)
+			if (outRec.firstLeft == oldOutRec) outRec.firstLeft = newOutRec;
 	}
 	//----------------------------------------------------------------------
 
-	static function ParseFirstLeft(FirstLeft:OutRec):OutRec {
-		while (FirstLeft != null && FirstLeft.Pts == null) FirstLeft = FirstLeft.FirstLeft;
-		return FirstLeft;
+	static function parseFirstLeft(firstLeft:OutRec):OutRec {
+		while (firstLeft != null && firstLeft.pts == null) firstLeft = firstLeft.firstLeft;
+		return firstLeft;
 	}
 	//------------------------------------------------------------------------------
 
-	function JoinCommonEdges():Void {
-		for (i in 0...m_Joins.length) {
-			var join:Join = m_Joins[i];
+	function joinCommonEdges():Void {
+		for (i in 0...mJoins.length) {
+			var join:Join = mJoins[i];
 
-			var outRec1:OutRec = GetOutRec(join.OutPt1.Idx);
-			var outRec2:OutRec = GetOutRec(join.OutPt2.Idx);
+			var outRec1:OutRec = getOutRec(join.outPt1.idx);
+			var outRec2:OutRec = getOutRec(join.outPt2.idx);
 
-			if (outRec1.Pts == null || outRec2.Pts == null) continue;
+			if (outRec1.pts == null || outRec2.pts == null) continue;
 
 			//get the polygon fragment with the correct hole state (FirstLeft)
 			//before calling JoinPoints() ...
 			var holeStateRec:OutRec;
 			if (outRec1 == outRec2) holeStateRec = outRec1;
-			else if (Param1RightOfParam2(outRec1, outRec2)) holeStateRec = outRec2;
-			else if (Param1RightOfParam2(outRec2, outRec1)) holeStateRec = outRec1;
-			else holeStateRec = GetLowermostRec(outRec1, outRec2);
+			else if (param1RightOfParam2(outRec1, outRec2)) holeStateRec = outRec2;
+			else if (param1RightOfParam2(outRec2, outRec1)) holeStateRec = outRec1;
+			else holeStateRec = getLowermostRec(outRec1, outRec2);
 
-			if (!JoinPoints(join, outRec1, outRec2)) continue;
+			if (!joinPoints(join, outRec1, outRec2)) continue;
 
 			if (outRec1 == outRec2) {
 				//instead of joining two polygons, we've just created a new one by
 				//splitting one polygon into two.
-				outRec1.Pts = join.OutPt1;
-				outRec1.BottomPt = null;
-				outRec2 = CreateOutRec();
-				outRec2.Pts = join.OutPt2;
+				outRec1.pts = join.outPt1;
+				outRec1.bottomPt = null;
+				outRec2 = createOutRec();
+				outRec2.pts = join.outPt2;
 
-				//update all OutRec2.Pts Idx's ...
-				UpdateOutPtIdxs(outRec2);
+				//update all OutRec2.pts Idx's ...
+				updateOutPtIdxs(outRec2);
 
 				//We now need to check every OutRec.FirstLeft pointer. If it points
 				//to OutRec1 it may need to point to OutRec2 instead ...
-				if (m_UsingPolyTree) for (j in 0...m_PolyOuts.length - 1) {
-					var oRec:OutRec = m_PolyOuts[j];
-					if (oRec.Pts == null || ParseFirstLeft(oRec.FirstLeft) != outRec1 || oRec.IsHole == outRec1.IsHole) continue;
-					if (Poly2ContainsPoly1(oRec.Pts, join.OutPt2)) oRec.FirstLeft = outRec2;
+				if (mUsingPolyTree) for (j in 0...mPolyOuts.length - 1) {
+					var oRec:OutRec = mPolyOuts[j];
+					if (oRec.pts == null || parseFirstLeft(oRec.firstLeft) != outRec1 || oRec.isHole == outRec1.isHole) continue;
+					if (poly2ContainsPoly1(oRec.pts, join.outPt2)) oRec.firstLeft = outRec2;
 				}
 
-				if (Poly2ContainsPoly1(outRec2.Pts, outRec1.Pts)) {
+				if (poly2ContainsPoly1(outRec2.pts, outRec1.pts)) {
 					//outRec2 is contained by outRec1 ...
-					outRec2.IsHole = !outRec1.IsHole;
-					outRec2.FirstLeft = outRec1;
+					outRec2.isHole = !outRec1.isHole;
+					outRec2.firstLeft = outRec1;
 
 					//fixup FirstLeft pointers that may need reassigning to OutRec1
-					if (m_UsingPolyTree) FixupFirstLefts2(outRec2, outRec1);
+					if (mUsingPolyTree) fixupFirstLefts2(outRec2, outRec1);
 
-					if ((outRec2.IsHole.xor(ReverseSolution)) == (AreaOfOutRec(outRec2) > 0)) ReversePolyPtLinks(outRec2.Pts);
+					if ((outRec2.isHole.xor(reverseSolution)) == (areaOfOutRec(outRec2) > 0)) reversePolyPtLinks(outRec2.pts);
 
-				} else if (Poly2ContainsPoly1(outRec1.Pts, outRec2.Pts)) {
+				} else if (poly2ContainsPoly1(outRec1.pts, outRec2.pts)) {
 					//outRec1 is contained by outRec2 ...
-					outRec2.IsHole = outRec1.IsHole;
-					outRec1.IsHole = !outRec2.IsHole;
-					outRec2.FirstLeft = outRec1.FirstLeft;
-					outRec1.FirstLeft = outRec2;
+					outRec2.isHole = outRec1.isHole;
+					outRec1.isHole = !outRec2.isHole;
+					outRec2.firstLeft = outRec1.firstLeft;
+					outRec1.firstLeft = outRec2;
 
 					//fixup FirstLeft pointers that may need reassigning to OutRec1
-					if (m_UsingPolyTree) FixupFirstLefts2(outRec1, outRec2);
+					if (mUsingPolyTree) fixupFirstLefts2(outRec1, outRec2);
 
-					if ((outRec1.IsHole.xor(ReverseSolution)) == (AreaOfOutRec(outRec1) > 0)) ReversePolyPtLinks(outRec1.Pts);
+					if ((outRec1.isHole.xor(reverseSolution)) == (areaOfOutRec(outRec1) > 0)) reversePolyPtLinks(outRec1.pts);
 				} else {
 					//the 2 polygons are completely separate ...
-					outRec2.IsHole = outRec1.IsHole;
-					outRec2.FirstLeft = outRec1.FirstLeft;
+					outRec2.isHole = outRec1.isHole;
+					outRec2.firstLeft = outRec1.firstLeft;
 
 					//fixup FirstLeft pointers that may need reassigning to OutRec2
-					if (m_UsingPolyTree) FixupFirstLefts1(outRec1, outRec2);
+					if (mUsingPolyTree) fixupFirstLefts1(outRec1, outRec2);
 				}
 
 			} else {
 				//joined 2 polygons together ...
 
-				outRec2.Pts = null;
-				outRec2.BottomPt = null;
-				outRec2.Idx = outRec1.Idx;
+				outRec2.pts = null;
+				outRec2.bottomPt = null;
+				outRec2.idx = outRec1.idx;
 
-				outRec1.IsHole = holeStateRec.IsHole;
-				if (holeStateRec == outRec2) outRec1.FirstLeft = outRec2.FirstLeft;
-				outRec2.FirstLeft = outRec1;
+				outRec1.isHole = holeStateRec.isHole;
+				if (holeStateRec == outRec2) outRec1.firstLeft = outRec2.firstLeft;
+				outRec2.firstLeft = outRec1;
 
 				//fixup FirstLeft pointers that may need reassigning to OutRec1
-				if (m_UsingPolyTree) FixupFirstLefts2(outRec2, outRec1);
+				if (mUsingPolyTree) fixupFirstLefts2(outRec2, outRec1);
 			}
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	function UpdateOutPtIdxs(outrec:OutRec):Void {
-		var op:OutPt = outrec.Pts;
+	function updateOutPtIdxs(outrec:OutRec):Void {
+		var op:OutPt = outrec.pts;
 		do {
-			op.Idx = outrec.Idx;
-			op = op.Prev;
+			op.idx = outrec.idx;
+			op = op.prev;
 		}
-		while (op != outrec.Pts);
+		while (op != outrec.pts);
 	}
 	//------------------------------------------------------------------------------
 
-	function DoSimplePolygons():Void {
+	function doSimplePolygons():Void {
 		var i:Int = 0;
-		while (i < m_PolyOuts.length) {
-			var outrec:OutRec = m_PolyOuts[i++];
-			var op:OutPt = outrec.Pts;
-			if (op == null || outrec.IsOpen) continue;
+		while (i < mPolyOuts.length) {
+			var outrec:OutRec = mPolyOuts[i++];
+			var op:OutPt = outrec.pts;
+			if (op == null || outrec.isOpen) continue;
 			do //for each Pt in Polygon until duplicate found do ...
 			{
-				var op2:OutPt = op.Next;
-				while (op2 != outrec.Pts) {
-					if ((op.Pt.equals(op2.Pt)) && op2.Next != op && op2.Prev != op) {
+				var op2:OutPt = op.next;
+				while (op2 != outrec.pts) {
+					if ((op.pt.equals(op2.pt)) && op2.next != op && op2.prev != op) {
 						//split the polygon into two ...
-						var op3:OutPt = op.Prev;
-						var op4:OutPt = op2.Prev;
-						op.Prev = op4;
-						op4.Next = op;
-						op2.Prev = op3;
-						op3.Next = op2;
+						var op3:OutPt = op.prev;
+						var op4:OutPt = op2.prev;
+						op.prev = op4;
+						op4.next = op;
+						op2.prev = op3;
+						op3.next = op2;
 
-						outrec.Pts = op;
-						var outrec2:OutRec = CreateOutRec();
-						outrec2.Pts = op2;
-						UpdateOutPtIdxs(outrec2);
-						if (Poly2ContainsPoly1(outrec2.Pts, outrec.Pts)) {
+						outrec.pts = op;
+						var outrec2:OutRec = createOutRec();
+						outrec2.pts = op2;
+						updateOutPtIdxs(outrec2);
+						if (poly2ContainsPoly1(outrec2.pts, outrec.pts)) {
 							//OutRec2 is contained by OutRec1 ...
-							outrec2.IsHole = !outrec.IsHole;
-							outrec2.FirstLeft = outrec;
-							if (m_UsingPolyTree) FixupFirstLefts2(outrec2, outrec);
-						} else if (Poly2ContainsPoly1(outrec.Pts, outrec2.Pts)) {
+							outrec2.isHole = !outrec.isHole;
+							outrec2.firstLeft = outrec;
+							if (mUsingPolyTree) fixupFirstLefts2(outrec2, outrec);
+						} else if (poly2ContainsPoly1(outrec.pts, outrec2.pts)) {
 							//OutRec1 is contained by OutRec2 ...
-							outrec2.IsHole = outrec.IsHole;
-							outrec.IsHole = !outrec2.IsHole;
-							outrec2.FirstLeft = outrec.FirstLeft;
-							outrec.FirstLeft = outrec2;
-							if (m_UsingPolyTree) FixupFirstLefts2(outrec, outrec2);
+							outrec2.isHole = outrec.isHole;
+							outrec.isHole = !outrec2.isHole;
+							outrec2.firstLeft = outrec.firstLeft;
+							outrec.firstLeft = outrec2;
+							if (mUsingPolyTree) fixupFirstLefts2(outrec, outrec2);
 						} else {
 							//the 2 polygons are separate ...
-							outrec2.IsHole = outrec.IsHole;
-							outrec2.FirstLeft = outrec.FirstLeft;
-							if (m_UsingPolyTree) FixupFirstLefts1(outrec, outrec2);
+							outrec2.isHole = outrec.isHole;
+							outrec2.firstLeft = outrec.firstLeft;
+							if (mUsingPolyTree) fixupFirstLefts1(outrec, outrec2);
 						}
 						op2 = op; //ie get ready for the next iteration
 					}
-					op2 = op2.Next;
+					op2 = op2.next;
 				}
-				op = op.Next;
+				op = op.next;
 			}
-			while (op != outrec.Pts);
+			while (op != outrec.pts);
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	static public function Area(poly:Path):Float {
+	static public function area(poly:Path):Float {
 		// TODO: unneeded cast, right?
 		var cnt:Int = /*(int)*/ poly.length;
 		if (cnt < 3) return 0;
@@ -3412,8 +3432,8 @@ class Clipper extends ClipperBase
 		// TODO: check loop and casts, but should be fine
 		var j:Int = cnt - 1;
 		for (i in 0...cnt) {
-			var dx:Float = /*(double)*/ poly[j].X + poly[i].X;
-			var dy:Float = /*(double)*/ poly[j].Y - poly[i].Y;
+			var dx:Float = /*(double)*/ poly[j].x + poly[i].x;
+			var dy:Float = /*(double)*/ poly[j].y - poly[i].y;
 			a += dx * dy;
 			j = i;
 		}
@@ -3421,17 +3441,17 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function AreaOfOutRec(outRec:OutRec):Float {
-		var op:OutPt = outRec.Pts;
+	function areaOfOutRec(outRec:OutRec):Float {
+		var op:OutPt = outRec.pts;
 		if (op == null) return 0;
 		var a:Float = 0;
 		do {
 			// TODO: casts
-			var dx:Float = /*(double)*/(op.Prev.Pt.X + op.Pt.X);
-			var dy:Float = /*(double)*/(op.Prev.Pt.Y - op.Pt.Y);
+			var dx:Float = /*(double)*/(op.prev.pt.x + op.pt.x);
+			var dy:Float = /*(double)*/(op.prev.pt.y - op.pt.y);
 			a += dx * dy;
-			op = op.Next;
-		} while (op != outRec.Pts);
+			op = op.next;
+		} while (op != outRec.pts);
 		return a * 0.5;
 	}
 
@@ -3440,85 +3460,85 @@ class Clipper extends ClipperBase
 	// Convert self-intersecting polygons into simple polygons
 	//------------------------------------------------------------------------------
 
-	static public function SimplifyPolygon(poly:Path, fillType:PolyFillType = null):Paths {
-		if (fillType == null) fillType = PolyFillType.pftEvenOdd;
+	static public function simplifyPolygon(poly:Path, fillType:PolyFillType = null):Paths {
+		if (fillType == null) fillType = PolyFillType.PFT_EVEN_ODD;
 		var result = new Paths();
 		var c = new Clipper();
-		c.StrictlySimple = true;
-		c.AddPath(poly, PolyType.ptSubject, true);
-		c.ExecutePaths(ClipType.ctUnion, result, fillType, fillType);
+		c.strictlySimple = true;
+		c.addPath(poly, PolyType.PT_SUBJECT, true);
+		c.executePaths(ClipType.CT_UNION, result, fillType, fillType);
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	static public function SimplifyPolygons(polys:Paths, fillType:PolyFillType = null):Paths {
-		if (fillType == null) fillType = PolyFillType.pftEvenOdd;
+	static public function simplifyPolygons(polys:Paths, fillType:PolyFillType = null):Paths {
+		if (fillType == null) fillType = PolyFillType.PFT_EVEN_ODD;
 		var result = new Paths();
 		var c = new Clipper();
-		c.StrictlySimple = true;
-		c.AddPaths(polys, PolyType.ptSubject, true);
-		c.ExecutePaths(ClipType.ctUnion, result, fillType, fillType);
+		c.strictlySimple = true;
+		c.addPaths(polys, PolyType.PT_SUBJECT, true);
+		c.executePaths(ClipType.CT_UNION, result, fillType, fillType);
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	static function DistanceSqrd(pt1:IntPoint, pt2:IntPoint):Float {
+	static function distanceSqrd(pt1:IntPoint, pt2:IntPoint):Float {
 		// TODO: casts
-		var dx:Float = (/*(double)*/ pt1.X - pt2.X);
-		var dy:Float = (/*(double)*/ pt1.Y - pt2.Y);
+		var dx:Float = (/*(double)*/ pt1.x - pt2.x);
+		var dy:Float = (/*(double)*/ pt1.y - pt2.y);
 		return (dx * dx + dy * dy);
 	}
 	//------------------------------------------------------------------------------
 
-	static function DistanceFromLineSqrd(pt:IntPoint, ln1:IntPoint, ln2:IntPoint):Float {
+	static function distanceFromLineSqrd(pt:IntPoint, ln1:IntPoint, ln2:IntPoint):Float {
 		//The equation of a line in general form (Ax + By + C = 0)
 		//given 2 points (x¹,y¹) & (x²,y²) is ...
 		//(y¹ - y²)x + (x² - x¹)y + (y² - y¹)x¹ - (x² - x¹)y¹ = 0
 		//A = (y¹ - y²); B = (x² - x¹); C = (y² - y¹)x¹ - (x² - x¹)y¹
 		//perpendicular distance of point (x³,y³) = (Ax³ + By³ + C)/Sqrt(A² + B²)
 		//see http://en.wikipedia.org/wiki/Perpendicular_distance
-		var A:Float = ln1.Y - ln2.Y;
-		var B:Float = ln2.X - ln1.X;
-		var C:Float = A * ln1.X + B * ln1.Y;
-		C = A * pt.X + B * pt.Y - C;
+		var A:Float = ln1.y - ln2.y;
+		var B:Float = ln2.x - ln1.x;
+		var C:Float = A * ln1.x + B * ln1.y;
+		C = A * pt.x + B * pt.y - C;
 		return (C * C) / (A * A + B * B);
 	}
 	//---------------------------------------------------------------------------
 
-	static function SlopesNearCollinear(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, distSqrd:Float):Bool {
+	static function slopesNearCollinear(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, distSqrd:Float):Bool {
 		//this function is more accurate when the point that's GEOMETRICALLY 
 		//between the other 2 points is the one that's tested for distance.  
 		//nb: with 'spikes', either pt1 or pt3 is geometrically between the other pts                    
-		if (Math.abs(pt1.X - pt2.X) > Math.abs(pt1.Y - pt2.Y)) {
-			if ((pt1.X > pt2.X) == (pt1.X < pt3.X)) return DistanceFromLineSqrd(pt1, pt2, pt3) < distSqrd;
-			else if ((pt2.X > pt1.X) == (pt2.X < pt3.X)) return DistanceFromLineSqrd(pt2, pt1, pt3) < distSqrd;
-			else return DistanceFromLineSqrd(pt3, pt1, pt2) < distSqrd;
+		if (Math.abs(pt1.x - pt2.x) > Math.abs(pt1.y - pt2.y)) {
+			if ((pt1.x > pt2.x) == (pt1.x < pt3.x)) return distanceFromLineSqrd(pt1, pt2, pt3) < distSqrd;
+			else if ((pt2.x > pt1.x) == (pt2.x < pt3.x)) return distanceFromLineSqrd(pt2, pt1, pt3) < distSqrd;
+			else return distanceFromLineSqrd(pt3, pt1, pt2) < distSqrd;
 		} else {
-			if ((pt1.Y > pt2.Y) == (pt1.Y < pt3.Y)) return DistanceFromLineSqrd(pt1, pt2, pt3) < distSqrd;
-			else if ((pt2.Y > pt1.Y) == (pt2.Y < pt3.Y)) return DistanceFromLineSqrd(pt2, pt1, pt3) < distSqrd;
-			else return DistanceFromLineSqrd(pt3, pt1, pt2) < distSqrd;
+			if ((pt1.y > pt2.y) == (pt1.y < pt3.y)) return distanceFromLineSqrd(pt1, pt2, pt3) < distSqrd;
+			else if ((pt2.y > pt1.y) == (pt2.y < pt3.y)) return distanceFromLineSqrd(pt2, pt1, pt3) < distSqrd;
+			else return distanceFromLineSqrd(pt3, pt1, pt2) < distSqrd;
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	static function PointsAreClose(pt1:IntPoint, pt2:IntPoint, distSqrd:Float):Bool {
+	static function pointsAreClose(pt1:IntPoint, pt2:IntPoint, distSqrd:Float):Bool {
 		// TODO: casts
-		var dx:Float = /*(double)*/ pt1.X - pt2.X;
-		var dy:Float = /*(double)*/ pt1.Y - pt2.Y;
+		var dx:Float = /*(double)*/ pt1.x - pt2.x;
+		var dy:Float = /*(double)*/ pt1.y - pt2.y;
 		return ((dx * dx) + (dy * dy) <= distSqrd);
 	}
 	//------------------------------------------------------------------------------
 
-	static function ExcludeOp(op:OutPt):OutPt {
-		var result:OutPt = op.Prev;
-		result.Next = op.Next;
-		op.Next.Prev = result;
-		result.Idx = 0;
+	static function excludeOp(op:OutPt):OutPt {
+		var result:OutPt = op.prev;
+		result.next = op.next;
+		op.next.prev = result;
+		result.idx = 0;
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	static function CleanPolygon(path:Path, distance:Float = 1.415):Path {
+	static function cleanPolygon(path:Path, distance:Float = 1.415):Path {
 		//distance = proximity in units/pixels below which vertices will be stripped. 
 		//Default ~= sqrt(2) so when adjacent vertices or semi-adjacent vertices have 
 		//both x & y coords within 1 unit, then the second vertex will be stripped.
@@ -3528,67 +3548,67 @@ class Clipper extends ClipperBase
 		if (cnt == 0) return new Path();
 
 		// TODO: check this vec
-		var outPts = [for (i in 0...cnt) new OutPt()];
+		var outPts:Array<OutPt> = [for (i in 0...cnt) new OutPt()];
 
 		for (i in 0...cnt) {
-			outPts[i].Pt.copyFrom(path[i]);
-			outPts[i].Next = outPts[(i + 1) % cnt];
-			outPts[i].Next.Prev = outPts[i];
-			outPts[i].Idx = 0;
+			outPts[i].pt.copyFrom(path[i]);
+			outPts[i].next = outPts[(i + 1) % cnt];
+			outPts[i].next.prev = outPts[i];
+			outPts[i].idx = 0;
 		}
 
 		var distSqrd:Float = distance * distance;
 		var op:OutPt = outPts[0];
-		while (op.Idx == 0 && op.Next != op.Prev) {
-			if (PointsAreClose(op.Pt, op.Prev.Pt, distSqrd)) {
-				op = ExcludeOp(op);
+		while (op.idx == 0 && op.next != op.prev) {
+			if (pointsAreClose(op.pt, op.prev.pt, distSqrd)) {
+				op = excludeOp(op);
 				cnt--;
-			} else if (PointsAreClose(op.Prev.Pt, op.Next.Pt, distSqrd)) {
-				ExcludeOp(op.Next);
-				op = ExcludeOp(op);
+			} else if (pointsAreClose(op.prev.pt, op.next.pt, distSqrd)) {
+				excludeOp(op.next);
+				op = excludeOp(op);
 				cnt -= 2;
-			} else if (SlopesNearCollinear(op.Prev.Pt, op.Pt, op.Next.Pt, distSqrd)) {
-				op = ExcludeOp(op);
+			} else if (slopesNearCollinear(op.prev.pt, op.pt, op.next.pt, distSqrd)) {
+				op = excludeOp(op);
 				cnt--;
 			} else {
-				op.Idx = 1;
-				op = op.Next;
+				op.idx = 1;
+				op = op.next;
 			}
 		}
 
 		if (cnt < 3) cnt = 0;
 		var result = new Path(/*TODO:cnt*/);
 		for (i in 0...cnt) {
-			result.push(op.Pt);
-			op = op.Next;
+			result.push(op.pt);
+			op = op.next;
 		}
 		outPts = null;
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	static public function CleanPolygons(polys:Paths, distance:Float = 1.415):Paths {
+	static public function cleanPolygons(polys:Paths, distance:Float = 1.415):Paths {
 		var result = new Paths(/*TODO:polys.length*/);
 		for (i in 0...polys.length)
-			result.push(CleanPolygon(polys[i], distance));
+			result.push(cleanPolygon(polys[i], distance));
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function Minkowski(pattern:Path, path:Path, IsSum:Bool, IsClosed:Bool):Paths {
-		var delta:Int = (IsClosed ? 1 : 0);
+	/*internal*/ static public function minkowski(pattern:Path, path:Path, isSum:Bool, isClosed:Bool):Paths {
+		var delta:Int = (isClosed ? 1 : 0);
 		var polyCnt:Int = pattern.length;
 		var pathCnt:Int = path.length;
 		var result = new Paths(/*TODO:pathCnt*/);
-		if (IsSum) for (i in 0...pathCnt) {
+		if (isSum) for (i in 0...pathCnt) {
 			var p = new Path(/*TODO:polyCnt*/);
 			for (ip in pattern)
-				p.push(new IntPoint(path[i].X + ip.X, path[i].Y + ip.Y));
+				p.push(new IntPoint(path[i].x + ip.x, path[i].y + ip.y));
 			result.push(p);
 		} else for (i in 0...pathCnt) {
 			var p = new Path(/*TODO:polyCnt*/);
 			for (ip in pattern)
-				p.push(new IntPoint(path[i].X - ip.X, path[i].Y - ip.Y));
+				p.push(new IntPoint(path[i].x - ip.x, path[i].y - ip.y));
 			result.push(p);
 		}
 
@@ -3600,7 +3620,7 @@ class Clipper extends ClipperBase
 				quad.push(result[(i + 1) % pathCnt][j % polyCnt]);
 				quad.push(result[(i + 1) % pathCnt][(j + 1) % polyCnt]);
 				quad.push(result[i % pathCnt][(j + 1) % polyCnt]);
-				if (!Orientation(quad)) quad.reverse();
+				if (!orientation(quad)) quad.reverse();
 				quads.push(quad);
 			}
 		}
@@ -3608,86 +3628,86 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	static public function MinkowskiSum(pattern:Path, path:Path, pathIsClosed:Bool):Paths {
-		var paths:Paths = Minkowski(pattern, path, true, pathIsClosed);
+	static public function minkowskiSum(pattern:Path, path:Path, pathIsClosed:Bool):Paths {
+		var paths:Paths = minkowski(pattern, path, true, pathIsClosed);
 		var c = new Clipper();
-		c.AddPaths(paths, PolyType.ptSubject, true);
-		c.ExecutePaths(ClipType.ctUnion, paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
+		c.addPaths(paths, PolyType.PT_SUBJECT, true);
+		c.executePaths(ClipType.CT_UNION, paths, PolyFillType.PFT_NON_ZERO, PolyFillType.PFT_NON_ZERO);
 		return paths;
 	}
 	//------------------------------------------------------------------------------
 
-	static function TranslatePath(path:Path, delta:IntPoint):Path {
+	static function translatePath(path:Path, delta:IntPoint):Path {
 		var outPath = new Path(/*TODO:path.length*/);
 		for (i in 0...path.length)
-			outPath.push(new IntPoint(path[i].X + delta.X, path[i].Y + delta.Y));
+			outPath.push(new IntPoint(path[i].x + delta.x, path[i].y + delta.y));
 		return outPath;
 	}
 	//------------------------------------------------------------------------------
 
-	static public function MinkowskiSumPaths(pattern:Path, paths:Paths, pathIsClosed:Bool):Paths {
+	static public function minkowskiSumPaths(pattern:Path, paths:Paths, pathIsClosed:Bool):Paths {
 		var solution = new Paths();
 		var c = new Clipper();
 		for (i in 0...paths.length) {
-			var tmp:Paths = Minkowski(pattern, paths[i], true, pathIsClosed);
-			c.AddPaths(tmp, PolyType.ptSubject, true);
+			var tmp:Paths = minkowski(pattern, paths[i], true, pathIsClosed);
+			c.addPaths(tmp, PolyType.PT_SUBJECT, true);
 			if (pathIsClosed) {
-				var path:Path = TranslatePath(paths[i], pattern[0]);
-				c.AddPath(path, PolyType.ptClip, true);
+				var path:Path = translatePath(paths[i], pattern[0]);
+				c.addPath(path, PolyType.PT_CLIP, true);
 			}
 		}
-		c.ExecutePaths(ClipType.ctUnion, solution, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
+		c.executePaths(ClipType.CT_UNION, solution, PolyFillType.PFT_NON_ZERO, PolyFillType.PFT_NON_ZERO);
 		return solution;
 	}
 	//------------------------------------------------------------------------------
 
-	static public function MinkowskiDiff(poly1:Path, poly2:Path):Paths {
-		var paths:Paths = Minkowski(poly1, poly2, false, true);
+	static public function minkowskiDiff(poly1:Path, poly2:Path):Paths {
+		var paths:Paths = minkowski(poly1, poly2, false, true);
 		var c = new Clipper();
-		c.AddPaths(paths, PolyType.ptSubject, true);
-		c.ExecutePaths(ClipType.ctUnion, paths, PolyFillType.pftNonZero, PolyFillType.pftNonZero);
+		c.addPaths(paths, PolyType.PT_SUBJECT, true);
+		c.executePaths(ClipType.CT_UNION, paths, PolyFillType.PFT_NON_ZERO, PolyFillType.PFT_NON_ZERO);
 		return paths;
 	}
 	//------------------------------------------------------------------------------
 
-	static public function PolyTreeToPaths(polytree:PolyTree):Paths {
+	static public function polyTreeToPaths(polytree:PolyTree):Paths {
 
 		var result = new Paths();
 		//TODO:result.Capacity = polytree.Total;
-		AddPolyNodeToPaths(polytree, NodeType.ntAny, result);
+		addPolyNodeToPaths(polytree, NodeType.NT_ANY, result);
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function AddPolyNodeToPaths(polynode:PolyNode, nt:NodeType, paths:Paths):Void {
+	/*internal*/ static public function addPolyNodeToPaths(polynode:PolyNode, nt:NodeType, paths:Paths):Void {
 		var match = true;
 		switch (nt) {
-			case NodeType.ntOpen:
+			case NodeType.NT_OPEN:
 				return;
-			case NodeType.ntClosed:
-				match = !polynode.IsOpen;
+			case NodeType.NT_CLOSED:
+				match = !polynode.isOpen;
 			default:
 		}
 
-		if (polynode.m_polygon.length > 0 && match) paths.push(polynode.m_polygon);
-		for (pn in polynode.Childs)
-			AddPolyNodeToPaths(pn, nt, paths);
+		if (polynode.mPolygon.length > 0 && match) paths.push(polynode.mPolygon);
+		for (pn in polynode.children)
+			addPolyNodeToPaths(pn, nt, paths);
 	}
 	//------------------------------------------------------------------------------
 
-	static public function OpenPathsFromPolyTree(polytree:PolyTree):Paths {
+	static public function openPathsFromPolyTree(polytree:PolyTree):Paths {
 		var result = new Paths();
 		//TODO:result.Capacity = polytree.ChildCount;
-		for (i in 0...polytree.ChildCount)
-			if (polytree.Childs[i].IsOpen) result.push(polytree.Childs[i].m_polygon);
+		for (i in 0...polytree.numChildren)
+			if (polytree.children[i].isOpen) result.push(polytree.children[i].mPolygon);
 		return result;
 	}
 	//------------------------------------------------------------------------------
 
-	static public function ClosedPathsFromPolyTree(polytree:PolyTree):Paths {
+	static public function closedPathsFromPolyTree(polytree:PolyTree):Paths {
 		var result = new Paths();
 		//TODO:result.Capacity = polytree.Total;
-		AddPolyNodeToPaths(polytree, NodeType.ntClosed, result);
+		addPolyNodeToPaths(polytree, NodeType.NT_CLOSED, result);
 		return result;
 	}
 	//------------------------------------------------------------------------------
@@ -3696,124 +3716,124 @@ class Clipper extends ClipperBase
 
 class ClipperOffset 
 {
-	var m_destPolys:Paths;
-	var m_srcPoly:Path;
-	var m_destPoly:Path;
-	var m_normals:Array<DoublePoint> = new Array<DoublePoint>();
-	var m_delta:Float;
-	var m_sinA:Float;
-	var m_sin:Float;
-	var m_cos:Float;
-	var m_miterLim:Float;
-	var m_StepsPerRad:Float;
+	var mDestPolys:Paths;
+	var mSrcPoly:Path;
+	var mDestPoly:Path;
+	var mNormals:Array<DoublePoint> = new Array<DoublePoint>();
+	var mDelta:Float;
+	var mSinA:Float;
+	var mSin:Float;
+	var mCos:Float;
+	var mMiterLim:Float;
+	var mStepsPerRad:Float;
 
-	var m_lowest:IntPoint = new IntPoint();
-	var m_polyNodes:PolyNode = new PolyNode();
-
-	// TODO: prop?
-	public var ArcTolerance(default, default):Float;
+	var mLowest:IntPoint = new IntPoint();
+	var mPolyNodes:PolyNode = new PolyNode();
 
 	// TODO: prop?
-	public var MiterLimit(default, default):Float;
+	public var arcTolerance(default, default):Float;
+
+	// TODO: prop?
+	public var miterLimit(default, default):Float;
 
 	// TODO: uppercase (ISSUES: multi var (comma separated) on same line, inline var without type, Bool xor missing)
-	inline static var two_pi:Float = 6.283185307179586476925286766559; // TODO: Math.PI * 2;
-	inline static var def_arc_tolerance:Float = 0.25;
+	inline static var TWO_PI:Float = 6.283185307179586476925286766559; // TODO: Math.PI * 2;
+	inline static var DEFAULT_ARC_TOLERANCE:Float = 0.25;
 
-	public function new(miterLimit:Float = 2.0, arcTolerance:Float = def_arc_tolerance) {
-		MiterLimit = miterLimit;
-		ArcTolerance = arcTolerance;
-		m_lowest.X = -1;
+	public function new(miterLimit:Float = 2.0, arcTolerance:Float = DEFAULT_ARC_TOLERANCE) {
+		this.miterLimit = miterLimit;
+		this.arcTolerance = arcTolerance;
+		mLowest.x = -1;
 	}
 	//------------------------------------------------------------------------------
 
-	public function Clear():Void {
-		m_polyNodes.Childs.clear();
-		m_lowest.X = -1;
+	public function clear():Void {
+		mPolyNodes.children.clear();
+		mLowest.x = -1;
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function Round(value:Float):CInt {
+	/*internal*/ static public function round(value:Float):CInt {
 		// TODO: check how to cast (this is already defined in Clipper)
 		//return value < 0 ? /*(cInt)*/Std.int(value - 0.5) : /*(cInt)*/Std.int(value + 0.5);
-		return Clipper.Round(value);
+		return Clipper.round(value);
 	}
 	//------------------------------------------------------------------------------
 
-	public function AddPath(path:Path, joinType:JoinType, endType:EndType):Void {
+	public function addPath(path:Path, joinType:JoinType, endType:EndType):Void {
 		var highI:Int = path.length - 1;
 		if (highI < 0) return;
 		var newNode = new PolyNode();
-		newNode.m_jointype = joinType;
-		newNode.m_endtype = endType;
+		newNode.mJoinType = joinType;
+		newNode.mEndtype = endType;
 
 		//strip duplicate points from path and also get index to the lowest point ...
-		if (endType == EndType.etClosedLine || endType == EndType.etClosedPolygon) {
+		if (endType == EndType.ET_CLOSED_LINE || endType == EndType.ET_CLOSED_POLYGON) {
 			while (highI > 0 && path[0].equals(path[highI])) highI--;
 		}
-		//TODO:newNode.m_polygon.Capacity = highI + 1;
-		newNode.m_polygon.push(path[0]);
+		//TODO:newNode.mPolygon.Capacity = highI + 1;
+		newNode.mPolygon.push(path[0]);
 		var j:Int = 0, k:Int = 0;
 		// TODO: check loop
 		for (i in 1...highI + 1) {
-			if (!newNode.m_polygon[j].equals(path[i])) {
+			if (!newNode.mPolygon[j].equals(path[i])) {
 				j++;
-				newNode.m_polygon.push(path[i]);
-				if (path[i].Y > newNode.m_polygon[k].Y
-					|| (path[i].Y == newNode.m_polygon[k].Y && path[i].X < newNode.m_polygon[k].X)) 
+				newNode.mPolygon.push(path[i]);
+				if (path[i].y > newNode.mPolygon[k].y
+					|| (path[i].y == newNode.mPolygon[k].y && path[i].x < newNode.mPolygon[k].x)) 
 				{
 					k = j;
 				}
 			}
 		}
-		if (endType == EndType.etClosedPolygon && j < 2) return;
+		if (endType == EndType.ET_CLOSED_POLYGON && j < 2) return;
 
-		m_polyNodes.AddChild(newNode);
+		mPolyNodes.addChild(newNode);
 
-		//if this path's lowest pt is lower than all the others then update m_lowest
-		if (endType != EndType.etClosedPolygon) return;
-		if (m_lowest.X < 0) m_lowest = new IntPoint(m_polyNodes.ChildCount - 1, k);
+		//if this path's lowest pt is lower than all the others then update mLowest
+		if (endType != EndType.ET_CLOSED_POLYGON) return;
+		if (mLowest.x < 0) mLowest = new IntPoint(mPolyNodes.numChildren - 1, k);
 		else {
 			// TODO: casts
-			var ip:IntPoint = m_polyNodes.Childs[Std.int(m_lowest.X)].m_polygon[Std.int(m_lowest.Y)].clone();
-			if (newNode.m_polygon[k].Y > ip.Y || (newNode.m_polygon[k].Y == ip.Y && newNode.m_polygon[k].X < ip.X)) {
-				m_lowest = new IntPoint(m_polyNodes.ChildCount - 1, k);
+			var ip:IntPoint = mPolyNodes.children[Std.int(mLowest.x)].mPolygon[Std.int(mLowest.y)].clone();
+			if (newNode.mPolygon[k].y > ip.y || (newNode.mPolygon[k].y == ip.y && newNode.mPolygon[k].x < ip.x)) {
+				mLowest = new IntPoint(mPolyNodes.numChildren - 1, k);
 			}
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	public function AddPaths(paths:Paths, joinType:JoinType, endType:EndType):Void {
+	public function addPaths(paths:Paths, joinType:JoinType, endType:EndType):Void {
 		for (p in paths)
-			AddPath(p, joinType, endType);
+			addPath(p, joinType, endType);
 	}
 	//------------------------------------------------------------------------------
 
-	function FixOrientations():Void {
+	function fixOrientations():Void {
 		//fixup orientations of all closed paths if the orientation of the
 		//closed path with the lowermost vertex is wrong ...
 		// TODO: cast
-		if (m_lowest.X >= 0 && !Clipper.Orientation(m_polyNodes.Childs[Std.int(m_lowest.X)].m_polygon)) {
-			for (i in 0...m_polyNodes.ChildCount) {
-				var node:PolyNode = m_polyNodes.Childs[i];
-				if (node.m_endtype == EndType.etClosedPolygon || (node.m_endtype == EndType.etClosedLine 
-					&& Clipper.Orientation(node.m_polygon))) 
+		if (mLowest.x >= 0 && !Clipper.orientation(mPolyNodes.children[Std.int(mLowest.x)].mPolygon)) {
+			for (i in 0...mPolyNodes.numChildren) {
+				var node:PolyNode = mPolyNodes.children[i];
+				if (node.mEndtype == EndType.ET_CLOSED_POLYGON || (node.mEndtype == EndType.ET_CLOSED_LINE 
+					&& Clipper.orientation(node.mPolygon))) 
 				{
-					node.m_polygon.reverse();
+					node.mPolygon.reverse();
 				}
 			}
 		} else {
-			for (i in 0...m_polyNodes.ChildCount) {
-				var node:PolyNode = m_polyNodes.Childs[i];
-				if (node.m_endtype == EndType.etClosedLine && !Clipper.Orientation(node.m_polygon)) node.m_polygon.reverse();
+			for (i in 0...mPolyNodes.numChildren) {
+				var node:PolyNode = mPolyNodes.children[i];
+				if (node.mEndtype == EndType.ET_CLOSED_LINE && !Clipper.orientation(node.mPolygon)) node.mPolygon.reverse();
 			}
 		}
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function GetUnitNormal(pt1:IntPoint, pt2:IntPoint):DoublePoint {
-		var dx:Float = (pt2.X - pt1.X);
-		var dy:Float = (pt2.Y - pt1.Y);
+	/*internal*/ static public function getUnitNormal(pt1:IntPoint, pt2:IntPoint):DoublePoint {
+		var dx:Float = (pt2.x - pt1.x);
+		var dy:Float = (pt2.y - pt1.y);
 		if ((dx == 0) && (dy == 0)) return new DoublePoint();
 
 		var f:Float = 1 * 1.0 / Math.sqrt(dx * dx + dy * dy);
@@ -3824,188 +3844,200 @@ class ClipperOffset
 	}
 	//------------------------------------------------------------------------------
 
-	function DoOffset(delta:Float):Void {
-		m_destPolys = new Paths();
-		m_delta = delta;
+	function doOffset(delta:Float):Void {
+		mDestPolys = new Paths();
+		mDelta = delta;
 
-		//if Zero offset, just copy any CLOSED polygons to m_p and return ...
-		if (ClipperBase.near_zero(delta)) {
-			//TODO:m_destPolys.Capacity = m_polyNodes.ChildCount;
-			for (i in 0...m_polyNodes.ChildCount) {
-				var node:PolyNode = m_polyNodes.Childs[i];
-				if (node.m_endtype == EndType.etClosedPolygon) m_destPolys.push(node.m_polygon);
+		//if Zero offset, just copy any CLOSED polygons to mP and return ...
+		if (ClipperBase.nearZero(delta)) {
+			//TODO:mDestPolys.Capacity = mPolyNodes.ChildCount;
+			for (i in 0...mPolyNodes.numChildren) {
+				var node:PolyNode = mPolyNodes.children[i];
+				if (node.mEndtype == EndType.ET_CLOSED_POLYGON) mDestPolys.push(node.mPolygon);
 			}
 			return;
 		}
 
 		//see offset_triginometry3.svg in the documentation folder ...
-		if (MiterLimit > 2) m_miterLim = 2 / (MiterLimit * MiterLimit);
-		else m_miterLim = 0.5;
+		if (miterLimit > 2) mMiterLim = 2 / (miterLimit * miterLimit);
+		else mMiterLim = 0.5;
 
 		var y:Float;
-		if (ArcTolerance <= 0.0) y = def_arc_tolerance;
-		else if (ArcTolerance > Math.abs(delta) * def_arc_tolerance) y = Math.abs(delta) * def_arc_tolerance;
-		else y = ArcTolerance;
+		if (arcTolerance <= 0.0) y = DEFAULT_ARC_TOLERANCE;
+		else if (arcTolerance > Math.abs(delta) * DEFAULT_ARC_TOLERANCE) y = Math.abs(delta) * DEFAULT_ARC_TOLERANCE;
+		else y = arcTolerance;
 		//see offset_triginometry2.svg in the documentation folder ...
 		var steps:Float = Math.PI / Math.acos(1 - y / Math.abs(delta));
-		m_sin = Math.sin(two_pi / steps);
-		m_cos = Math.cos(two_pi / steps);
-		m_StepsPerRad = steps / two_pi;
-		if (delta < 0.0) m_sin = -m_sin;
+		mSin = Math.sin(TWO_PI / steps);
+		mCos = Math.cos(TWO_PI / steps);
+		mStepsPerRad = steps / TWO_PI;
+		if (delta < 0.0) mSin = -mSin;
 
 		// TODO: danger loops
-		//TODO:m_destPolys.Capacity = m_polyNodes.ChildCount * 2;
-		for (i in 0...m_polyNodes.ChildCount) {
-			var node:PolyNode = m_polyNodes.Childs[i];
-			m_srcPoly = node.m_polygon;
+		//TODO:mDestPolys.Capacity = mPolyNodes.ChildCount * 2;
+		for (i in 0...mPolyNodes.numChildren) {
+			var node:PolyNode = mPolyNodes.children[i];
+			mSrcPoly = node.mPolygon;
 
-			var len:Int = m_srcPoly.length;
+			var len:Int = mSrcPoly.length;
 
-			if (len == 0 || (delta <= 0 && (len < 3 || node.m_endtype != EndType.etClosedPolygon))) continue;
+			if (len == 0 || (delta <= 0 && (len < 3 || node.mEndtype != EndType.ET_CLOSED_POLYGON))) continue;
 
-			m_destPoly = new Path();
+			mDestPoly = new Path();
 
 			if (len == 1) {
-				if (node.m_jointype == JoinType.jtRound) {
-					var X:Float = 1.0, Y:Float = 0.0;
+				if (node.mJoinType == JoinType.JT_ROUND) {
+					var x:Float = 1.0, y:Float = 0.0;
 					// TODO: check loop (int vs float)
 					var j:Int = 1;
 					while (j <= steps) {
-						m_destPoly.push(new IntPoint(Round(m_srcPoly[0].X + X * delta), Round(m_srcPoly[0].Y + Y * delta)));
-						var X2:Float = X;
-						X = X * m_cos - m_sin * Y;
-						Y = X2 * m_sin + Y * m_cos;
+						mDestPoly.push(new IntPoint(round(mSrcPoly[0].x + x * delta), round(mSrcPoly[0].y + y * delta)));
+						var x2:Float = x;
+						x = x * mCos - mSin * y;
+						y = x2 * mSin + y * mCos;
 						j++;
 					}
 				} else {
-					var X:Float = -1.0, Y:Float = -1.0;
+					var x:Float = -1.0, y:Float = -1.0;
 					for (j in 0...4) {
-						m_destPoly.push(new IntPoint(Round(m_srcPoly[0].X + X * delta), Round(m_srcPoly[0].Y + Y * delta)));
-						if (X < 0) X = 1;
-						else if (Y < 0) Y = 1;
-						else X = -1;
+						mDestPoly.push(new IntPoint(round(mSrcPoly[0].x + x * delta), round(mSrcPoly[0].y + y * delta)));
+						if (x < 0) x = 1;
+						else if (y < 0) y = 1;
+						else x = -1;
 					}
 				}
-				m_destPolys.push(m_destPoly);
+				mDestPolys.push(mDestPoly);
 				continue;
 			}
 
-			//build m_normals ...
-			m_normals.clear();
-			//TODO:m_normals.Capacity = len;
+			//build mNormals ...
+			mNormals.clear();
+			//TODO:mNormals.Capacity = len;
 			for (j in 0...len - 1) {
-				m_normals.push(GetUnitNormal(m_srcPoly[j], m_srcPoly[j + 1]));
+				mNormals.push(getUnitNormal(mSrcPoly[j], mSrcPoly[j + 1]));
 			}
-			if (node.m_endtype == EndType.etClosedLine || node.m_endtype == EndType.etClosedPolygon) {
-				m_normals.push(GetUnitNormal(m_srcPoly[len - 1], m_srcPoly[0]));
-			} else m_normals.push(m_normals[len - 2].clone());
+			if (node.mEndtype == EndType.ET_CLOSED_LINE || node.mEndtype == EndType.ET_CLOSED_POLYGON) {
+				mNormals.push(getUnitNormal(mSrcPoly[len - 1], mSrcPoly[0]));
+			} else mNormals.push(mNormals[len - 2].clone());
 
-			if (node.m_endtype == EndType.etClosedPolygon) {
+			if (node.mEndtype == EndType.ET_CLOSED_POLYGON) {
 				var k:Int = len - 1;
 				for (j in 0...len) {
 					// TODO: ref
-					k = OffsetPoint(j, /*ref*/ k, node.m_jointype);
+					k = offsetPoint(j, /*ref*/ k, node.mJoinType);
 				}
-				m_destPolys.push(m_destPoly);
-			} else if (node.m_endtype == EndType.etClosedLine) {
+				mDestPolys.push(mDestPoly);
+			} else if (node.mEndtype == EndType.ET_CLOSED_LINE) {
 				var k:Int = len - 1;
 				for (j in 0...len) {
 					// TODO: ref
-					k = OffsetPoint(j, /*ref*/ k, node.m_jointype);
+					k = offsetPoint(j, /*ref*/ k, node.mJoinType);
 				}
-				m_destPolys.push(m_destPoly);
-				m_destPoly = new Path();
-				//re-build m_normals ...
-				var n:DoublePoint = m_normals[len - 1].clone();
+				mDestPolys.push(mDestPoly);
+				mDestPoly = new Path();
+				//re-build mNormals ...
+				var n:DoublePoint = mNormals[len - 1].clone();
 				var nj:Int = len - 1;
 				// TODO: check here
 				while (nj > 0) {
-					m_normals[nj] = new DoublePoint(-m_normals[nj - 1].X, -m_normals[nj - 1].Y);
+					mNormals[nj] = new DoublePoint(-mNormals[nj - 1].x, -mNormals[nj - 1].y);
 					nj--;
 				}
-				m_normals[0] = new DoublePoint(-n.X, -n.Y);
+				mNormals[0] = new DoublePoint(-n.x, -n.y);
 				k = 0;
 				// TODO: and here
 				nj = len - 1;
 				while (nj >= 0) {
 					// TODO: ref
-					k = OffsetPoint(nj, /*ref*/ k, node.m_jointype);
+					k = offsetPoint(nj, /*ref*/ k, node.mJoinType);
 					nj--;
 				}
-				m_destPolys.push(m_destPoly);
+				mDestPolys.push(mDestPoly);
 			} else {
 				var k:Int = 0;
 				for (j in 1...len - 1) {
 					// TODO: ref
-					k = OffsetPoint(j, /*ref*/ k, node.m_jointype);
+					k = offsetPoint(j, /*ref*/ k, node.mJoinType);
 				}
 
 				var pt1:IntPoint;
-				if (node.m_endtype == EndType.etOpenButt) {
+				if (node.mEndtype == EndType.ET_OPEN_BUTT) {
 					// TODO: casts
 					var j:Int = len - 1;
-					pt1 = new IntPoint(/*(cInt)*/ Round(m_srcPoly[j].X + m_normals[j].X * delta), /*(cInt)*/ Round(m_srcPoly[j].Y + m_normals[j].Y * delta));
-					m_destPoly.push(pt1);
-					pt1 = new IntPoint(/*(cInt)*/ Round(m_srcPoly[j].X - m_normals[j].X * delta), /*(cInt)*/ Round(m_srcPoly[j].Y - m_normals[j].Y * delta));
-					m_destPoly.push(pt1);
+					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[j].x + mNormals[j].x * delta), /*(cInt)*/ round(mSrcPoly[j].y + mNormals[j].y * delta));
+					mDestPoly.push(pt1);
+					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[j].x - mNormals[j].x * delta), /*(cInt)*/ round(mSrcPoly[j].y - mNormals[j].y * delta));
+					mDestPoly.push(pt1);
 				} else {
 					var j:Int = len - 1;
 					k = len - 2;
-					m_sinA = 0;
-					m_normals[j] = new DoublePoint(-m_normals[j].X, -m_normals[j].Y);
-					if (node.m_endtype == EndType.etOpenSquare) DoSquare(j, k);
-					else DoRound(j, k);
+					mSinA = 0;
+					mNormals[j] = new DoublePoint(-mNormals[j].x, -mNormals[j].y);
+					if (node.mEndtype == EndType.ET_OPEN_SQUARE) doSquare(j, k);
+					else doRound(j, k);
 				}
 
-				//re-build m_normals ...
+				//re-build mNormals ...
 				// TODO: check whiles
 				var nj:Int = len - 1;
 				while (nj > 0) {
-					m_normals[nj] = new DoublePoint(-m_normals[nj - 1].X, -m_normals[nj - 1].Y);
+					mNormals[nj] = new DoublePoint(-mNormals[nj - 1].x, -mNormals[nj - 1].y);
 					nj--;
 				}
 
-				m_normals[0] = new DoublePoint(-m_normals[1].X, -m_normals[1].Y);
+				mNormals[0] = new DoublePoint(-mNormals[1].x, -mNormals[1].y);
 
 				k = len - 1;
 				nj = k - 1;
 				while (nj > 0) {
 					// TODO: ref
-					k = OffsetPoint(nj, /*ref*/ k, node.m_jointype);
+					k = offsetPoint(nj, /*ref*/ k, node.mJoinType);
 					nj--;
 				}
 
-				if (node.m_endtype == EndType.etOpenButt) {
+				if (node.mEndtype == EndType.ET_OPEN_BUTT) {
 					// TODO: casts
-					pt1 = new IntPoint(/*(cInt)*/ Round(m_srcPoly[0].X - m_normals[0].X * delta), /*(cInt)*/ Round(m_srcPoly[0].Y - m_normals[0].Y * delta));
-					m_destPoly.push(pt1);
-					pt1 = new IntPoint(/*(cInt)*/ Round(m_srcPoly[0].X + m_normals[0].X * delta), /*(cInt)*/ Round(m_srcPoly[0].Y + m_normals[0].Y * delta));
-					m_destPoly.push(pt1);
+					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[0].x - mNormals[0].x * delta), /*(cInt)*/ round(mSrcPoly[0].y - mNormals[0].y * delta));
+					mDestPoly.push(pt1);
+					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[0].x + mNormals[0].x * delta), /*(cInt)*/ round(mSrcPoly[0].y + mNormals[0].y * delta));
+					mDestPoly.push(pt1);
 				} else {
 					k = 1;
-					m_sinA = 0;
-					if (node.m_endtype == EndType.etOpenSquare) DoSquare(0, 1);
-					else DoRound(0, 1);
+					mSinA = 0;
+					if (node.mEndtype == EndType.ET_OPEN_SQUARE) doSquare(0, 1);
+					else doRound(0, 1);
 				}
-				m_destPolys.push(m_destPoly);
+				mDestPolys.push(mDestPoly);
 			}
 		}
 	}
 	//------------------------------------------------------------------------------
 
+	// TODO: added to call proper version of executePaths/PolyTree
+	public function execute(/*ref*/ solution:Dynamic, delta:Float):Void {
+		if (Std.is(solution, Paths)) {
+			return executePaths(solution, delta);
+		} else if (Std.is(solution, PolyTree)) {
+			return executePolyTree(solution, delta);
+		} else {
+			throw new ClipperException("`solution` must be either a Paths or a PolyTree");
+		}
+	}
+	//------------------------------------------------------------------------------
+	
 	// TODO: ref
-	public function ExecutePathsWithDelta(/*ref*/ solution:Paths, delta:Float):Void {
+	public function executePaths(/*ref*/ solution:Paths, delta:Float):Void {
 		solution.clear();
-		FixOrientations();
-		DoOffset(delta);
+		fixOrientations();
+		doOffset(delta);
 		//now clean up 'corners' ...
 		var clpr = new Clipper();
-		clpr.AddPaths(m_destPolys, PolyType.ptSubject, true);
+		clpr.addPaths(mDestPolys, PolyType.PT_SUBJECT, true);
 		if (delta > 0) {
-			clpr.ExecutePaths(ClipType.ctUnion, solution,
-			PolyFillType.pftPositive, PolyFillType.pftPositive);
+			clpr.executePaths(ClipType.CT_UNION, solution,
+			PolyFillType.PFT_POSITIVE, PolyFillType.PFT_POSITIVE);
 		} else {
-			var r:IntRect = ClipperBase.GetBounds(m_destPolys);
+			var r:IntRect = ClipperBase.getBounds(mDestPolys);
 			var outer = new Path(/*TODO:4*/);
 
 			outer.push(new IntPoint(r.left - 10, r.bottom + 10));
@@ -4013,27 +4045,27 @@ class ClipperOffset
 			outer.push(new IntPoint(r.right + 10, r.top - 10));
 			outer.push(new IntPoint(r.left - 10, r.top - 10));
 
-			clpr.AddPath(outer, PolyType.ptSubject, true);
-			clpr.ReverseSolution = true;
-			clpr.ExecutePaths(ClipType.ctUnion, solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
+			clpr.addPath(outer, PolyType.PT_SUBJECT, true);
+			clpr.reverseSolution = true;
+			clpr.executePaths(ClipType.CT_UNION, solution, PolyFillType.PFT_NEGATIVE, PolyFillType.PFT_NEGATIVE);
 			if (solution.length > 0) solution.shift(); //TODO: RemoveAt(0);
 		}
 	}
 	//------------------------------------------------------------------------------
 
 	// TODO: ref
-	public function ExecutePolyTreeWithDelta(/*ref*/ solution:PolyTree, delta:Float):Void {
-		solution.Clear();
-		FixOrientations();
-		DoOffset(delta);
+	public function executePolyTree(/*ref*/ solution:PolyTree, delta:Float):Void {
+		solution.clear();
+		fixOrientations();
+		doOffset(delta);
 
 		//now clean up 'corners' ...
 		var clpr = new Clipper();
-		clpr.AddPaths(m_destPolys, PolyType.ptSubject, true);
+		clpr.addPaths(mDestPolys, PolyType.PT_SUBJECT, true);
 		if (delta > 0) {
-			clpr.ExecutePolyTree(ClipType.ctUnion, solution, PolyFillType.pftPositive, PolyFillType.pftPositive);
+			clpr.executePolyTree(ClipType.CT_UNION, solution, PolyFillType.PFT_POSITIVE, PolyFillType.PFT_POSITIVE);
 		} else {
-			var r:IntRect = ClipperBase.GetBounds(m_destPolys);
+			var r:IntRect = ClipperBase.getBounds(mDestPolys);
 			var outer = new Path(/*TODO:4*/);
 
 			outer.push(new IntPoint(r.left - 10, r.bottom + 10));
@@ -4041,86 +4073,86 @@ class ClipperOffset
 			outer.push(new IntPoint(r.right + 10, r.top - 10));
 			outer.push(new IntPoint(r.left - 10, r.top - 10));
 
-			clpr.AddPath(outer, PolyType.ptSubject, true);
-			clpr.ReverseSolution = true;
-			clpr.ExecutePolyTree(ClipType.ctUnion, solution, PolyFillType.pftNegative, PolyFillType.pftNegative);
+			clpr.addPath(outer, PolyType.PT_SUBJECT, true);
+			clpr.reverseSolution = true;
+			clpr.executePolyTree(ClipType.CT_UNION, solution, PolyFillType.PFT_NEGATIVE, PolyFillType.PFT_NEGATIVE);
 			//remove the outer PolyNode rectangle ...
-			if (solution.ChildCount == 1 && solution.Childs[0].ChildCount > 0) {
-				var outerNode:PolyNode = solution.Childs[0];
+			if (solution.numChildren == 1 && solution.children[0].numChildren > 0) {
+				var outerNode:PolyNode = solution.children[0];
 				//TODO:solution.Childs.Capacity = outerNode.ChildCount;
-				solution.Childs[0] = outerNode.Childs[0];
-				solution.Childs[0].m_Parent = solution;
-				for (i in 1...outerNode.ChildCount)
-					solution.AddChild(outerNode.Childs[i]);
-			} else solution.Clear();
+				solution.children[0] = outerNode.children[0];
+				solution.children[0].mParent = solution;
+				for (i in 1...outerNode.numChildren)
+					solution.addChild(outerNode.children[i]);
+			} else solution.clear();
 		}
 	}
 	//------------------------------------------------------------------------------
 
 	// TODO: ref (updated to return the modified k)
-	function OffsetPoint(j:Int, /*ref*/ k:Int, jointype:JoinType):Int {
+	function offsetPoint(j:Int, /*ref*/ k:Int, joinType:JoinType):Int {
 		//cross product ...
-		m_sinA = (m_normals[k].X * m_normals[j].Y - m_normals[j].X * m_normals[k].Y);
+		mSinA = (mNormals[k].x * mNormals[j].y - mNormals[j].x * mNormals[k].y);
 
-		if (Math.abs(m_sinA * m_delta) < 1.0) {
+		if (Math.abs(mSinA * mDelta) < 1.0) {
 			//dot product ...
-			var cosA:Float = (m_normals[k].X * m_normals[j].X + m_normals[j].Y * m_normals[k].Y);
+			var cosA:Float = (mNormals[k].x * mNormals[j].x + mNormals[j].y * mNormals[k].y);
 			if (cosA > 0) // angle ==> 0 degrees
 			{
-				m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta), Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta)));
+				mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mNormals[k].x * mDelta), round(mSrcPoly[j].y + mNormals[k].y * mDelta)));
 				return k;
 			}
 			//else angle ==> 180 degrees   
-		} else if (m_sinA > 1.0) m_sinA = 1.0;
-		else if (m_sinA < -1.0) m_sinA = -1.0;
+		} else if (mSinA > 1.0) mSinA = 1.0;
+		else if (mSinA < -1.0) mSinA = -1.0;
 
-		if (m_sinA * m_delta < 0) {
-			m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta), Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta)));
-			m_destPoly.push(m_srcPoly[j]);
-			m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_normals[j].X * m_delta), Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta)));
-		} else switch (jointype) {
-			case JoinType.jtMiter:
+		if (mSinA * mDelta < 0) {
+			mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mNormals[k].x * mDelta), round(mSrcPoly[j].y + mNormals[k].y * mDelta)));
+			mDestPoly.push(mSrcPoly[j]);
+			mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mNormals[j].x * mDelta), round(mSrcPoly[j].y + mNormals[j].y * mDelta)));
+		} else switch (joinType) {
+			case JoinType.JT_MITER:
 				{
-					var r:Float = 1 + (m_normals[j].X * m_normals[k].X + m_normals[j].Y * m_normals[k].Y);
-					if (r >= m_miterLim) DoMiter(j, k, r);
-					else DoSquare(j, k);
+					var r:Float = 1 + (mNormals[j].x * mNormals[k].x + mNormals[j].y * mNormals[k].y);
+					if (r >= mMiterLim) doMiter(j, k, r);
+					else doSquare(j, k);
 				}
-			case JoinType.jtSquare:
-				DoSquare(j, k);
-			case JoinType.jtRound:
-				DoRound(j, k);
+			case JoinType.JT_SQUARE:
+				doSquare(j, k);
+			case JoinType.JT_ROUND:
+				doRound(j, k);
 		}
 		k = j;
 		return k;
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function DoSquare(j:Int, k:Int):Void {
-		var dx:Float = Math.tan(Math.atan2(m_sinA, m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y) / 4);
-		m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_delta * (m_normals[k].X - m_normals[k].Y * dx)), Round(m_srcPoly[j].Y + m_delta * (m_normals[k].Y + m_normals[k].X * dx))));
-		m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_delta * (m_normals[j].X + m_normals[j].Y * dx)), Round(m_srcPoly[j].Y + m_delta * (m_normals[j].Y - m_normals[j].X * dx))));
+	/*internal*/ public function doSquare(j:Int, k:Int):Void {
+		var dx:Float = Math.tan(Math.atan2(mSinA, mNormals[k].x * mNormals[j].x + mNormals[k].y * mNormals[j].y) / 4);
+		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mDelta * (mNormals[k].x - mNormals[k].y * dx)), round(mSrcPoly[j].y + mDelta * (mNormals[k].y + mNormals[k].x * dx))));
+		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mDelta * (mNormals[j].x + mNormals[j].y * dx)), round(mSrcPoly[j].y + mDelta * (mNormals[j].y - mNormals[j].x * dx))));
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function DoMiter(j:Int, k:Int, r:Float):Void {
-		var q:Float = m_delta / r;
-		m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + (m_normals[k].X + m_normals[j].X) * q), Round(m_srcPoly[j].Y + (m_normals[k].Y + m_normals[j].Y) * q)));
+	/*internal*/ public function doMiter(j:Int, k:Int, r:Float):Void {
+		var q:Float = mDelta / r;
+		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + (mNormals[k].x + mNormals[j].x) * q), round(mSrcPoly[j].y + (mNormals[k].y + mNormals[j].y) * q)));
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function DoRound(j:Int, k:Int):Void {
-		var a:Float = Math.atan2(m_sinA, m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y);
+	/*internal*/ public function doRound(j:Int, k:Int):Void {
+		var a:Float = Math.atan2(mSinA, mNormals[k].x * mNormals[j].x + mNormals[k].y * mNormals[j].y);
 		// TODO: cast
-		var steps:Int = Std.int(Math.max(Std.int(Round(m_StepsPerRad * Math.abs(a))), 1));
+		var steps:Int = Std.int(Math.max(Std.int(round(mStepsPerRad * Math.abs(a))), 1));
 
-		var X:Float = m_normals[k].X, Y = m_normals[k].Y, X2;
+		var x:Float = mNormals[k].x, Y = mNormals[k].y, X2;
 		for (i in 0...steps) {
-			m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + X * m_delta), Round(m_srcPoly[j].Y + Y * m_delta)));
-			X2 = X;
-			X = X * m_cos - m_sin * Y;
-			Y = X2 * m_sin + Y * m_cos;
+			mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + x * mDelta), round(mSrcPoly[j].y + Y * mDelta)));
+			X2 = x;
+			x = x * mCos - mSin * Y;
+			Y = X2 * mSin + Y * mCos;
 		}
-		m_destPoly.push(new IntPoint(Round(m_srcPoly[j].X + m_normals[j].X * m_delta), Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta)));
+		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mNormals[j].x * mDelta), round(mSrcPoly[j].y + mNormals[j].y * mDelta)));
 	}
 	//------------------------------------------------------------------------------
 }
@@ -4161,7 +4193,7 @@ class InternalTools
 		var max = 15;
 		while (e != null && max > 0) {
 			trace(e);
-			e = e.Next;
+			e = e.next;
 			max--;
 		}
 	}
