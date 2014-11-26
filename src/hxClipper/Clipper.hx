@@ -1001,12 +1001,10 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	// TODO: I've changed the logic here to break and report false whenever an AddPath fails
 	public function AddPaths(ppg:Paths, polyType:PolyType, closed:Bool):Bool {
 		var result = false;
 		for (i in 0...ppg.length) {
-			result = AddPath(ppg[i], polyType, closed);
-			if (!result) break;
+			if (AddPath(ppg[i], polyType, closed)) result = true;
 		}
 		return result;
 	}

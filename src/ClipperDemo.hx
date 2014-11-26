@@ -24,73 +24,10 @@ class ClipperDemo extends Sprite {
 
 	private function init(?e) 
 	{
-		var subjectPolygon: Array<IntPoint> = [new IntPoint(0, 0), new IntPoint(200, 0), new IntPoint(100, 200)];
-		var clipPolygon: Array<IntPoint> = [new IntPoint(0, 100), new IntPoint(200, 100), new IntPoint(300, 200)];
-		var clipper = new Clipper();
-		var resultPolygons: Array<Array<IntPoint>> = [];
-		clipper.AddPath(subjectPolygon, PolyType.ptSubject, true);
-		clipper.AddPath(clipPolygon, PolyType.ptClip, true);
-		
-		clipper.Execute(ClipType.ctDifference, resultPolygons);
-		trace(resultPolygons);
-
-		
-		graphics.lineStyle(2, 0xFF0000, 1.0);
-		drawPolygon(subjectPolygon);
-		
-		graphics.lineStyle(2, 0x0000FF, 1.0);
-		drawPolygon(clipPolygon);
-		
-		graphics.lineStyle(3, 0x00FF00, 1.0);
-		graphics.beginFill(0xFF0000, 0.5);
-		for( polygon in resultPolygons )
-			drawPolygon(polygon);
-		graphics.endFill();
-		
-		testUnion2();
 		//testJoins4();
+		testJoins5();
 	}
 	
-	function testUnion2():Void {
-		var pft = pftEvenOdd;
-		
-		var ints:Array<Array<CInt>> = [[0, 10, 20, 10, 20, 20, 10, 2],
-			[0, 10, 30, 10, 30, 20, 20, 2],
-			[0, 10, 40, 10, 40, 20, 30, 2],
-			[0, 10, 50, 10, 50, 20, 40, 2],
-			[0, 10, 60, 10, 60, 20, 50, 2],
-			[0, 20, 20, 20, 20, 30, 10, 3],
-			[0, 20, 40, 20, 40, 30, 30, 3],
-			[0, 30, 20, 30, 20, 40, 10, 4],
-			[0, 30, 30, 30, 30, 40, 20, 4],
-			[0, 30, 40, 30, 40, 40, 30, 4],
-			[0, 30, 50, 30, 50, 40, 40, 4]];
-
-		var subj:Paths = [];
-		for (i in 0...11)
-			subj.push(Tests.MakePolygonFromInts(ints[i], 12));
-		var c = new Clipper();
-		c.AddPaths(subj, ptSubject, true);
-
-		var solution:Paths = [];
-		var res = c.ExecutePaths(ctUnion, solution, pft, pft);
-		res = res && (solution.length == 2);
-		trace(solution.length);
-		
-		graphics.clear();
-		
-		graphics.lineStyle(1, 0xFF0000, 0.75);
-		for (polygon in subj) {
-			drawPolygon(polygon);
-		}
-		
-		//graphics.lineStyle(1, 0x00FF00, 0.75);
-		graphics.beginFill(0x00FF00, 0.5);
-		for (polygon in solution)
-			drawPolygon(polygon);
-		graphics.endFill();
-		
-    } 
 	
 	function testJoins4():Void {
 		var pft = pftEvenOdd;    
@@ -106,8 +43,10 @@ class ClipperDemo extends Sprite {
 			406, 99, 682, 17, 281, 106, 848];
 			
 		var subj = Tests.MakeDiamondPolygons(20, 600, 400);
+		trace(subj.length);
 		for (i in 0...120) subj[ints[i]].clear();
 		var c = new Clipper();
+		//c.StrictlySimple = true;
 		c.AddPaths(subj, ptSubject, true);
 		var solution = [];
 		var res = c.ExecutePaths(ctUnion, solution, pft, pft);
@@ -116,18 +55,58 @@ class ClipperDemo extends Sprite {
 		
 		graphics.clear();
 		
-		graphics.lineStyle(1, 0xFF0000, 0.75);
 		for (polygon in subj) {
+			var col = 0xFF0000;// Std.int(Math.random() * 0xFFFFFF);
+			graphics.lineStyle(1, col, 1.0);
+			graphics.beginFill(col, 0.25);
 			drawPolygon(polygon);
+			graphics.endFill();
 		}
 		
-		//graphics.lineStyle(1, 0x00FF00, 0.75);
-		graphics.beginFill(0x00FF00, 0.5);
-		for (polygon in solution)
+		for (polygon in solution) {
+			var col = Std.int(Math.random() * 0xFFFFFF);
+			graphics.lineStyle(1, col, 1.0);
+			graphics.beginFill(col, 0.25);
 			drawPolygon(polygon);
-		graphics.endFill();
-		
+			graphics.endFill();
+		}
     }
+
+	function testJoins5():Void {
+		var pft = pftEvenOdd;    
+		var ints:Array<CInt> = [
+			553, 388, 574, 20, 191, 26, 461, 258, 509, 19, 466, 257, 90, 269, 373, 516,
+			350, 333, 288, 141, 47, 217, 247, 519, 535, 336, 504, 497, 344, 341, 293,
+			177, 558, 598, 399, 286, 482, 185, 266, 24, 27, 118, 338, 413, 514, 510,
+			366, 46, 593, 465, 405, 32, 449, 6, 326, 59, 75, 173, 127, 130];
+		var subj = Tests.MakeSquarePolygons(20, 600, 400);
+		for (i in 0...60) subj.splice(ints[i], 1);
+		var c = new Clipper();
+		//c.StrictlySimple = true;
+		c.AddPaths(subj, ptSubject, true);
+		var solution = [];
+		var res = c.ExecutePaths(ctUnion, solution, pft, pft);
+		trace(solution.length);
+		
+		graphics.clear();
+		
+		for (polygon in subj) {
+			var col = 0xFF0000;// Std.int(Math.random() * 0xFFFFFF);
+			graphics.lineStyle(1, col, 1.0);
+			graphics.beginFill(col, 0.25);
+			drawPolygon(polygon);
+			graphics.endFill();
+		}
+		
+		for (polygon in solution) {
+			var col = 0x00FF00;// Std.int(Math.random() * 0xFFFFFF);
+			graphics.lineStyle(1, col, 1.0);
+			graphics.beginFill(col, 0.25);
+			drawPolygon(polygon);
+			graphics.endFill();
+		}
+    }
+
 
 	public function drawPolygon( polygon: Array<IntPoint> )
 	{

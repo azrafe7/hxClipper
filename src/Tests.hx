@@ -116,7 +116,7 @@ class Tests extends TestCase
 	}
 	//------------------------------------------------------------------------------
 
-	public function testDifference1():Void 
+	function testDifference1():Void 
 	{
 		pft = PolyFillType.pftEvenOdd;
 		var ints1:Array<CInt> = [29, 342, 115, 68, 141, 86];
@@ -452,7 +452,7 @@ class Tests extends TestCase
 			}
 		}
 		assertTrue(res);
-		assertEquals(cnt, 4);
+		assertEquals(4, cnt);
 	} 
 	//---------------------------------------------------------------------------
 
@@ -541,7 +541,7 @@ class Tests extends TestCase
 		}
 		
 		assertTrue(res);
-		assertEquals(cnt, 2);
+		assertEquals(2, cnt);
     } 
 	//---------------------------------------------------------------------------
 
@@ -912,16 +912,17 @@ class Tests extends TestCase
 		subj.push(MakePolygonFromInts(ints1));
 		subj.push(MakePolygonFromInts(ints2));
 		clip.clear();
-		subj.push(MakePolygonFromInts(ints3));
-		subj.push(MakePolygonFromInts(ints4));
+		clip.push(MakePolygonFromInts(ints3));
+		clip.push(MakePolygonFromInts(ints4));
 		var c = new Clipper();
 		c.AddPaths(subj, ptSubject, true);
 		c.AddPaths(clip, ptClip, true);
 
 		var res = c.ExecutePaths(ctDifference, solution, pft, pft);
 		
-		res = res && (solution.length == 2) && Clipper.Orientation(solution[0]) && Clipper.Orientation(solution[1]);
+		res = res && Clipper.Orientation(solution[0]) && Clipper.Orientation(solution[1]);
 		assertTrue(res);
+		assertEquals(2, solution.length);
     } 
 	//---------------------------------------------------------------------------
 
@@ -1002,18 +1003,18 @@ class Tests extends TestCase
 	function testUnion2():Void {
 		pft = pftEvenOdd;
 		
-		var ints:Array<Array<CInt>> = [[0, 10, 20, 10, 20, 20, 10, 2],
-			[0, 10, 30, 10, 30, 20, 20, 2],
-			[0, 10, 40, 10, 40, 20, 30, 2],
-			[0, 10, 50, 10, 50, 20, 40, 2],
-			[0, 10, 60, 10, 60, 20, 50, 2],
-			[0, 20, 20, 20, 20, 30, 10, 3],
-			[0, 20, 40, 20, 40, 30, 30, 3],
-			[0, 30, 20, 30, 20, 40, 10, 4],
-			[0, 30, 30, 30, 30, 40, 20, 4],
-			[0, 30, 40, 30, 40, 40, 30, 4],
-			[0, 30, 50, 30, 50, 40, 40, 4]];
-
+		var ints:Array<Array<CInt>> = [[10, 10, 20, 10, 20, 20, 10, 20],
+			[20, 10, 30, 10, 30, 20, 20, 20],
+			[30, 10, 40, 10, 40, 20, 30, 20],
+			[40, 10, 50, 10, 50, 20, 40, 20],
+			[50, 10, 60, 10, 60, 20, 50, 20],
+			[10, 20, 20, 20, 20, 30, 10, 30],
+			[30, 20, 40, 20, 40, 30, 30, 30],
+			[10, 30, 20, 30, 20, 40, 10, 40],
+			[20, 30, 30, 30, 30, 40, 20, 40],
+			[30, 30, 40, 30, 40, 40, 30, 40],
+			[40, 30, 50, 30, 50, 40, 40, 40]];
+		
 		subj.clear();
 		for (i in 0...11)
 			subj.push(MakePolygonFromInts(ints[i]));
@@ -1021,16 +1022,14 @@ class Tests extends TestCase
 		c.AddPaths(subj, ptSubject, true);
 
 		var res = c.ExecutePaths(ctUnion, solution, pft, pft);
-		res = res && (solution.length == 2);
 		assertTrue(res);
+		assertEquals(2, solution.length);
     } 
 	//---------------------------------------------------------------------------
 
 	function testUnion3():Void {
 		pft = pftEvenOdd;     
-		//TODO: check this
-		//var ints:Array<Array<CInt>> = [[, 3, 2, 4, 2, ], [, 3, 3, 3, 2, ]];
-		var ints:Array<Array<CInt>> = [[3, 2, 4, 2], [3, 3, 3, 2]];
+		var ints:Array<Array<CInt>> = [[1,3, 2,4, 2,5], [1,3, 3,3, 2,4]];
 		subj.clear();
 		for (i in 0...2)
 			subj.push(MakePolygonFromInts(ints[i]));
@@ -1045,7 +1044,7 @@ class Tests extends TestCase
 
 	function testAddPath1():Void {
 		
-		var ints:Array<Array<CInt>> = [[80, 20, 480, 110, 320, 30, 480, 30, 250, 250, 480, 3]];
+		var ints:Array<Array<CInt>> = [[480,20, 480,110, 320,30, 480,30, 250,250, 480,30]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1056,8 +1055,8 @@ class Tests extends TestCase
 
 	function testAddPath2():Void {
 		
-		var ints:Array<Array<CInt>> = [[0, 320, 390, 320, 100, 320,
-			220, 120, 120, 10, 20, 380, 120, 20, 280, 20, 480, 2]];
+		var ints:Array<Array<CInt>> = [[60, 320, 390, 320, 100, 320,
+			220, 120, 120, 10, 20, 380, 120, 20, 280, 20, 480, 20]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1067,8 +1066,8 @@ class Tests extends TestCase
 	//---------------------------------------------------------------------------
 
 	function testAddPath3():Void {
-		var ints:Array<Array<CInt>> = [[20, 70, 420, 370, 250, 170, 60, 290,
-			10, 290, 210, 290, 400, 150, 410, 34]];
+		var ints:Array<Array<CInt>> = [[320, 70, 420, 370, 250, 170, 60, 290,
+			10, 290, 210, 290, 400, 150, 410, 340]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1079,8 +1078,8 @@ class Tests extends TestCase
 
 	function testAddPath4():Void {
 		
-		var ints:Array<Array<CInt>> = [[00, 80, 280, 220,
-			180, 220, 170, 220, 290, 220, 40, 18]];
+		var ints:Array<Array<CInt>> = [[300, 80, 280, 220,
+			180, 220, 170, 220, 290, 220, 40, 180]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1091,7 +1090,7 @@ class Tests extends TestCase
 
 	function testAddPath5():Void {
 		
-		var ints:Array<Array<CInt>> = [[70, 340, 280, 230, 160, 50, 430, 370, 280, 23]];
+		var ints:Array<Array<CInt>> = [[170, 340, 280, 230, 160, 50, 430, 370, 280, 230]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1102,7 +1101,7 @@ class Tests extends TestCase
 
 	function testAddPath6():Void {
 		
-		var ints:Array<Array<CInt>> = [[0, 380, 70, 160, 170, 220, 70, 160, 240, 16]];
+		var ints:Array<Array<CInt>> = [[30, 380, 70, 160, 170, 220, 70, 160, 240, 160]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1113,7 +1112,7 @@ class Tests extends TestCase
 
 	function testAddPath7():Void {
 		
-		var ints:Array<Array<CInt>> = [[40, 300, 40, 40, 440, 300, 80, 36]];
+		var ints:Array<Array<CInt>> = [[440, 300, 40, 40, 440, 300, 80, 360]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1124,7 +1123,7 @@ class Tests extends TestCase
 
 	function testAddPath8():Void {
 		
-		var ints:Array<Array<CInt>> = [[60, 10, 260, 240, 190, 100, 260, 10, 420, 12]];
+		var ints:Array<Array<CInt>> = [[260, 10, 260, 240, 190, 100, 260, 10, 420, 120]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1135,7 +1134,7 @@ class Tests extends TestCase
 
 	function testAddPath9():Void {
 		
-		var ints:Array<Array<CInt>> = [[0, 240, 30, 10, 460, 170, 110, 280, 30, 1]];
+		var ints:Array<Array<CInt>> = [[60, 240, 30, 10, 460, 170, 110, 280, 30, 10]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1146,7 +1145,7 @@ class Tests extends TestCase
 
 	function testAddPath10():Void {
 		
-		var ints:Array<Array<CInt>> = [[30, 270, 440, 260, 470, 30, 280, 30, 430, 270, 450, 4]];
+		var ints:Array<Array<CInt>> = [[430, 270, 440, 260, 470, 30, 280, 30, 430, 270, 450, 40]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1157,7 +1156,7 @@ class Tests extends TestCase
 
 	function testAddPath11():Void {
 		
-		var ints:Array<Array<CInt>> = [[20, 10, 240, 300, 260, 140, 320, 10, 240, 30]];
+		var ints:Array<Array<CInt>> = [[320, 10, 240, 300, 260, 140, 320, 10, 240, 300]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1168,7 +1167,7 @@ class Tests extends TestCase
 
 	function testAddPath12():Void {
 		
-		var ints:Array<Array<CInt>> = [[70, 340, 130, 50, 50, 350, 270, 340, 290, 4]];
+		var ints:Array<Array<CInt>> = [[270, 340, 130, 50, 50, 350, 270, 340, 290, 40]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1179,7 +1178,7 @@ class Tests extends TestCase
 
 	function testAddPath13():Void {
 		
-		var ints:Array<Array<CInt>> = [[30, 330, 280, 10, 210, 280, 430, 330, 280, 1]];
+		var ints:Array<Array<CInt>> = [[430, 330, 280, 10, 210, 280, 430, 330, 280, 10]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1190,7 +1189,7 @@ class Tests extends TestCase
 
 	function testAddPath14():Void {
 		
-		var ints:Array<Array<CInt>> = [[0, 30, 410, 330, 50, 30, 310, 5]];
+		var ints:Array<Array<CInt>> = [[50, 30, 410, 330, 50, 30, 310, 50]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1201,7 +1200,7 @@ class Tests extends TestCase
 
 	function testAddPath15():Void {
 		
-		var ints:Array<Array<CInt>> = [[30, 50, 10, 50, 110, 5]];
+		var ints:Array<Array<CInt>> = [[230, 50, 10, 50, 110, 50]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1212,7 +1211,7 @@ class Tests extends TestCase
 
 	function testAddPath16():Void {
 		
-		var ints:Array<Array<CInt>> = [[60, 320, 40, 130, 100, 30, 80, 360, 260, 320, 40, 5]];
+		var ints:Array<Array<CInt>> = [[260, 320, 40, 130, 100, 30, 80, 360, 260, 320, 40, 50]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1223,7 +1222,7 @@ class Tests extends TestCase
 
 	function testAddPath17():Void {
 		
-		var ints:Array<Array<CInt>> = [[90, 170, 350, 290, 110, 290, 250, 290, 430, 9]];
+		var ints:Array<Array<CInt>> = [[190, 170, 350, 290, 110, 290, 250, 290, 430, 90]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1234,7 +1233,7 @@ class Tests extends TestCase
 
 	function testAddPath18():Void {
 		
-		var ints:Array<Array<CInt>> = [[50, 330, 210, 70, 90, 70, 210, 70, 150, 33]];
+		var ints:Array<Array<CInt>> = [[150, 330, 210, 70, 90, 70, 210, 70, 150, 330]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1245,7 +1244,7 @@ class Tests extends TestCase
 
 	function testAddPath19():Void {
 		
-		var ints:Array<Array<CInt>> = [[70, 290, 50, 290, 170, 290, 410, 310, 170, 29]];
+		var ints:Array<Array<CInt>> = [[170, 290, 50, 290, 170, 290, 410, 310, 170, 290]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1256,7 +1255,7 @@ class Tests extends TestCase
 
 	function testAddPath20():Void {
 		
-		var ints:Array<Array<CInt>> = [[30, 10, 150, 110, 430, 10, 230, 5]];
+		var ints:Array<Array<CInt>> = [[430, 10, 150, 110, 430, 10, 230, 50]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
 		var c = new Clipper();
@@ -1268,10 +1267,10 @@ class Tests extends TestCase
 	function testOpenPath1():Void {
 		pft = pftEvenOdd;
 		
-		var ints:Array<Array<CInt>> = [[90, 370, 160, 150, 230, 150, 160, 150, 250, 28]];
+		var ints:Array<Array<CInt>> = [[290, 370, 160, 150, 230, 150, 160, 150, 250, 280]];
 		subj.clear();
 		subj.push(MakePolygonFromInts(ints[0]));
-		var ints2:Array<Array<CInt>> = [[50, 10, 160, 290, 200, 80, 50, 34]];
+		var ints2:Array<Array<CInt>> = [[150, 10, 160, 290, 200, 80, 50, 340]];
 		clip.clear();
 		clip.push(MakePolygonFromInts(ints2[0]));
 		var c = new Clipper();
@@ -1342,8 +1341,9 @@ class Tests extends TestCase
 		var c = new Clipper();
 		c.StrictlySimple = true; 
 		c.AddPaths(subj, ptSubject, true);
-		var res = c.ExecutePaths(ctUnion, solution, pft, pft) && (solution.length == 2);
+		var res = c.ExecutePaths(ctUnion, solution, pft, pft);
 		assertTrue(res);
+		assertEquals(2, solution.length);
     }
 	//---------------------------------------------------------------------------
 
@@ -1357,57 +1357,61 @@ class Tests extends TestCase
 		subj.push(MakePolygonFromInts(ints2));
 		var c = new Clipper();
 		c.AddPaths(subj, ptSubject, true);
-		var res =  c.ExecutePaths(ctUnion, solution, pft, pft) && (solution.length == 3);
+		var res =  c.ExecutePaths(ctUnion, solution, pft, pft);
 		assertTrue(res);
+		assertEquals(3, solution.length);
     }
 	//---------------------------------------------------------------------------
 
 	function testJoins1():Void {
 		pft = pftEvenOdd;    
 		var ints:Array<Array<CInt>> = [
-			[0, 0, 32, 32, 32, 32],
-			[2, 0, 32, 32, 64, 32, 64],
-			[4, 0, 64, 32, 96, 32, 96],
-			[6, 0, 96, 32, 128, 32, 128],
-			[32, 0, 64, 32, 64, 32, 3],
-			[4, 32, 64, 64, 96, 64, 96, 3],
-			[64, 0, 96, 32, 96, 32, 6],
-			[2, 64, 32, 96, 64, 96, 64, 6]];
+			[0, 0, 0, 32, 32, 32, 32, 0],
+			[32, 0, 32, 32, 64, 32, 64, 0],
+			[64, 0, 64, 32, 96, 32, 96, 0],
+			[96, 0, 96, 32, 128, 32, 128, 0],
+			[0, 32, 0, 64, 32, 64, 32, 32],
+			[64, 32, 64, 64, 96, 64, 96, 32],
+			[0, 64, 0, 96, 32, 96, 32, 64],
+			[32, 64, 32, 96, 64, 96, 64, 64]
+		];
 		
 		subj.clear();
 		for (i in 0...8)
 			subj.push(MakePolygonFromInts(ints[i]));
 		var c = new Clipper();
 		c.AddPaths(subj, ptSubject, true);
-		var res = c.ExecutePaths(ctUnion, solution, pft, pft) && (solution.length == 1);
+		var res = c.ExecutePaths(ctUnion, solution, pft, pft);
 		assertTrue(res);
+		assertEquals(1, solution.length);
     }
 	//---------------------------------------------------------------------------
 
 	function testJoins2():Void {
 		pft = pftNonZero;    
 		var ints:Array<Array<CInt>> = [
-			[00, 100, 100, 91, 200, 91, 200, 10],
-			[00, 91, 209, 91, 209, 250, 200, 25],
-			[09, 250, 209, 259, 100, 259, 100, 25],
-			[00, 250, 109, 250, 109, 300, 100, 30],
-			[09, 300, 109, 309, 50, 309, 50, 30],
-			[0, 309, 41, 309, 41, 250, 50, 25],
-			[0, 250, 50, 259, 0, 259, 0, 25],
-			[259, -9, 259, -9, 100, 0, 10],
-			[-9, 100, -9, 91, 50, 91, 50, 10],
-			[0, 100, 41, 100, 41, 50, 50, 5],
-			[1, 50, 41, 41, 100, 41, 100, 5],
-			[00, 41, 109, 41, 109, 100, 100, 10]];
+			[100, 100, 100, 91, 200, 91, 200, 100],
+			[200, 91, 209, 91, 209, 250, 200, 250],
+			[209, 250, 209, 259, 100, 259, 100, 250],
+			[100, 250, 109, 250, 109, 300, 100, 300],
+			[109, 300, 109, 309, 50, 309, 50, 300],
+			[50, 309, 41, 309, 41, 250, 50, 250],
+			[50, 250, 50, 259, 0, 259, 0, 250],
+			[0, 259, -9, 259, -9, 100, 0, 100],
+			[-9, 100, -9, 91, 50, 91, 50, 100],
+			[50, 100, 41, 100, 41, 50, 50, 50],
+			[41, 50, 41, 41, 100, 41, 100, 50],
+			[100, 41, 109, 41, 109, 100, 100, 100]];
 			
 		subj.clear();
 		for (i in 0...12)
 			subj.push(MakePolygonFromInts(ints[i]));
 		var c = new Clipper();
 		c.AddPaths(subj, ptSubject, true);
-		var res = c.ExecutePaths(ctUnion, solution, pft, pft) && (solution.length == 2) 
+		var res = c.ExecutePaths(ctUnion, solution, pft, pft)
 				  && (Clipper.Orientation(solution[0]) != Clipper.Orientation(solution[1]));
 		assertTrue(res);
+		assertEquals(2, solution.length);
     }
 	//---------------------------------------------------------------------------
 
@@ -1423,9 +1427,10 @@ class Tests extends TestCase
 		var c = new Clipper();
 		c.AddPaths(subj, ptSubject, true);
 		c.AddPaths(clip, ptClip, true);
-		var res = c.ExecutePaths(ctUnion, solution, pft, pft) && (solution.length == 2) 
+		var res = c.ExecutePaths(ctUnion, solution, pft, pft)
 				  && (Clipper.Orientation(solution[0]) != Clipper.Orientation(solution[1]));
 		assertTrue(res);
+		assertEquals(2, solution.length);
     }
 	//---------------------------------------------------------------------------
 
@@ -1478,8 +1483,7 @@ class Tests extends TestCase
 		co.AddPaths(subj, jtRound, etClosedPolygon);
 		solution.clear();
 		co.ExecutePathsWithDelta(solution, -7.0 * scale);
-		var res = solution.length == 2;
-		assertTrue(res);
+		assertEquals(2, solution.length);
     }
 	//---------------------------------------------------------------------------
 	
