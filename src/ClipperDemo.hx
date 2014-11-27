@@ -30,7 +30,7 @@ class ClipperDemo extends Sprite {
 	
 	
 	function testJoins4():Void {
-		var pft = pftEvenOdd;    
+		var pft = PFT_EVEN_ODD;    
 		var ints:Array<CInt> = [
 			1172, 318, 337, 1066, 154, 639, 479, 448, 1197, 545, 1041, 773, 30, 888,
 			444, 308, 1051, 552, 1109, 102, 658, 683, 394, 596, 972, 1145, 442, 179,
@@ -47,9 +47,9 @@ class ClipperDemo extends Sprite {
 		for (i in 0...120) subj[ints[i]].clear();
 		var c = new Clipper();
 		//c.StrictlySimple = true;
-		c.AddPaths(subj, ptSubject, true);
+		c.addPaths(subj, PT_SUBJECT, true);
 		var solution = [];
-		var res = c.ExecutePaths(ctUnion, solution, pft, pft);
+		var res = c.executePaths(CT_UNION, solution, pft, pft);
 
 		trace(solution.length);
 		
@@ -73,7 +73,7 @@ class ClipperDemo extends Sprite {
     }
 
 	function testJoins5():Void {
-		var pft = pftEvenOdd;    
+		var pft = PFT_EVEN_ODD;    
 		var ints:Array<CInt> = [
 			553, 388, 574, 20, 191, 26, 461, 258, 509, 19, 466, 257, 90, 269, 373, 516,
 			350, 333, 288, 141, 47, 217, 247, 519, 535, 336, 504, 497, 344, 341, 293,
@@ -83,9 +83,9 @@ class ClipperDemo extends Sprite {
 		for (i in 0...60) subj.splice(ints[i], 1);
 		var c = new Clipper();
 		//c.StrictlySimple = true;
-		c.AddPaths(subj, ptSubject, true);
+		c.addPaths(subj, PT_SUBJECT, true);
 		var solution = [];
-		var res = c.ExecutePaths(ctUnion, solution, pft, pft);
+		var res = c.executePaths(CT_UNION, solution, pft, pft);
 		trace(solution.length);
 		
 		graphics.clear();
@@ -113,11 +113,11 @@ class ClipperDemo extends Sprite {
 		var n: Int = polygon.length;
 		if ( n < 3 ) return;
 		var p: IntPoint = polygon[0];
-		graphics.moveTo(p.X, p.Y);
+		graphics.moveTo(p.x, p.y);
 		for ( i in 1...(n+1) )
 		{
 			p = polygon[i % n];
-			graphics.lineTo(p.X, p.Y);
+			graphics.lineTo(p.x, p.y);
 		}
 	}
 	
