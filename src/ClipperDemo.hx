@@ -19,7 +19,6 @@ class ClipperDemo extends Sprite {
 
 	public static function main(): Void {
 		Lib.current.addChild(new ClipperDemo());
-		
 	}
 
 	private function init(?e) 

@@ -119,9 +119,10 @@ class DoublePoint
 // PolyTree & PolyNode classes
 //------------------------------------------------------------------------------
 
+@:allow(hxClipper.ClipperBase)
 class PolyTree extends PolyNode 
 {
-	/*internal*/ public var mAllPolys:Array<PolyNode> = new Array<PolyNode>();
+	/*internal*/ var mAllPolys:Array<PolyNode> = new Array<PolyNode>();
 
 	//The GC probably handles this cleanup more efficiently ...
 	//~PolyTree(){Clear();}
@@ -149,14 +150,16 @@ class PolyTree extends PolyNode
 
 }
 
+@:allow(hxClipper.ClipperBase)
+@:allow(hxClipper.ClipperOffset)
 class PolyNode 
 {
-	/*internal*/ public var mParent:PolyNode;
-	/*internal*/ public var mPolygon:Path = new Path();
-	/*internal*/ public var mIndex:Int;
-	/*internal*/ public var mJoinType:JoinType;
-	/*internal*/ public var mEndtype:EndType;
-	/*internal*/ public var mChildren:Array<PolyNode> = new Array<PolyNode>();
+	/*internal*/ var mParent:PolyNode;
+	/*internal*/ var mPolygon:Path = new Path();
+	/*internal*/ var mIndex:Int;
+	/*internal*/ var mJoinType:JoinType;
+	/*internal*/ var mEndtype:EndType;
+	/*internal*/ var mChildren:Array<PolyNode> = new Array<PolyNode>();
 
 	function isHoleNode():Bool {
 		var result = true;
@@ -178,7 +181,7 @@ class PolyNode
 		return mPolygon;
 	}
 
-	/*internal*/ public function addChild(child:PolyNode):Void {
+	/*internal*/ function addChild(child:PolyNode):Void {
 		var cnt = mChildren.length;
 		mChildren.push(child);
 		child.mParent = this;
@@ -190,7 +193,7 @@ class PolyNode
 		else return getNextSiblingUp();
 	}
 
-	/*internal*/ public function getNextSiblingUp():PolyNode {
+	/*internal*/ function getNextSiblingUp():PolyNode {
 		if (mParent == null) return null;
 		else if (mIndex == mParent.mChildren.length - 1) return mParent.getNextSiblingUp();
 		else return mParent.mChildren[mIndex + 1];
@@ -458,56 +461,58 @@ enum EndType {
 	ET_OPEN_ROUND;
 }
 
-/*internal*/ enum EdgeSide {
+/*internal*/ private enum EdgeSide {
 	ES_LEFT; 
 	ES_RIGHT;
 }
-/*internal*/ enum Direction {
+/*internal*/ private enum Direction {
 	D_RIGHT_TO_LEFT; 
 	D_LEFT_TO_RIGHT;
 }
 
-/*internal*/ enum NodeType {
+/*internal*/ private enum NodeType {
 	NT_ANY; 
 	NT_OPEN; 
 	NT_CLOSED;
 }
 
-/*internal*/ class TEdge 
+@:allow(hxClipper.ClipperBase)
+/*internal*/ private class TEdge 
 {
-	/*internal*/ public var bot:IntPoint = new IntPoint();
-	/*internal*/ public var curr:IntPoint = new IntPoint();
-	/*internal*/ public var top:IntPoint = new IntPoint();
-	/*internal*/ public var delta:IntPoint = new IntPoint();
-	/*internal*/ public var dx:Float;
-	/*internal*/ public var polyType:PolyType;
-	/*internal*/ public var edgeSide:EdgeSide;
-	/*internal*/ public var windDelta:Int; //1 or -1 depending on winding direction
-	/*internal*/ public var windCnt:Int;
-	/*internal*/ public var windCnt2:Int; //winding count of the opposite polytype
-	/*internal*/ public var outIdx:Int;
-	/*internal*/ public var next:TEdge;
-	/*internal*/ public var prev:TEdge;
-	/*internal*/ public var nextInLML:TEdge;
-	/*internal*/ public var nextInAEL:TEdge;
-	/*internal*/ public var prevInAEL:TEdge;
-	/*internal*/ public var nextInSEL:TEdge;
-	/*internal*/ public var prevInSEL:TEdge;
+	/*internal*/ var bot:IntPoint = new IntPoint();
+	/*internal*/ var curr:IntPoint = new IntPoint();
+	/*internal*/ var top:IntPoint = new IntPoint();
+	/*internal*/ var delta:IntPoint = new IntPoint();
+	/*internal*/ var dx:Float;
+	/*internal*/ var polyType:PolyType;
+	/*internal*/ var edgeSide:EdgeSide;
+	/*internal*/ var windDelta:Int; //1 or -1 depending on winding direction
+	/*internal*/ var windCnt:Int;
+	/*internal*/ var windCnt2:Int; //winding count of the opposite polytype
+	/*internal*/ var outIdx:Int;
+	/*internal*/ var next:TEdge;
+	/*internal*/ var prev:TEdge;
+	/*internal*/ var nextInLML:TEdge;
+	/*internal*/ var nextInAEL:TEdge;
+	/*internal*/ var prevInAEL:TEdge;
+	/*internal*/ var nextInSEL:TEdge;
+	/*internal*/ var prevInSEL:TEdge;
 	
-	/*internal*/ public function new() { }
+	/*internal*/ function new() { }
 	
-	public function toString():String {
+	function toString():String {
 		return 'TE(curr:${curr.toString()}, bot:${bot.toString()}, top:${top.toString()}, dx:$dx)';
 	}
 }
 
+@:allow(hxClipper.ClipperBase)
 class IntersectNode 
 {
-	/*internal*/ public var edge1:TEdge;
-	/*internal*/ public var edge2:TEdge;
-	/*internal*/ public var pt:IntPoint = new IntPoint();
+	/*internal*/ var edge1:TEdge;
+	/*internal*/ var edge2:TEdge;
+	/*internal*/ var pt:IntPoint = new IntPoint();
 	
-	/*internal*/ public function new() { }
+	/*internal*/ function new() { }
 }
 
 /* TODO: fix the comparer (look into ListSort, or change List with Array
@@ -520,82 +525,89 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	}
 }*/
 
-/*internal*/ class LocalMinima 
+@:allow(hxClipper.ClipperBase)
+/*internal*/ private class LocalMinima 
 {
-	/*internal*/ public var y:CInt;
-	/*internal*/ public var leftBound:TEdge;
-	/*internal*/ public var rightBound:TEdge;
-	/*internal*/ public var next:LocalMinima;
+	/*internal*/ var y:CInt;
+	/*internal*/ var leftBound:TEdge;
+	/*internal*/ var rightBound:TEdge;
+	/*internal*/ var next:LocalMinima;
 	
-	/*internal*/ public function new() { }
+	/*internal*/ function new() { }
 }
 
-/*internal*/ class Scanbeam 
+@:allow(hxClipper.ClipperBase)
+/*internal*/ private class Scanbeam 
 {
-	/*internal*/ public var y:CInt;
-	/*internal*/ public var next:Scanbeam;
+	/*internal*/ var y:CInt;
+	/*internal*/ var next:Scanbeam;
 	
-	/*internal*/ public function new() { }
+	/*internal*/ function new() { }
 }
 
-/*internal*/ class OutRec 
+@:allow(hxClipper.ClipperBase)
+/*internal*/ private class OutRec 
 {
-	/*internal*/ public var idx:Int;
-	/*internal*/ public var isHole:Bool;
-	/*internal*/ public var isOpen:Bool;
-	/*internal*/ public var firstLeft:OutRec; //see comments in clipper.pas
-	/*internal*/ public var pts:OutPt;
-	/*internal*/ public var bottomPt:OutPt;
-	/*internal*/ public var polyNode:PolyNode; //TODO: check name here
+	/*internal*/ var idx:Int;
+	/*internal*/ var isHole:Bool;
+	/*internal*/ var isOpen:Bool;
+	/*internal*/ var firstLeft:OutRec; //see comments in clipper.pas
+	/*internal*/ var pts:OutPt;
+	/*internal*/ var bottomPt:OutPt;
+	/*internal*/ var polyNode:PolyNode; //TODO: check name here
 	
-	/*internal*/ public function new() { }
+	/*internal*/ function new() { }
 }
 
-/*internal*/ class OutPt 
+@:allow(hxClipper.ClipperBase)
+/*internal*/ private class OutPt 
 {
-	/*internal*/ public var idx:Int;
-	/*internal*/ public var pt:IntPoint = new IntPoint();
-	/*internal*/ public var next:OutPt;
-	/*internal*/ public var prev:OutPt;
+	/*internal*/ var idx:Int;
+	/*internal*/ var pt:IntPoint = new IntPoint();
+	/*internal*/ var next:OutPt;
+	/*internal*/ var prev:OutPt;
 	
-	/*internal*/ public function new() { }
+	/*internal*/ function new() { }
 }
 
-/*internal*/ class Join 
+@:allow(hxClipper.ClipperBase)
+/*internal*/ private class Join 
 {
-	/*internal*/ public var outPt1:OutPt;
-	/*internal*/ public var outPt2:OutPt;
-	/*internal*/ public var offPt:IntPoint = new IntPoint();
+	/*internal*/ var outPt1:OutPt;
+	/*internal*/ var outPt2:OutPt;
+	/*internal*/ var offPt:IntPoint = new IntPoint();
 	
-	/*internal*/ public function new() { }
+	/*internal*/ function new() { }
 }
 
+@:allow(hxClipper.Clipper)
+@:allow(hxClipper.ClipperOffset)
 class ClipperBase 
 {
 	// TODO: refactor to uppercase
-	inline static public var HORIZONTAL:Float = -3.4E+38;
-	inline static public var SKIP:Int = -2;
-	inline static public var UNASSIGNED:Int = -1;
-	inline static public var TOLERANCE:Float = 1.0E-20;
+	inline static var HORIZONTAL:Float = -3.4E+38;
+	inline static var SKIP:Int = -2;
+	inline static var UNASSIGNED:Int = -1;
+	inline static var TOLERANCE:Float = 1.0E-20;
 	
 	// TODO: camelcase
-	/*internal*/ public static function nearZero(val:Float):Bool {
+	/*internal*/ static function nearZero(val:Float):Bool {
 		return (val > -TOLERANCE) && (val < TOLERANCE);
 	}
 
 #if USE_INT32 
-	inline static public var LO_RANGE:CInt = 0x7FFF;
-	inline static public var HI_RANGE:CInt = 0x7FFF;
+	inline static var LO_RANGE:CInt = 0x7FFF;
+	inline static var HI_RANGE:CInt = 0x7FFF;
 #else 
-	inline static public var LO_RANGE:CInt = 0x3FFFFFFF;
-	inline static public var HI_RANGE:CInt = 0x3FFFFFFFFFFFFFFFL;
+	inline static var LO_RANGE:CInt = 0x3FFFFFFF;
+	inline static var HI_RANGE:CInt = 0x3FFFFFFFFFFFFFFFL;
 #end
 
-	/*internal*/ public var mMinimaList:LocalMinima;
-	/*internal*/ public var mCurrentLM:LocalMinima;
-	/*internal*/ public var mEdges:Array<Array<TEdge>> = new Array<Array<TEdge>>();
-	/*internal*/ public var mUseFullRange:Bool;
-	/*internal*/ public var mHasOpenPaths:Bool;
+	/*internal*/ var mMinimaList:LocalMinima;
+	/*internal*/ var mCurrentLM:LocalMinima;
+	/*internal*/ var mEdges:Array<Array<TEdge>> = new Array<Array<TEdge>>();
+	/*internal*/ var mUseFullRange:Bool;
+	/*internal*/ var mHasOpenPaths:Bool;
 
 	//------------------------------------------------------------------------------
 
@@ -611,12 +623,12 @@ class ClipperBase
 	}*/
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function isHorizontal(e:TEdge):Bool {
+	/*internal*/ static function isHorizontal(e:TEdge):Bool {
 		return e.delta.y == 0;
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function pointIsVertex(pt:IntPoint, pp:OutPt):Bool {
+	/*internal*/ function pointIsVertex(pt:IntPoint, pp:OutPt):Bool {
 		var pp2:OutPt = pp;
 		do {
 			if (pp2.pt.equals(pt)) return true;
@@ -627,7 +639,7 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function pointOnLineSegment(pt:IntPoint, linePt1:IntPoint, linePt2:IntPoint, useFullRange:Bool):Bool {
+	/*internal*/ function pointOnLineSegment(pt:IntPoint, linePt1:IntPoint, linePt2:IntPoint, useFullRange:Bool):Bool {
 	#if !USE_INT32
 		if (useFullRange) return ((pt.x == linePt1.x) && (pt.y == linePt1.y)) || ((pt.x == linePt2.x) && (pt.y == linePt2.y)) 
 								 || (((pt.x > linePt1.x) == (pt.x < linePt2.x)) && ((pt.y > linePt1.y) == (pt.y < linePt2.y)) 
@@ -641,7 +653,7 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function pointOnPolygon(pt:IntPoint, pp:OutPt, useFullRange:Bool):Bool {
+	/*internal*/ function pointOnPolygon(pt:IntPoint, pp:OutPt, useFullRange:Bool):Bool {
 		var pp2:OutPt = pp;
 		while (true) {
 			if (pointOnLineSegment(pt, pp2.pt, pp2.next.pt, useFullRange)) return true;
@@ -653,7 +665,7 @@ class ClipperBase
 	//------------------------------------------------------------------------------
 
 	/* TODO: fix these Int128*/
-	/*internal*/ static public function slopesEqual(e1:TEdge, e2:TEdge, useFullRange:Bool):Bool {
+	/*internal*/ static function slopesEqual(e1:TEdge, e2:TEdge, useFullRange:Bool):Bool {
 	#if !USE_INT32	
 		if (useFullRange) return Int128.mul(e1.delta.y, e2.delta.x) == Int128.mul(e1.delta.x, e2.delta.y);
 		else
@@ -683,7 +695,7 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function new() //constructor (nb: no external instantiation)
+	/*internal*/ function new() //constructor (nb: no external instantiation)
 	{
 		mMinimaList = null;
 		mCurrentLM = null;
@@ -1148,6 +1160,7 @@ abstract ClipOptions(Int) from Int to Int
 	var CO_PRESERVE_COLLINEAR = 4;
 }
 
+@:allow(hxClipper.ClipperOffset)
 class Clipper extends ClipperBase 
 {
 	//InitOptions that can be passed to the constructor ...
@@ -1321,7 +1334,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function fixHoleLinkage(outRec:OutRec):Void {
+	/*internal*/ function fixHoleLinkage(outRec:OutRec):Void {
 		//skip if an outermost polygon or
 		//already already points to the correct FirstLeft ...
 		if (outRec.firstLeft == null || (outRec.isHole != outRec.firstLeft.isHole && outRec.firstLeft.pts != null)) return;
@@ -1370,7 +1383,7 @@ class Clipper extends ClipperBase
 			return true;
 		}
 		//catch { return false; }
-		// TODO: finally? moved into caller
+		// TODO: finally? moved into callers
 		/*finally {
 			mJoins.clear();
 			mGhostJoins.clear();
@@ -1418,7 +1431,7 @@ class Clipper extends ClipperBase
 
 #if USE_XYZ 
 	// TODO: ref?
-	/*internal*/ public function setZ(/*ref*/ pt:IntPoint, e1:TEdge, e2:TEdge):Void {
+	/*internal*/ function setZ(/*ref*/ pt:IntPoint, e1:TEdge, e2:TEdge):Void {
 		if (pt.z != 0 || ZFillFunction == null) return;
 		else if (pt.equals(e1.bot)) pt.z = e1.bot.z;
 		else if (pt.equals(e1.top)) pt.z = e1.top.z;
@@ -2605,7 +2618,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function round(value:Float):CInt {
+	/*internal*/ static function round(value:Float):CInt {
 		// TODO: check how to cast
 		return value < 0 ? /*(cInt)*/Std.int(value - 0.5) : /*(cInt)*/Std.int(value + 0.5);
 	}
@@ -3595,7 +3608,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function minkowski(pattern:Path, path:Path, isSum:Bool, isClosed:Bool):Paths {
+	/*internal*/ static function minkowski(pattern:Path, path:Path, isSum:Bool, isClosed:Bool):Paths {
 		var delta:Int = (isClosed ? 1 : 0);
 		var polyCnt:Int = pattern.length;
 		var pathCnt:Int = path.length;
@@ -3679,7 +3692,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function addPolyNodeToPaths(polynode:PolyNode, nt:NodeType, paths:Paths):Void {
+	/*internal*/ static function addPolyNodeToPaths(polynode:PolyNode, nt:NodeType, paths:Paths):Void {
 		var match = true;
 		switch (nt) {
 			case NodeType.NT_OPEN:
@@ -3753,7 +3766,7 @@ class ClipperOffset
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function round(value:Float):CInt {
+	/*internal*/ static function round(value:Float):CInt {
 		// TODO: check how to cast (this is already defined in Clipper)
 		//return value < 0 ? /*(cInt)*/Std.int(value - 0.5) : /*(cInt)*/Std.int(value + 0.5);
 		return Clipper.round(value);
@@ -3831,7 +3844,7 @@ class ClipperOffset
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ static public function getUnitNormal(pt1:IntPoint, pt2:IntPoint):DoublePoint {
+	/*internal*/ static function getUnitNormal(pt1:IntPoint, pt2:IntPoint):DoublePoint {
 		var dx:Float = (pt2.x - pt1.x);
 		var dy:Float = (pt2.y - pt1.y);
 		if ((dx == 0) && (dy == 0)) return new DoublePoint();
@@ -4127,20 +4140,20 @@ class ClipperOffset
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function doSquare(j:Int, k:Int):Void {
+	/*internal*/ function doSquare(j:Int, k:Int):Void {
 		var dx:Float = Math.tan(Math.atan2(mSinA, mNormals[k].x * mNormals[j].x + mNormals[k].y * mNormals[j].y) / 4);
 		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mDelta * (mNormals[k].x - mNormals[k].y * dx)), round(mSrcPoly[j].y + mDelta * (mNormals[k].y + mNormals[k].x * dx))));
 		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mDelta * (mNormals[j].x + mNormals[j].y * dx)), round(mSrcPoly[j].y + mDelta * (mNormals[j].y - mNormals[j].x * dx))));
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function doMiter(j:Int, k:Int, r:Float):Void {
+	/*internal*/ function doMiter(j:Int, k:Int, r:Float):Void {
 		var q:Float = mDelta / r;
 		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + (mNormals[k].x + mNormals[j].x) * q), round(mSrcPoly[j].y + (mNormals[k].y + mNormals[j].y) * q)));
 	}
 	//------------------------------------------------------------------------------
 
-	/*internal*/ public function doRound(j:Int, k:Int):Void {
+	/*internal*/ function doRound(j:Int, k:Int):Void {
 		var a:Float = Math.atan2(mSinA, mNormals[k].x * mNormals[j].x + mNormals[k].y * mNormals[j].y);
 		// TODO: cast
 		var steps:Int = Std.int(Math.max(Std.int(round(mStepsPerRad * Math.abs(a))), 1));
@@ -4186,16 +4199,6 @@ class InternalTools
 	static inline public function xor(a:Bool, b:Bool):Bool
 	{
 		return (a && !b) || (b && !a);
-	}
-	
-	static inline public function traceEdges(edge:TEdge):Void {
-		var e = edge;
-		var max = 15;
-		while (e != null && max > 0) {
-			trace(e);
-			e = e.next;
-			max--;
-		}
 	}
 }
 //------------------------------------------------------------------------------
