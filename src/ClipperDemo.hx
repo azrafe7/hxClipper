@@ -42,7 +42,7 @@ class ClipperDemo extends Sprite {
 			406, 99, 682, 17, 281, 106, 848];
 			
 		var subj = Tests.MakeDiamondPolygons(20, 600, 400);
-		trace(subj.length);
+		//trace(subj.length);
 		for (i in 0...120) subj[ints[i]].clear();
 		var c = new Clipper();
 		//c.StrictlySimple = true;
@@ -50,7 +50,7 @@ class ClipperDemo extends Sprite {
 		var solution = [];
 		var res = c.executePaths(CT_UNION, solution, pft, pft);
 
-		trace(solution.length);
+		//trace(solution.length);
 		
 		graphics.clear();
 		
@@ -85,7 +85,7 @@ class ClipperDemo extends Sprite {
 		c.addPaths(subj, PT_SUBJECT, true);
 		var solution = [];
 		var res = c.executePaths(CT_UNION, solution, pft, pft);
-		trace(solution.length);
+		//trace(solution.length);
 		
 		graphics.clear();
 		
