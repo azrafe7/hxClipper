@@ -2,7 +2,11 @@ hxClipper
 =========
 
 hxperimental port of [Angus Johnson's Clipper lib v6.2](http://sourceforge.net/projects/polyclipping/) to haxe 3.1+
-(very WIP)
+
+## Notes
+
+ - Int64 feature has not been ported yet (as it requires an Int128 not currently available in haxe)
+ - tests from the original code have also been ported. They're all passing, except the ones requiring 64bit Ints
 
 ## License
 
