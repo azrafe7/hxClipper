@@ -15,13 +15,14 @@
 // Porting from clippertest.cpp (Clipper 6.2.1 - sandbox folder)
 
 // Remember to define USE_LINES (to enable open paths), 
-// and USE_INT32 (as Int128 is not currently supported in this hx ver).
+// USE_INT64 has not been implemented (as Int128 is not currently supported in this hx ver).
 
 
 package ;
 
 import flash.Lib;
 import haxe.Log;
+import haxe.Timer;
 import haxe.unit.TestCase;
 import haxe.unit.TestRunner;
 import hxClipper.Clipper;
@@ -1492,7 +1493,9 @@ class Tests extends TestCase
 	{
 		var runner = new CustomTestRunner();
 		runner.add(new Tests());
+		var startTime = Timer.stamp();
 		var success = runner.run();
+		trace("Tests executed in " + (Timer.stamp() - startTime) + "s");
 	}
 }
 
