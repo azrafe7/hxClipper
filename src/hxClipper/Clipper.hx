@@ -161,6 +161,8 @@ class PolyNode
 	/*internal*/ var mEndtype:EndType;
 	/*internal*/ var mChildren:Array<PolyNode> = new Array<PolyNode>();
 
+	public function new() { }
+	
 	function isHoleNode():Bool {
 		var result = true;
 		var node:PolyNode = mParent;
