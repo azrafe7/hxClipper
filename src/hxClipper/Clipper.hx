@@ -1,7 +1,7 @@
 ﻿/*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.2.2                                                           *
+* Version   :  6.2.2 (r483)                                                    *
 * Date      :  14 November 2014                                                *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2010-2014                                         *
@@ -34,17 +34,17 @@
 
 /*
  * CS -> HX notes:
- * 		move some statics from ClipperBase to Clipper
- * 		find a way to fix Int128 and Slopes...
- * 		fix multi declarations
- * 		fix internal
- * 		check capacity
- * 		check switches/break
- * 		check occurrences of IntPoint.equals()
- * 		fix struct vs class issues (structs are: DoublePoint, Int128, IntPoint, IntRect)
- * 			replaced structs assignments with clone() or copyFrom()
- * 		EitherType for Paths and PolyTree in Execute() (instead of Dynamic and Std.is())?
- * 		adjust to haxe naming style conventions
+ * 		[x] move some statics from ClipperBase to Clipper
+ * 		[ ] find a way to fix Int128 and Slopes...
+ * 		[x] fix multi declarations
+ * 		[x] fix internal
+ * 		[x] check capacity
+ * 		[x] check switches/break
+ * 		[x] check occurrences of IntPoint.equals()
+ * 		[~] fix struct vs class issues (structs are: DoublePoint, Int128, IntPoint, IntRect)
+ * 		[x] replace structs assignments with clone() or copyFrom()
+ * 		[ ] EitherType for Paths and PolyTree in Execute() (instead of Dynamic and Std.is())?
+ * 		[x] adjust to haxe naming style conventions
  */
 
 package hxClipper;
