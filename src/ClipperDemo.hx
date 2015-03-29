@@ -1,16 +1,13 @@
 package;
 
-import flash.display.Stage;
-import flash.events.Event;
-import flash.events.MouseEvent;
-import flash.display.Bitmap;
-import flash.display.BitmapData;
 import flash.display.Sprite;
+import flash.events.Event;
 import flash.events.KeyboardEvent;
+import flash.events.MouseEvent;
 import flash.Lib;
-import haxe.Timer;
-
+import haxe.ds.ArraySort;
 import hxClipper.Clipper;
+
 
 using hxClipper.Clipper.InternalTools;
 
@@ -45,29 +42,26 @@ class ClipperDemo extends Sprite {
 		//trace(subj.length);
 		for (i in 0...120) subj[ints[i]].clear();
 		var c = new Clipper();
-		//c.StrictlySimple = true;
+		//c.strictlySimple = true;
+		//c.reverseSolution = true;
 		c.addPaths(subj, PT_SUBJECT, true);
 		var solution = [];
 		var res = c.executePaths(CT_UNION, solution, pft, pft);
 
 		//trace(solution.length);
 		
+		ArraySort.sort(solution, sortByNonHolesFirst);
+		
 		graphics.clear();
 		
 		for (polygon in subj) {
 			var col = 0xFF0000;// Std.int(Math.random() * 0xFFFFFF);
-			graphics.lineStyle(1, col, 1.0);
-			graphics.beginFill(col, 0.25);
-			drawPolygon(polygon);
-			graphics.endFill();
+			drawPolygon(polygon, col, .25);
 		}
 		
 		for (polygon in solution) {
-			var col = Std.int(Math.random() * 0xFFFFFF);
-			graphics.lineStyle(1, col, 1.0);
-			graphics.beginFill(col, 0.25);
-			drawPolygon(polygon);
-			graphics.endFill();
+			var col = 0x00FF00;// Std.int(Math.random() * 0xFFFFFF);
+			drawPolygon(polygon, col, .25);
 		}
     }
 
@@ -81,43 +75,54 @@ class ClipperDemo extends Sprite {
 		var subj = Tests.MakeSquarePolygons(20, 600, 400);
 		for (i in 0...60) subj.splice(ints[i], 1);
 		var c = new Clipper();
-		//c.StrictlySimple = true;
+		//c.strictlySimple = true;
 		c.addPaths(subj, PT_SUBJECT, true);
 		var solution = [];
 		var res = c.executePaths(CT_UNION, solution, pft, pft);
 		//trace(solution.length);
 		
+		ArraySort.sort(solution, sortByNonHolesFirst);
+		
 		graphics.clear();
 		
 		for (polygon in subj) {
 			var col = 0xFF0000;// Std.int(Math.random() * 0xFFFFFF);
-			graphics.lineStyle(1, col, 1.0);
-			graphics.beginFill(col, 0.25);
-			drawPolygon(polygon);
-			graphics.endFill();
+			drawPolygon(polygon, col, .25);
 		}
 		
 		for (polygon in solution) {
 			var col = 0x00FF00;// Std.int(Math.random() * 0xFFFFFF);
-			graphics.lineStyle(1, col, 1.0);
-			graphics.beginFill(col, 0.25);
-			drawPolygon(polygon);
-			graphics.endFill();
+			drawPolygon(polygon, col, .25);
 		}
     }
 
+	public function sortByNonHolesFirst(poly, qoly):Int {
+		var isPolyHole = !Clipper.orientation(poly);
+		var isQolyHole = !Clipper.orientation(qoly);
+		return isPolyHole ? 1 : isQolyHole ? -1 : 0;
+	}
 
-	public function drawPolygon( polygon: Array<IntPoint> )
+	public function drawPolygon(polygon:Array<IntPoint>, color:UInt, alpha:Float = 1)
 	{
-		var n: Int = polygon.length;
-		if ( n < 3 ) return;
-		var p: IntPoint = polygon[0];
+		var n:Int = polygon.length;
+		if (n < 3) return;
+		var p:IntPoint = polygon[0];
+		
+		var isHole = !Clipper.orientation(polygon);
+		
+		graphics.lineStyle(1, color, .9);
+		
+		if (isHole) graphics.beginFill(stage.color & 0xFFFFFF, 1);
+		else graphics.beginFill(color, alpha);
+
 		graphics.moveTo(p.x, p.y);
-		for ( i in 1...(n+1) )
+		for (i in 1...(n + 1))
 		{
 			p = polygon[i % n];
 			graphics.lineTo(p.x, p.y);
 		}
+		
+		graphics.endFill();
 	}
 	
 	public function new() {
