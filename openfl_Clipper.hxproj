@@ -2,34 +2,34 @@
 <project version="2">
   <!-- Output SWF options -->
   <output>
-    <movie outputType="Application" />
+    <movie outputType="CustomBuild" />
     <movie input="" />
     <movie path="openfl_project.xml" />
     <movie fps="60" />
-    <movie width="1024" />
-    <movie height="780" />
-    <movie version="3" />
+    <movie width="800" />
+    <movie height="600" />
+    <movie version="1" />
     <movie minorVersion="0" />
-    <movie platform="NME" />
+    <movie platform="Lime" />
     <movie background="FFFFFF" />
     <movie preferredSDK=";3;" />
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
-    <class path="c:\HaxeToolkit\haxe\openfl\2,1,5" />
-    <class path="c:\HaxeToolkit\haxe\lime\2,0,0-alpha,8" />
+    <class path="c:\HaxeToolkit\haxe\openfl\git" />
+    <class path="c:\HaxeToolkit\haxe\lime\2,3,0" />
     <class path="src" />
     <class path="..\..\src" />
     <class path="bin\flash\haxe" />
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="openfl=2.1.5&#xA;lime=2.0.0-alpha.8&#xA;tools=2.0.0-alpha.8&#xA;no-compilation&#xA;openfl-flash&#xA;web&#xA;swf-script-timeout=60" />
+    <option directives="openfl=3.0.0-beta.3&#xA;lime=2.3.0&#xA;openfl-next&#xA;tools=2.3.0&#xA;no-compilation&#xA;openfl-flash&#xA;web&#xA;USE_LINES&#xA;USE_XYZ&#xA;swf-script-timeout=60" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />
     <option enabledebug="True" />
-    <option additional="-swf-version 11.2" />
+    <option additional="-swf-version 11.2&#xA;-debug " />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
@@ -39,16 +39,12 @@
   <compileTargets>
     <!-- example: <compile path="..." /> -->
   </compileTargets>
-  <!-- Assets to embed into the output SWF -->
-  <library>
-    <!-- example: <asset path="..." id="..." update="..." glyphs="..." mode="..." place="..." sharepoint="..." /> -->
-  </library>
   <!-- Paths to exclude from the Project Explorer tree -->
   <hiddenPaths>
     <hidden path="obj" />
   </hiddenPaths>
   <!-- Executed before build -->
-  <preBuildCommand />
+  <preBuildCommand>"$(CompilerPath)/haxelib" run lime build "$(OutputFile)" $(TargetBuild) -$(BuildConfig) -Dfdb</preBuildCommand>
   <!-- Executed after build -->
   <postBuildCommand alwaysRun="False" />
   <!-- Other project options -->
