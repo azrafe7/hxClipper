@@ -1,7 +1,7 @@
 hxClipper
 =========
 
-hxperimental port of [Angus Johnson's Clipper lib v6.2](http://sourceforge.net/projects/polyclipping/) to haxe 3.1+
+Port of [Angus Johnson's Clipper lib v6.2.9](http://sourceforge.net/projects/polyclipping/) to haxe 3.1+
 
 ## Notes
 
