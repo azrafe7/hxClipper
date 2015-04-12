@@ -6,9 +6,10 @@ Port of [Angus Johnson's Clipper lib v6.2.9](http://sourceforge.net/projects/pol
 ## Notes
 
  - Int64 feature has not been ported yet (as it requires an Int128 not currently available in haxe)
- - tests from the original code have also been ported. They're all passing, except the ones requiring 64bit Ints
+ - Tests from the original code have also been ported. They're all passing, except the ones requiring 64bit Ints
 
 ![](GuiDemo.png)
+<small>Screenshot of C# GuiDemo compiled with VS using haxe generated .NET dll</small>
 
 ## License
 
