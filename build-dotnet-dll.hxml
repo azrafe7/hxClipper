@@ -1,0 +1,5 @@
+-cp src
+-D dll
+-cs bin/haxecs_clipper
+-D net-ver=40
+hxClipper.Clipper
