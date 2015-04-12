@@ -365,7 +365,7 @@
             this.KeyPreview = true;
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Clipper C# Demo1";
+            this.Text = "Haxe Clipper C# Demo";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.Resize += new System.EventHandler(this.Form1_Resize);
