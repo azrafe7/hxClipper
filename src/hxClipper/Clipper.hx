@@ -3551,8 +3551,8 @@ class Clipper extends ClipperBase
 
 	static public function area(poly:Path):Float {
 		// NOTE: unneeded cast, right?
+		if (poly == null || poly.length < 3) return 0;
 		var cnt:Int = /*(int)*/ poly.length;
-		if (cnt < 3) return 0;
 		var a:Float = 0;
 		// NOTE: check loop and casts, but should be fine
 		var j:Int = cnt - 1;
