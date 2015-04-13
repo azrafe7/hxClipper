@@ -837,8 +837,8 @@ class ClipperBase
 
 		eStart = e;
 		if (leftBoundIsForward) {
-			while (result.top.y == result.next.bot.y && result.next.outIdx != SKIP)
-			result = result.next;
+			while (result.top.y == result.next.bot.y && result.next.outIdx != SKIP) result = result.next;
+			
 			if (result.dx == HORIZONTAL && result.next.outIdx != SKIP) {
 				//nb: at the top of a bound, horizontals are added to the bound
 				//only when the preceding edge attaches to the horizontal's left vertex
@@ -855,8 +855,8 @@ class ClipperBase
 			if (e.dx == HORIZONTAL && e != eStart && e.bot.x != e.prev.top.x) reverseHorizontal(e);
 			result = result.next; //move to the edge just beyond current bound
 		} else {
-			while (result.top.y == result.prev.bot.y && result.prev.outIdx != SKIP)
-			result = result.prev;
+			while (result.top.y == result.prev.bot.y && result.prev.outIdx != SKIP) result = result.prev;
+			
 			if (result.dx == HORIZONTAL && result.prev.outIdx != SKIP) {
 				horz = result;
 				while (horz.next.dx == HORIZONTAL) horz = horz.next;

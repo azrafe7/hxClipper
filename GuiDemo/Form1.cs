@@ -12,10 +12,6 @@ using System.Windows.Forms;
 using System.Globalization;
 using hxClipper;
 
-// NOTE(az): find a way to remove "continue" in foreach statements.
-// It's probably needed here because the original ver set the capacity to exactly
-// match the non-null elements of the arrays.
-
 // NOTE(az): try to avoid "dynamic" and find a suitable way to mimic typedefs fom haxe
 
 namespace WindowsFormsApplication1
@@ -132,12 +128,12 @@ namespace WindowsFormsApplication1
 
         for (; i < PolyInfoList.Count; i++)
         {
-            foreach (Polygon pg in PolyInfoList[i].polygons.__a)
+            for (j = 0; j < PolyInfoList[i].polygons.length; j++)
             {
-                if (pg == null) continue;
-                foreach (IntPoint pt in pg.__a)
+                Polygon pg = (Polygon)PolyInfoList[i].polygons[j];
+                for (int k=0; k<pg.length; k++)
                 {
-                    if (pt == null) continue;
+                    IntPoint pt = (IntPoint)pg[k];
                     if (pt.x < rec.left) rec.left = pt.x;
                     else if (pt.x > rec.right) rec.right = pt.x;
                     if (pt.y < rec.top) rec.top = pt.y;
@@ -164,14 +160,13 @@ namespace WindowsFormsApplication1
           foreach (PolyInfo pi in PolyInfoList)
           {
             writer.Write(" <path d=\"");
-            foreach (Polygon p in pi.polygons.__a)
+            for (j = 0; j < pi.polygons.length; j++)
             {
-              dynamic dyn_p = p;
-              if (p == null || p.length < 3) continue;
+              dynamic dyn_p = pi.polygons[j];
               writer.Write(String.Format(NumberFormatInfo.InvariantInfo, " M {0:f2} {1:f2}",
                   (double)((double)dyn_p[0].x * scale + offsetX),
                   (double)((double)dyn_p[0].y * scale + offsetY)));
-              for (int k = 1; k < p.length; k++)
+              for (int k = 1; k < dyn_p.length; k++)
               {
                 writer.Write(String.Format(NumberFormatInfo.InvariantInfo, " L {0:f2} {1:f2}",
                 (double)((double)dyn_p[k].x * scale + offsetX),
@@ -191,11 +186,12 @@ namespace WindowsFormsApplication1
             if (pi.si.showCoords)
             {
               writer.Write("<g font-family=\"Verdana\" font-size=\"11\" fill=\"black\">\n\n");
-              foreach (Polygon p in pi.polygons.__a)
+              for (j=0; j<pi.polygons.length; j++)
               {
-                foreach (IntPoint pt in p.__a)
+                Polygon p = (Polygon)pi.polygons[j];
+                for (int k = 0; k<p.length; k++)
                 {
-                  if (pt == null) continue;
+                  IntPoint pt = (IntPoint)p[k];
                   int x = pt.x;
                   int y = pt.y;
                   writer.Write(String.Format(
@@ -255,7 +251,7 @@ namespace WindowsFormsApplication1
 
     private void GenerateAustPlusRandomEllipses(int count)
     {
-      InternalTools.clear(subjects);
+        InternalTools.clear(subjects);
       //load map of Australia from resource ...
       Assembly _assembly = Assembly.GetExecutingAssembly();
       using (BinaryReader polyStream = new BinaryReader(_assembly.GetManifestResourceStream("GuiDemo.aust.bin")))
@@ -401,11 +397,14 @@ namespace WindowsFormsApplication1
       using (StreamWriter writer = new StreamWriter(filename))
       {
         writer.Write("{0}\n", ppg.length);
-        foreach (Polygon pg in ppg.__a)
+        for (int i=0; i<ppg.length; i++)
         {
+          Polygon pg = (Polygon) ppg[i];
           writer.Write("{0}\n", pg.length);
-          foreach (IntPoint ip in pg.__a)
+          for (int j=0; j<pg.length; j++) {
+            IntPoint ip = (IntPoint)pg[j];
             writer.Write("{0:0.0000}, {1:0.0000}\n", ip.x / scaling, ip.y / scaling);
+          }
         }
       }
     }
@@ -432,12 +431,12 @@ namespace WindowsFormsApplication1
             path.FillMode = FillMode.Winding;
 
           //draw subjects ...
-          foreach (Polygon pg in subjects.__a)
+          for (int i = 0; i < subjects.length; i++ )
           {
-            if (pg == null) continue;
-            PointF[] pts = PolygonToPointFArray(pg, scale);
-            path.AddPolygon(pts);
-            pts = null;
+              Polygon pg = (Polygon)subjects[i];
+              PointF[] pts = PolygonToPointFArray(pg, scale);
+              path.AddPolygon(pts);
+              pts = null;
           }
           using (Pen myPen = new Pen(Color.FromArgb(196, 0xC3, 0xC9, 0xCF), (float)0.6))
           using (SolidBrush myBrush = new SolidBrush(Color.FromArgb(127, 0xDD, 0xDD, 0xF0)))
@@ -449,9 +448,9 @@ namespace WindowsFormsApplication1
             //draw clips ...
             if (rbNonZero.Checked)
               path.FillMode = FillMode.Winding;
-            foreach (Polygon pg in clips.__a)
+            for (int i=0; i< clips.length; i++)
             {
-              if (pg == null) continue;
+              Polygon pg = (Polygon) clips[i];
               PointF[] pts = PolygonToPointFArray(pg, scale);
               path.AddPolygon(pts);
               pts = null;
@@ -470,10 +469,10 @@ namespace WindowsFormsApplication1
               c.addPaths(clips, PolyType.PT_CLIP, true);
               InternalTools.clear(solution);
 #if UsePolyTree
-              bool succeeded = c.Execute(GetClipType(), solutionTree, GetPolyFillType(), GetPolyFillType());
+              bool succeeded = c.executePolyTree(GetClipType(), solutionTree, GetPolyFillType(), GetPolyFillType());
               //nb: we aren't doing anything useful here with solutionTree except to show
               //that it works. Convert PolyTree back to Polygons structure ...
-              Clipper.PolyTreeToPolygons(solutionTree, solution);
+              solution = Clipper.polyTreeToPaths(solutionTree);
 #else
               bool succeeded = c.executePaths(GetClipType(), solution, GetPolyFillType(), GetPolyFillType());
 #endif
@@ -498,15 +497,15 @@ namespace WindowsFormsApplication1
                   co.executePaths(solution2, (double)nudOffset.Value * scale);
                 }
                 else
-                  solution2 = solution.copy();// Polygons(solution);
+                  solution2 = solution2.concat(solution);// Polygons(solution);
 
-                foreach (Polygon pg in solution2.__a)
+                for (int i = 0; i < solution2.length; i++)
                 {
-                  if (pg == null) continue;
-                  PointF[] pts = PolygonToPointFArray(pg, scale);
-                  if (pts.Count() > 2)
-                    path.AddPolygon(pts);
-                  pts = null;
+                    Polygon pg = (Polygon)solution2[i];
+                    PointF[] pts = PolygonToPointFArray(pg, scale);
+                    if (pts.Count() > 2)
+                        path.AddPolygon(pts);
+                    pts = null;
                 }
                 myBrush.Color = Color.FromArgb(127, 0x66, 0xEF, 0x7F);
                 myPen.Color = Color.FromArgb(255, 0, 0x33, 0);
@@ -522,20 +521,32 @@ namespace WindowsFormsApplication1
                   c.clear();
                   c.addPaths(subjects, PolyType.PT_SUBJECT, true);
                   c.executePaths(ClipType.CT_UNION, solution2, GetPolyFillType(), GetPolyFillType());
-                  foreach (Polygon pg in solution2.__a)
+                  for (int i = 0; i < solution2.length; i++)
+                  {
+                      Polygon pg = (Polygon)solution2[i];
                       subj_area += Clipper.area(pg);
+                  }
                   c.clear();
                   c.addPaths(clips, PolyType.PT_CLIP, true);
                   c.executePaths(ClipType.CT_UNION, solution2, GetPolyFillType(), GetPolyFillType());
-                  foreach (Polygon pg in solution2.__a)
+                  for (int i = 0; i < solution2.length; i++)
+                  {
+                      Polygon pg = (Polygon)solution2[i];
                       clip_area += Clipper.area(pg);
+                  }
                   c.addPaths(subjects, PolyType.PT_SUBJECT, true);
                   c.executePaths(ClipType.CT_INTERSECTION, solution2, GetPolyFillType(), GetPolyFillType());
-                  foreach (Polygon pg in solution2.__a)
+                  for (int i = 0; i < solution2.length; i++)
+                  {
+                      Polygon pg = (Polygon)solution2[i];
                       int_area += Clipper.area(pg);
+                  }
                   c.executePaths(ClipType.CT_UNION, solution2, GetPolyFillType(), GetPolyFillType());
-                  foreach (Polygon pg in solution2.__a)
+                  for (int i = 0; i < solution2.length; i++)
+                  {
+                      Polygon pg = (Polygon)solution2[i];
                       union_area += Clipper.area(pg);
+                  }
 
                   using (StringFormat lftStringFormat = new StringFormat())
                   using (StringFormat rtStringFormat = new StringFormat())
