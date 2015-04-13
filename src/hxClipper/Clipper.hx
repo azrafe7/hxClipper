@@ -643,8 +643,7 @@ class ClipperBase
 		do {
 			if (pp2.pt.equals(pt)) return true;
 			pp2 = pp2.next;
-		}
-		while (pp2 != pp);
+		} while (pp2 != pp);
 		return false;
 	}
 	//------------------------------------------------------------------------------
@@ -2918,8 +2917,8 @@ class Clipper extends ClipperBase
 		do {
 			result++;
 			p = p.next;
-		}
-		while (p != pts);
+		} while (p != pts);
+		
 		return result;
 	}
 	//------------------------------------------------------------------------------
@@ -3079,8 +3078,8 @@ class Clipper extends ClipperBase
 		//when DiscardLeft, make sure we're AT or RIGHT of Pt before adding Op1b,
 		//otherwise make sure we're AT or LEFT of Pt. (Likewise with Op2b.)
 		if (dir1 == Direction.D_LEFT_TO_RIGHT) {
-			while (op1.next.pt.x <= pt.x && op1.next.pt.x >= op1.pt.x && op1.next.pt.y == pt.y)
-			op1 = op1.next;
+			while (op1.next.pt.x <= pt.x && op1.next.pt.x >= op1.pt.x && op1.next.pt.y == pt.y) op1 = op1.next;
+			
 			if (discardLeft && (op1.pt.x != pt.x)) op1 = op1.next;
 			op1b = dupOutPt(op1, !discardLeft);
 			if (!op1b.pt.equals(pt)) {
@@ -3089,8 +3088,8 @@ class Clipper extends ClipperBase
 				op1b = dupOutPt(op1, !discardLeft);
 			}
 		} else {
-			while (op1.next.pt.x >= pt.x && op1.next.pt.x <= op1.pt.x && op1.next.pt.y == pt.y)
-			op1 = op1.next;
+			while (op1.next.pt.x >= pt.x && op1.next.pt.x <= op1.pt.x && op1.next.pt.y == pt.y) op1 = op1.next;
+			
 			if (!discardLeft && (op1.pt.x != pt.x)) op1 = op1.next;
 			op1b = dupOutPt(op1, discardLeft);
 			if (!op1b.pt.equals(pt)) {
@@ -3101,8 +3100,8 @@ class Clipper extends ClipperBase
 		}
 
 		if (dir2 == Direction.D_LEFT_TO_RIGHT) {
-			while (op2.next.pt.x <= pt.x && op2.next.pt.x >= op2.pt.x && op2.next.pt.y == pt.y)
-			op2 = op2.next;
+			while (op2.next.pt.x <= pt.x && op2.next.pt.x >= op2.pt.x && op2.next.pt.y == pt.y) op2 = op2.next;
+			
 			if (discardLeft && (op2.pt.x != pt.x)) op2 = op2.next;
 			op2b = dupOutPt(op2, !discardLeft);
 			if (!op2b.pt.equals(pt)) {
@@ -3111,8 +3110,8 @@ class Clipper extends ClipperBase
 				op2b = dupOutPt(op2, !discardLeft);
 			}
 		} else {
-			while (op2.next.pt.x >= pt.x && op2.next.pt.x <= op2.pt.x && op2.next.pt.y == pt.y)
-			op2 = op2.next;
+			while (op2.next.pt.x >= pt.x && op2.next.pt.x <= op2.pt.x && op2.next.pt.y == pt.y) op2 = op2.next;
+			
 			if (!discardLeft && (op2.pt.x != pt.x)) op2 = op2.next;
 			op2b = dupOutPt(op2, discardLeft);
 			if (!op2b.pt.equals(pt)) {
@@ -3492,8 +3491,7 @@ class Clipper extends ClipperBase
 		do {
 			op.idx = outrec.idx;
 			op = op.prev;
-		}
-		while (op != outrec.pts);
+		} while (op != outrec.pts);
 	}
 	//------------------------------------------------------------------------------
 
