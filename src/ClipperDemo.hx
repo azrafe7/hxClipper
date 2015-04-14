@@ -40,7 +40,7 @@ class ClipperDemo extends Sprite {
 			
 		var subj = Tests.MakeDiamondPolygons(20, 600, 400);
 		//trace(subj.length);
-		for (i in 0...120) subj[ints[i]].clear();
+		for (i in 0...120) subj[Std.int(ints[i].toFloat())].clear();
 		var c = new Clipper();
 		//c.strictlySimple = true;
 		//c.reverseSolution = true;
@@ -73,7 +73,7 @@ class ClipperDemo extends Sprite {
 			177, 558, 598, 399, 286, 482, 185, 266, 24, 27, 118, 338, 413, 514, 510,
 			366, 46, 593, 465, 405, 32, 449, 6, 326, 59, 75, 173, 127, 130];
 		var subj = Tests.MakeSquarePolygons(20, 600, 400);
-		for (i in 0...60) subj.splice(ints[i], 1);
+		for (i in 0...60) subj.splice(Std.int(ints[i].toFloat()), 1);
 		var c = new Clipper();
 		//c.strictlySimple = true;
 		c.addPaths(subj, PT_SUBJECT, true);
@@ -115,11 +115,11 @@ class ClipperDemo extends Sprite {
 		if (isHole) graphics.beginFill(stage.color & 0xFFFFFF, 1);
 		else graphics.beginFill(color, alpha);
 
-		graphics.moveTo(p.x, p.y);
+		graphics.moveTo(p.x.toFloat(), p.y.toFloat());
 		for (i in 1...(n + 1))
 		{
 			p = polygon[i % n];
-			graphics.lineTo(p.x, p.y);
+			graphics.lineTo(p.x.toFloat(), p.y.toFloat());
 		}
 		
 		graphics.endFill();

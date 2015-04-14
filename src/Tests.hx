@@ -72,7 +72,7 @@ class Tests extends TestCase
 		var i = 0;
 		var p = new Path();
 		while (i < ints.length) {
-			p.push(new IntPoint(Std.int(ints[i] * scale), Std.int(ints[i + 1] * scale)));
+			p.push(new IntPoint(Std.int(ints[i].toFloat() * scale), Std.int(ints[i + 1].toFloat() * scale)));
 			i += 2;
 		}
 		return p;
@@ -1449,7 +1449,7 @@ class Tests extends TestCase
 			406, 99, 682, 17, 281, 106, 848];
 			
 		subj = MakeDiamondPolygons(20, 600, 400);
-		for (i in 0...120) subj[ints[i]].clear();
+		for (i in 0...120) subj[Std.int(ints[i].toFloat())].clear();
 		var c = new Clipper();
 		c.addPaths(subj, PT_SUBJECT, true);
 		var res = c.executePaths(CT_UNION, solution, pft, pft);
@@ -1466,7 +1466,7 @@ class Tests extends TestCase
 			177, 558, 598, 399, 286, 482, 185, 266, 24, 27, 118, 338, 413, 514, 510,
 			366, 46, 593, 465, 405, 32, 449, 6, 326, 59, 75, 173, 127, 130];
 		subj = MakeSquarePolygons(20, 600, 400);
-		for (i in 0...60) subj[ints[i]].clear();
+		for (i in 0...60) subj[Std.int(ints[i].toFloat())].clear();
 		var c = new Clipper();
 		c.addPaths(subj, PT_SUBJECT, true);
 		var res = c.executePaths(CT_UNION, solution, pft, pft);

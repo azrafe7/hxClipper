@@ -51,16 +51,18 @@
 
 package hxClipper;
 
+import com.fundoware.engine.bigint.FunBigInt;
 import haxe.ds.ArraySort;
-import haxe.Int32;
 import haxe.Int64;
 import hxClipper.Clipper.ClipperBase;
 import hxClipper.Clipper.DoublePoint;
-import hxClipper.Clipper.Int128;
 import hxClipper.Clipper.IntPoint;
 
-using haxe.Int64;
-using hxClipper.Clipper.Int128;
+#if USE_INT64
+import com.fundoware.engine.bigint.FunMutableBigInt as BigInt;
+using com.fundoware.engine.bigint.FunBigIntTools;
+#end
+
 using hxClipper.Clipper.InternalTools;
 
 //USE_INT64: When enabled 64bit ints are used instead of 32bit ints. This
@@ -77,7 +79,7 @@ using hxClipper.Clipper.InternalTools;
 #if !USE_INT64
 typedef CInt = Int;
 #else
-typedef CInt = Int64;
+typedef CInt = BigInt;
 #end
 
 typedef Path = Array<IntPoint>;
@@ -102,7 +104,7 @@ class DoublePoint
 	}
 	
 	static public function fromIntPoint(ip:IntPoint) {
-		return new DoublePoint(ip.x, ip.y);
+		return new DoublePoint(ip.x.toFloat(), ip.y.toFloat());
 	}
 	
 	public function toString():String {
@@ -218,102 +220,16 @@ class PolyNode
 	public var isOpen(default, default):Bool;
 }
 
-
-//------------------------------------------------------------------------------
-// Int128 struct (enables safe math on signed 64bit integers)
-// eg Int128 val1((Int64)9223372036854775807); //ie 2^63 -1
-//    Int128 val2((Int64)9223372036854775807);
-//    Int128 val3 = val1 * val2;
-//    val3.ToString => "85070591730234615847396907784232501249" (8.5e+37)
-//------------------------------------------------------------------------------
-
-/*internal*/ class Int128 {
-	var hi:Int64;
-	var lo:Int64;	// this will make use of unsigned versions of ops
-
-	static var zero64:Int64 = Int64.make(0, 0);
-	static var one64:Int64 = Int64.make(0, 1);
-	static inline var shift64:Float = 18446744073709551616.0; //2^64
-
-	public function new(hi:Int64, lo:Int64) {
-		this.lo = lo;
-		this.hi = hi;
-	}
-
-	public function isNeg():Bool {
-		return hi.compare(zero64) < 0;
-	}
-
-	static public function compare(a:Int128, b:Int128):Int {
-		if (a.hi != b.hi) return a.hi.compare(b.hi);
-		else return a.lo.ucompare(b.lo);
-	}
-	
-	static public function add(lhs:Int128, rhs:Int128):Int128 {
-		lhs.hi = lhs.hi.add(rhs.hi);
-		lhs.lo = lhs.lo.add(rhs.lo);
-		if (lhs.lo.ucompare(rhs.lo) < 0) lhs.hi.add(one64);
-		return lhs;
-	}
-
-	static public function sub(lhs:Int128, rhs:Int128):Int128 {
-		return lhs.add(rhs.neg());
-	}
-
-	static public function neg(val:Int128):Int128 {
-		if (val.lo.ucompare(zero64) == 0) return new Int128(val.hi.neg(), Int64.ofInt(0));
-		else return new Int128(val.hi.neg(), val.lo.neg().add(one64));
-	}
-
-	public function toFloat():Float {
-		var res:Float = 0;
-		if (hi.compare(zero64) < 0) {
-			if (lo.compare(zero64) == 0) res = Std.parseFloat(hi.toStr()) * shift64;
-			else res = -(lo.neg().toInt() + Std.parseFloat(hi.neg().toStr()) * shift64);
-		} else res = (lo.toInt() + Std.parseFloat(hi.toStr()) * shift64);
-		return res;
-	}
-
-	//nb: Constructing two new Int128 objects every time we want to multiply longs  
-	//is slow. So, although calling the Int128Mul method doesn't look as clean, the 
-	//code runs significantly faster than if we'd used the * operator.
-
-	static public function mul(lhs:Int64, rhs:Int64):Int128 {
-		var negate = (lhs.isNeg()) != (rhs.isNeg());
-		if (lhs.isNeg()) lhs = lhs.neg();
-		if (rhs.isNeg()) rhs = rhs.neg();
-		var int1Hi:Int64 = lhs.ushr(32);
-		var int1Lo:Int64 = lhs.and(Int64.ofInt(0xFFFFFFFF));
-		var int2Hi:Int64 = rhs.ushr(32);
-		var int2Lo:Int64 = rhs.and(Int64.ofInt(0xFFFFFFFF));
-
-		//nb: see comments in clipper.pas
-		var a:Int64 = Int64.mul(int1Hi, int2Hi);
-		var b:Int64 = Int64.mul(int1Lo, int2Lo);
-		var c:Int64 = Int64.mul(int1Hi, int2Lo).add(Int64.mul(int1Lo, int2Hi));
-
-		var hi:Int64 = (a.add(c.ushr(32)));
-		var lo:Int64 = c.shl(32).add(b);
-
-		if (lo.ucompare(b) < 0) hi = hi.add(one64);
-		var result:Int128 = new Int128(hi, lo);
-		if (negate) result = result.neg();
-		return result;
-	}
-
-}
-
-//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
 class IntPoint 
 {
-	public var x:CInt;
-	public var y:CInt;
+	public var x:CInt = 0;
+	public var y:CInt = 0;
 #if USE_XYZ 
-	public var z:CInt;
+	public var z:CInt = 0;
 
-	public function new(x:CInt = 0, y:CInt = 0, z:CInt = 0) {
+	public function new(x:CInt, y:CInt, ?z:CInt) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -479,10 +395,10 @@ enum EndType {
 @:allow(hxClipper.ClipperBase)
 /*internal*/ private class TEdge 
 {
-	/*internal*/ var bot:IntPoint = new IntPoint();
-	/*internal*/ var curr:IntPoint = new IntPoint();
-	/*internal*/ var top:IntPoint = new IntPoint();
-	/*internal*/ var delta:IntPoint = new IntPoint();
+	/*internal*/ var bot:IntPoint = new IntPoint(0,0,0);
+	/*internal*/ var curr:IntPoint = new IntPoint(0,0,0);
+	/*internal*/ var top:IntPoint = new IntPoint(0,0,0);
+	/*internal*/ var delta:IntPoint = new IntPoint(0,0,0);
 	/*internal*/ var dx:Float;
 	/*internal*/ var polyType:PolyType;
 	/*internal*/ var side:EdgeSide;
@@ -510,7 +426,7 @@ class IntersectNode
 {
 	/*internal*/ var edge1:TEdge;
 	/*internal*/ var edge2:TEdge;
-	/*internal*/ var pt:IntPoint = new IntPoint();
+	/*internal*/ var pt:IntPoint = new IntPoint(0,0,0);
 	
 	/*internal*/ function new() { }
 }
@@ -573,7 +489,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 /*internal*/ private class OutPt 
 {
 	/*internal*/ var idx:Int;
-	/*internal*/ var pt:IntPoint = new IntPoint();
+	/*internal*/ var pt:IntPoint = new IntPoint(0,0,0);
 	/*internal*/ var next:OutPt;
 	/*internal*/ var prev:OutPt;
 	
@@ -585,7 +501,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 {
 	/*internal*/ var outPt1:OutPt;
 	/*internal*/ var outPt2:OutPt;
-	/*internal*/ var offPt:IntPoint = new IntPoint();
+	/*internal*/ var offPt:IntPoint = new IntPoint(0,0,0);
 	
 	/*internal*/ function new() { }
 }
@@ -609,8 +525,8 @@ class ClipperBase
 	inline static var LO_RANGE:CInt = 0x7FFF;
 	inline static var HI_RANGE:CInt = 0x7FFF;
 #else 
-	inline static var LO_RANGE:CInt = 0x3FFFFFFF;
-	inline static var HI_RANGE:CInt = 0x3FFFFFFFFFFFFFFFL;
+	static var LO_RANGE:CInt = 0x3FFFFFFF;
+	static var HI_RANGE:CInt = FunBigIntTools.parseValueUnsigned("0x3FFFFFFFFFFFFFFF");
 #end
 
 	/*internal*/ var mMinimaList:LocalMinima;
@@ -649,16 +565,13 @@ class ClipperBase
 	//------------------------------------------------------------------------------
 
 	/*internal*/ function pointOnLineSegment(pt:IntPoint, linePt1:IntPoint, linePt2:IntPoint, useFullRange:Bool):Bool {
-	#if USE_INT64
 		if (useFullRange) return ((pt.x == linePt1.x) && (pt.y == linePt1.y)) || ((pt.x == linePt2.x) && (pt.y == linePt2.y)) 
 								 || (((pt.x > linePt1.x) == (pt.x < linePt2.x)) && ((pt.y > linePt1.y) == (pt.y < linePt2.y)) 
-								 && ((Int128.Int128Mul((pt.x - linePt1.x), (linePt2.y - linePt1.y)) == Int128.Int128Mul((linePt2.x - linePt1.x), (pt.y - linePt1.y)))));
+								 && ((((pt.x - linePt1.x) * (linePt2.y - linePt1.y)) == ((linePt2.x - linePt1.x) * (pt.y - linePt1.y)))));
 		else 
-	#else
 		return ((pt.x == linePt1.x) && (pt.y == linePt1.y)) || ((pt.x == linePt2.x) && (pt.y == linePt2.y)) 
 			   || (((pt.x > linePt1.x) == (pt.x < linePt2.x)) && ((pt.y > linePt1.y) == (pt.y < linePt2.y)) 
 			   && ((pt.x - linePt1.x) * (linePt2.y - linePt1.y) == (linePt2.x - linePt1.x) * (pt.y - linePt1.y)));
-	#end
 	}
 	//------------------------------------------------------------------------------
 
@@ -675,32 +588,20 @@ class ClipperBase
 
 	/* NOTE: fix these Int128*/
 	/*internal*/ static function slopesEqual(e1:TEdge, e2:TEdge, useFullRange:Bool):Bool {
-	#if USE_INT64	
-		if (useFullRange) return Int128.mul(e1.delta.y, e2.delta.x) == Int128.mul(e1.delta.x, e2.delta.y);
-		else
-	#else 
-		return /*(cInt)*/(e1.delta.y) * (e2.delta.x) == /*(cInt)*/(e1.delta.x) * (e2.delta.y);
-	#end
+		if (useFullRange) return (e1.delta.y * e2.delta.x) == (e1.delta.x * e2.delta.y);
+		else return /*(cInt)*/(e1.delta.y) * (e2.delta.x) == /*(cInt)*/(e1.delta.x) * (e2.delta.y);
 	}
 	//------------------------------------------------------------------------------
 
 	/*protected*/ static function slopesEqual3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, useFullRange:Bool):Bool {
-	#if USE_INT64	
-		if (useFullRange) return Int128.Int128Mul(pt1.y - pt2.y, pt2.x - pt3.x) == Int128.Int128Mul(pt1.x - pt2.x, pt2.y - pt3.y);
-		else 
-	#else
-		return /*(cInt)*/(pt1.y - pt2.y) * (pt2.x - pt3.x) - /*(cInt)*/(pt1.x - pt2.x) * (pt2.y - pt3.y) == 0;
-	#end
+		if (useFullRange) return (pt1.y - pt2.y) * (pt2.x - pt3.x) == (pt1.x - pt2.x) * (pt2.y - pt3.y);
+		else return /*(cInt)*/(pt1.y - pt2.y) * (pt2.x - pt3.x) - /*(cInt)*/(pt1.x - pt2.x) * (pt2.y - pt3.y) == 0;
 	}
 	//------------------------------------------------------------------------------
 
 	/*protected*/ static function slopesEqual4(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, pt4:IntPoint, useFullRange:Bool):Bool {
-	#if USE_INT64	
-		if (useFullRange) return Int128.Int128Mul(pt1.y - pt2.y, pt3.x - pt4.x) == Int128.Int128Mul(pt1.x - pt2.x, pt3.y - pt4.y);
-		else 
-	#else
-		return /*(cInt)*/(pt1.y - pt2.y) * (pt3.x - pt4.x) - /*(cInt)*/(pt1.x - pt2.x) * (pt3.y - pt4.y) == 0;
-	#end
+		if (useFullRange) return (pt1.y - pt2.y) * (pt3.x - pt4.x) == (pt1.x - pt2.x) * (pt3.y - pt4.y);
+		else return /*(cInt)*/(pt1.y - pt2.y) * (pt3.x - pt4.x) - /*(cInt)*/(pt1.x - pt2.x) * (pt3.y - pt4.y) == 0;
 	}
 	//------------------------------------------------------------------------------
 
@@ -1060,8 +961,8 @@ class ClipperBase
 		e.delta.y = (e.top.y - e.bot.y);
 		if (e.delta.y == 0) e.dx = HORIZONTAL;
 		else {	// NOTE: check cast to float
-			var deltaX:Float = e.delta.x;
-			e.dx = deltaX / (e.delta.y);
+			var deltaX:Float = e.delta.x.toFloat();
+			e.dx = deltaX / (e.delta.y).toFloat();
 		}
 	}
 	//---------------------------------------------------------------------------
@@ -1461,7 +1362,7 @@ class Clipper extends ClipperBase
 #if USE_XYZ 
 	// NOTE: ref?
 	/*internal*/ function setZ(/*ref*/ pt:IntPoint, e1:TEdge, e2:TEdge):Void {
-		if (pt.z != 0 || zFillFunction == null) return;
+		if (zFillFunction == null || pt.z != 0) return;
 		else if (pt.equals(e1.bot)) pt.z = e1.bot.z;
 		else if (pt.equals(e1.top)) pt.z = e1.top.z;
 		else if (pt.equals(e2.bot)) pt.z = e2.bot.z;
@@ -1982,8 +1883,8 @@ class Clipper extends ClipperBase
 	function getDx(pt1:IntPoint, pt2:IntPoint):Float {
 		if (pt1.y == pt2.y) return ClipperBase.HORIZONTAL;
 		else {
-			var dx:Float = (pt2.x - pt1.x);
-			var dy:Float = (pt2.y - pt1.y);
+			var dx:Float = (pt2.x - pt1.x).toFloat();
+			var dy:Float = (pt2.y - pt1.y).toFloat();
 			return dx / dy;
 		}
 	}
@@ -2576,12 +2477,12 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function isMaxima(e:TEdge, y:Float):Bool {
-		return (e != null && e.top.y == y && e.nextInLML == null);
+		return (e != null && e.top.y == y.toBigInt() && e.nextInLML == null);
 	}
 	//------------------------------------------------------------------------------
 
 	function isIntermediate(e:TEdge, y:Float):Bool {
-		return (e.top.y == y && e.nextInLML != null);
+		return (e.top.y == y.toBigInt() && e.nextInLML != null);
 	}
 	//------------------------------------------------------------------------------
 
@@ -2635,7 +2536,7 @@ class Clipper extends ClipperBase
 			e = mSortedEdges;
 			while (e.nextInSEL != null) {
 				var eNext:TEdge = e.nextInSEL;
-				var pt:IntPoint = new IntPoint();
+				var pt:IntPoint = new IntPoint(0,0,0);
 				if (e.curr.x > eNext.curr.x) {
 					// NOTE: out
 					intersectPoint(e, eNext, /*out*/ pt);
@@ -2665,7 +2566,7 @@ class Clipper extends ClipperBase
 		//the following typecast is safe because the differences in Pt.Y will
 		//be limited to the height of the scanbeam.
 		// NOTE: check cast
-		return Std.int(node2.pt.y - node1.pt.y);
+		return Std.int((node2.pt.y - node1.pt.y).toFloat());
 	}
 	//------------------------------------------------------------------------------
 
@@ -2713,14 +2614,14 @@ class Clipper extends ClipperBase
 
 	static function topX(edge:TEdge, currentY:CInt):CInt {
 		if (currentY == edge.top.y) return edge.top.x;
-		return edge.bot.x + round(edge.dx * (currentY - edge.bot.y));
+		return edge.bot.x + round(edge.dx * (currentY - edge.bot.y).toFloat());
 	}
 	//------------------------------------------------------------------------------
 
 	// NOTE: check out
 	function intersectPoint(edge1:TEdge, edge2:TEdge, /*out*/ ip:IntPoint):Void {
 		// NOTE: check this ip and the out ip
-		//ip = new IntPoint();
+		//ip = new IntPoint(0,0,0);
 		var b1:Float, b2:Float;
 		//nb: with very large coordinate values, it's possible for SlopesEqual() to 
 		//return false but for the edge.Dx value be equal due to double precision rounding.
@@ -2735,20 +2636,20 @@ class Clipper extends ClipperBase
 			if (ClipperBase.isHorizontal(edge2)) {
 				ip.y = edge2.bot.y;
 			} else {
-				b2 = edge2.bot.y - (edge2.bot.x / edge2.dx);
-				ip.y = round(ip.x / edge2.dx + b2);
+				b2 = edge2.bot.y.toFloat() - (edge2.bot.x.toFloat() / edge2.dx);
+				ip.y = round(ip.x.toFloat() / edge2.dx + b2);
 			}
 		} else if (edge2.delta.x == 0) {
 			ip.x = edge2.bot.x;
 			if (ClipperBase.isHorizontal(edge1)) {
 				ip.y = edge1.bot.y;
 			} else {
-				b1 = edge1.bot.y - (edge1.bot.x / edge1.dx);
-				ip.y = round(ip.x / edge1.dx + b1);
+				b1 = edge1.bot.y.toFloat() - (edge1.bot.x.toFloat() / edge1.dx);
+				ip.y = round(ip.x.toFloat() / edge1.dx + b1);
 			}
 		} else {
-			b1 = edge1.bot.x - edge1.bot.y * edge1.dx;
-			b2 = edge2.bot.x - edge2.bot.y * edge2.dx;
+			b1 = edge1.bot.x.toFloat() - edge1.bot.y.toFloat() * edge1.dx;
+			b2 = edge2.bot.x.toFloat() - edge2.bot.y.toFloat() * edge2.dx;
 			var q:Float = (b2 - b1) / (edge1.dx - edge2.dx);
 			ip.y = round(q);
 			if (Math.abs(edge1.dx) < Math.abs(edge2.dx)) ip.x = round(edge1.dx * q + b1);
@@ -2776,7 +2677,7 @@ class Clipper extends ClipperBase
 		while (e != null) {
 			//1. process maxima, treating them as if they're 'bent' horizontal edges,
 			//   but exclude maxima with horizontal edges. nb: e can't be a horizontal.
-			var isMaximaEdge:Bool = isMaxima(e, topY);
+			var isMaximaEdge:Bool = isMaxima(e, topY.toFloat());
 
 			if (isMaximaEdge) {
 				var eMaxPair:TEdge = getMaximaPair(e);
@@ -2791,7 +2692,7 @@ class Clipper extends ClipperBase
 				else e = ePrev.nextInAEL;
 			} else {
 				//2. promote horizontal edges, otherwise update Curr.X and Curr.Y ...
-				if (isIntermediate(e, topY) && ClipperBase.isHorizontal(e.nextInLML)) {
+				if (isIntermediate(e, topY.toFloat()) && ClipperBase.isHorizontal(e.nextInLML)) {
 					// NOTE: ref
 					e = updateEdgeIntoAEL(/*ref*/ e);
 					if (e.outIdx >= 0) addOutPt(e, e.bot);
@@ -2830,7 +2731,7 @@ class Clipper extends ClipperBase
 		//4. Promote intermediate vertices ...
 		e = mActiveEdges;
 		while (e != null) {
-			if (isIntermediate(e, topY)) {
+			if (isIntermediate(e, topY.toFloat())) {
 				var op:OutPt = null;
 				if (e.outIdx >= 0) op = addOutPt(e, e.top);
 				// NOTE: ref
@@ -3048,19 +2949,19 @@ class Clipper extends ClipperBase
 		if (a1 < a2) {
 			// NOTE: check casts to CInt
 			if (b1 < b2) {
-				outParams.left = Std.int(Math.max(a1, b1));
-				outParams.right = Std.int(Math.min(a2, b2));
+				outParams.left = Std.int(Math.max(a1.toFloat(), b1.toFloat()));
+				outParams.right = Std.int(Math.min(a2.toFloat(), b2.toFloat()));
 			} else {
-				outParams.left = Std.int(Math.max(a1, b2));
-				outParams.right = Std.int(Math.min(a2, b1));
+				outParams.left = Std.int(Math.max(a1.toFloat(), b2.toFloat()));
+				outParams.right = Std.int(Math.min(a2.toFloat(), b1.toFloat()));
 			}
 		} else {
 			if (b1 < b2) {
-				outParams.left = Std.int(Math.max(a2, b1));
-				outParams.right = Std.int(Math.min(a1, b2));
+				outParams.left = Std.int(Math.max(a2.toFloat(), b1.toFloat()));
+				outParams.right = Std.int(Math.min(a1.toFloat(), b2.toFloat()));
 			} else {
-				outParams.left = Std.int(Math.max(a2, b2));
-				outParams.right = Std.int(Math.min(a1, b1));
+				outParams.left = Std.int(Math.max(a2.toFloat(), b2.toFloat()));
+				outParams.right = Std.int(Math.min(a1.toFloat(), b1.toFloat()));
 			}
 		}
 		return outParams.left < outParams.right;
@@ -3210,7 +3111,7 @@ class Clipper extends ClipperBase
 			//DiscardLeftSide: when overlapping edges are joined, a spike will created
 			//which needs to be cleaned up. However, we don't want Op1 or Op2 caught up
 			//on the discard Side as either may still be needed for other joins ...
-			var pt:IntPoint = new IntPoint();
+			var pt:IntPoint = new IntPoint(0,0,0);
 			var discardLeftSide:Bool;
 			if (op1.pt.x >= left && op1.pt.x <= right) {
 				pt.copyFrom(op1.pt);
@@ -3287,7 +3188,7 @@ class Clipper extends ClipperBase
 		if (cnt < 3) return 0;
 		var ip:IntPoint = path[0].clone();
 		// NOTE: check loop and casts
-		var ipNext:IntPoint = new IntPoint();
+		var ipNext:IntPoint = new IntPoint(0,0,0);
 		for (i in 1...cnt + 1) {
 			ipNext.copyFrom((i == cnt ? path[0] : path[i]));
 			if (ipNext.y == pt.y) {
@@ -3297,17 +3198,17 @@ class Clipper extends ClipperBase
 				if (ip.x >= pt.x) {
 					if (ipNext.x > pt.x) result = 1 - result;
 					else {
-						var dx:Float = /*(double)*/(ip.x - pt.x);
-						var dy:Float = /*(double)*/(ip.y - pt.y);
-						var d:Float =  dx * (ipNext.y - pt.y) - (ipNext.x - pt.x) * dy;
+						var dx:Float = /*(double)*/(ip.x - pt.x).toFloat();
+						var dy:Float = /*(double)*/(ip.y - pt.y).toFloat();
+						var d:Float =  dx * (ipNext.y - pt.y).toFloat() - (ipNext.x - pt.x).toFloat() * dy;
 						if (d == 0) return -1;
 						else if ((d > 0) == (ipNext.y > ip.y)) result = 1 - result;
 					}
 				} else {
 					if (ipNext.x > pt.x) {
-						var dx:Float = /*(double)*/(ip.x - pt.x);
-						var dy:Float = /*(double)*/(ip.y - pt.y);
-						var d:Float =  dx * (ipNext.y - pt.y) - (ipNext.x - pt.x) * dy;
+						var dx:Float = /*(double)*/(ip.x - pt.x).toFloat();
+						var dy:Float = /*(double)*/(ip.y - pt.y).toFloat();
+						var d:Float =  dx * (ipNext.y - pt.y).toFloat() - (ipNext.x - pt.x).toFloat() * dy;
 						if (d == 0) return -1;
 						else if ((d > 0) == (ipNext.y > ip.y)) result = 1 - result;
 					}
@@ -3339,17 +3240,17 @@ class Clipper extends ClipperBase
 					if (poly1x > ptx) result = 1 - result;
 					else {
 						// NOTE: casts here too
-						var dx:Float = /*(double)*/(poly0x - ptx);
-						var dy:Float = /*(double)*/(poly0y - pty);
-						var d:Float = dx * (poly1y - pty) - (poly1x - ptx) * dy;
+						var dx:Float = /*(double)*/(poly0x - ptx).toFloat();
+						var dy:Float = /*(double)*/(poly0y - pty).toFloat();
+						var d:Float = dx * (poly1y - pty).toFloat() - (poly1x - ptx).toFloat() * dy;
 						if (d == 0) return -1;
 						if ((d > 0) == (poly1y > poly0y)) result = 1 - result;
 					}
 				} else {
 					if (poly1x > ptx) {
-						var dx:Float = /*(double)*/(poly0x - ptx);
-						var dy:Float = /*(double)*/(poly0y - pty);
-						var d:Float = dx * (poly1y - pty) - (poly1x - ptx) * dy;
+						var dx:Float = /*(double)*/(poly0x - ptx).toFloat();
+						var dy:Float = /*(double)*/(poly0y - pty).toFloat();
+						var d:Float = dx * (poly1y - pty).toFloat() - (poly1x - ptx).toFloat() * dy;
 						if (d == 0) return -1;
 						if ((d > 0) == (poly1y > poly0y)) result = 1 - result;
 					}
@@ -3555,8 +3456,8 @@ class Clipper extends ClipperBase
 		// NOTE: check loop and casts, but should be fine
 		var j:Int = cnt - 1;
 		for (i in 0...cnt) {
-			var dx:Float = /*(double)*/ poly[j].x + poly[i].x;
-			var dy:Float = /*(double)*/ poly[j].y - poly[i].y;
+			var dx:Float = /*(double)*/ (poly[j].x + poly[i].x).toFloat();
+			var dy:Float = /*(double)*/ (poly[j].y - poly[i].y).toFloat();
 			a += dx * dy;
 			j = i;
 		}
@@ -3570,8 +3471,8 @@ class Clipper extends ClipperBase
 		var a:Float = 0;
 		do {
 			// NOTE: casts
-			var dx:Float = /*(double)*/(op.prev.pt.x + op.pt.x);
-			var dy:Float = /*(double)*/(op.prev.pt.y - op.pt.y);
+			var dx:Float = /*(double)*/(op.prev.pt.x + op.pt.x).toFloat();
+			var dy:Float = /*(double)*/(op.prev.pt.y - op.pt.y).toFloat();
 			a += dx * dy;
 			op = op.next;
 		} while (op != outRec.pts);
@@ -3607,8 +3508,8 @@ class Clipper extends ClipperBase
 
 	static function distanceSqrd(pt1:IntPoint, pt2:IntPoint):Float {
 		// NOTE: casts
-		var dx:Float = (/*(double)*/ pt1.x - pt2.x);
-		var dy:Float = (/*(double)*/ pt1.y - pt2.y);
+		var dx:Float = (/*(double)*/ pt1.x - pt2.x).toFloat();
+		var dy:Float = (/*(double)*/ pt1.y - pt2.y).toFloat();
 		return (dx * dx + dy * dy);
 	}
 	//------------------------------------------------------------------------------
@@ -3620,10 +3521,10 @@ class Clipper extends ClipperBase
 		//A = (y¹ - y²); B = (x² - x¹); C = (y² - y¹)x¹ - (x² - x¹)y¹
 		//perpendicular distance of point (x³,y³) = (Ax³ + By³ + C)/Sqrt(A² + B²)
 		//see http://en.wikipedia.org/wiki/Perpendicular_distance
-		var A:Float = ln1.y - ln2.y;
-		var B:Float = ln2.x - ln1.x;
-		var C:Float = A * ln1.x + B * ln1.y;
-		C = A * pt.x + B * pt.y - C;
+		var A:Float = (ln1.y - ln2.y).toFloat();
+		var B:Float = (ln2.x - ln1.x).toFloat();
+		var C:Float = A * ln1.x.toFloat() + B * ln1.y.toFloat();
+		C = A * pt.x.toFloat() + B * pt.y.toFloat() - C;
 		return (C * C) / (A * A + B * B);
 	}
 	//---------------------------------------------------------------------------
@@ -3632,7 +3533,7 @@ class Clipper extends ClipperBase
 		//this function is more accurate when the point that's GEOMETRICALLY 
 		//between the other 2 points is the one that's tested for distance.  
 		//nb: with 'spikes', either pt1 or pt3 is geometrically between the other pts                    
-		if (Math.abs(pt1.x - pt2.x) > Math.abs(pt1.y - pt2.y)) {
+		if (Math.abs((pt1.x - pt2.x).toFloat()) > Math.abs((pt1.y - pt2.y).toFloat())) {
 			if ((pt1.x > pt2.x) == (pt1.x < pt3.x)) return distanceFromLineSqrd(pt1, pt2, pt3) < distSqrd;
 			else if ((pt2.x > pt1.x) == (pt2.x < pt3.x)) return distanceFromLineSqrd(pt2, pt1, pt3) < distSqrd;
 			else return distanceFromLineSqrd(pt3, pt1, pt2) < distSqrd;
@@ -3646,8 +3547,8 @@ class Clipper extends ClipperBase
 
 	static function pointsAreClose(pt1:IntPoint, pt2:IntPoint, distSqrd:Float):Bool {
 		// NOTE: casts
-		var dx:Float = /*(double)*/ pt1.x - pt2.x;
-		var dy:Float = /*(double)*/ pt1.y - pt2.y;
+		var dx:Float = /*(double)*/ (pt1.x - pt2.x).toFloat();
+		var dy:Float = /*(double)*/ (pt1.y - pt2.y).toFloat();
 		return ((dx * dx) + (dy * dy) <= distSqrd);
 	}
 	//------------------------------------------------------------------------------
@@ -3850,7 +3751,7 @@ class ClipperOffset
 	var mMiterLim:Float;
 	var mStepsPerRad:Float;
 
-	var mLowest:IntPoint = new IntPoint();
+	var mLowest:IntPoint = new IntPoint(0,0,0);
 	var mPolyNodes:PolyNode = new PolyNode();
 
 	// NOTE: prop?
@@ -3918,7 +3819,7 @@ class ClipperOffset
 		if (mLowest.x < 0) mLowest = new IntPoint(mPolyNodes.numChildren - 1, k);
 		else {
 			// NOTE: casts
-			var ip:IntPoint = mPolyNodes.children[Std.int(mLowest.x)].mPolygon[Std.int(mLowest.y)].clone();
+			var ip:IntPoint = mPolyNodes.children[Std.int(mLowest.x.toFloat())].mPolygon[Std.int(mLowest.y.toFloat())].clone();
 			if (newNode.mPolygon[k].y > ip.y || (newNode.mPolygon[k].y == ip.y && newNode.mPolygon[k].x < ip.x)) {
 				mLowest = new IntPoint(mPolyNodes.numChildren - 1, k);
 			}
@@ -3936,7 +3837,7 @@ class ClipperOffset
 		//fixup orientations of all closed paths if the orientation of the
 		//closed path with the lowermost vertex is wrong ...
 		// NOTE: cast
-		if (mLowest.x >= 0 && !Clipper.orientation(mPolyNodes.children[Std.int(mLowest.x)].mPolygon)) {
+		if (mLowest.x >= 0 && !Clipper.orientation(mPolyNodes.children[Std.int(mLowest.x.toFloat())].mPolygon)) {
 			for (i in 0...mPolyNodes.numChildren) {
 				var node:PolyNode = mPolyNodes.children[i];
 				if (node.mEndtype == EndType.ET_CLOSED_POLYGON || (node.mEndtype == EndType.ET_CLOSED_LINE 
@@ -3955,8 +3856,8 @@ class ClipperOffset
 	//------------------------------------------------------------------------------
 
 	/*internal*/ static function getUnitNormal(pt1:IntPoint, pt2:IntPoint):DoublePoint {
-		var dx:Float = (pt2.x - pt1.x);
-		var dy:Float = (pt2.y - pt1.y);
+		var dx:Float = (pt2.x - pt1.x).toFloat();
+		var dy:Float = (pt2.y - pt1.y).toFloat();
 		if ((dx == 0) && (dy == 0)) return new DoublePoint();
 
 		var f:Float = 1 * 1.0 / Math.sqrt(dx * dx + dy * dy);
@@ -4014,7 +3915,7 @@ class ClipperOffset
 					// NOTE: check loop (int vs float)
 					var j:Int = 1;
 					while (j <= steps) {
-						mDestPoly.push(new IntPoint(round(mSrcPoly[0].x + x * delta), round(mSrcPoly[0].y + y * delta)));
+						mDestPoly.push(new IntPoint(round(mSrcPoly[0].x.toFloat() + x * delta), round(mSrcPoly[0].y.toFloat() + y * delta)));
 						var x2:Float = x;
 						x = x * mCos - mSin * y;
 						y = x2 * mSin + y * mCos;
@@ -4023,7 +3924,7 @@ class ClipperOffset
 				} else {
 					var x:Float = -1.0, y:Float = -1.0;
 					for (j in 0...4) {
-						mDestPoly.push(new IntPoint(round(mSrcPoly[0].x + x * delta), round(mSrcPoly[0].y + y * delta)));
+						mDestPoly.push(new IntPoint(round(mSrcPoly[0].x.toFloat() + x * delta), round(mSrcPoly[0].y.toFloat() + y * delta)));
 						if (x < 0) x = 1;
 						else if (y < 0) y = 1;
 						else x = -1;
@@ -4087,9 +3988,9 @@ class ClipperOffset
 				if (node.mEndtype == EndType.ET_OPEN_BUTT) {
 					// NOTE: casts
 					var j:Int = len - 1;
-					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[j].x + mNormals[j].x * delta), /*(cInt)*/ round(mSrcPoly[j].y + mNormals[j].y * delta));
+					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[j].x.toFloat() + mNormals[j].x * delta), /*(cInt)*/ round(mSrcPoly[j].y.toFloat() + mNormals[j].y * delta));
 					mDestPoly.push(pt1);
-					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[j].x - mNormals[j].x * delta), /*(cInt)*/ round(mSrcPoly[j].y - mNormals[j].y * delta));
+					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[j].x.toFloat() - mNormals[j].x * delta), /*(cInt)*/ round(mSrcPoly[j].y.toFloat() - mNormals[j].y * delta));
 					mDestPoly.push(pt1);
 				} else {
 					var j:Int = len - 1;
@@ -4120,9 +4021,9 @@ class ClipperOffset
 
 				if (node.mEndtype == EndType.ET_OPEN_BUTT) {
 					// NOTE: casts
-					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[0].x - mNormals[0].x * delta), /*(cInt)*/ round(mSrcPoly[0].y - mNormals[0].y * delta));
+					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[0].x.toFloat() - mNormals[0].x * delta), /*(cInt)*/ round(mSrcPoly[0].y.toFloat() - mNormals[0].y * delta));
 					mDestPoly.push(pt1);
-					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[0].x + mNormals[0].x * delta), /*(cInt)*/ round(mSrcPoly[0].y + mNormals[0].y * delta));
+					pt1 = new IntPoint(/*(cInt)*/ round(mSrcPoly[0].x.toFloat() + mNormals[0].x * delta), /*(cInt)*/ round(mSrcPoly[0].y.toFloat() + mNormals[0].y * delta));
 					mDestPoly.push(pt1);
 				} else {
 					k = 1;
@@ -4222,7 +4123,7 @@ class ClipperOffset
 			var cosA:Float = (mNormals[k].x * mNormals[j].x + mNormals[j].y * mNormals[k].y);
 			if (cosA > 0) // angle ==> 0 degrees
 			{
-				mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mNormals[k].x * mDelta), round(mSrcPoly[j].y + mNormals[k].y * mDelta)));
+				mDestPoly.push(new IntPoint(round(mSrcPoly[j].x.toFloat() + mNormals[k].x * mDelta), round(mSrcPoly[j].y.toFloat() + mNormals[k].y * mDelta)));
 				return k;
 			}
 			//else angle ==> 180 degrees   
@@ -4230,9 +4131,9 @@ class ClipperOffset
 		else if (mSinA < -1.0) mSinA = -1.0;
 
 		if (mSinA * mDelta < 0) {
-			mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mNormals[k].x * mDelta), round(mSrcPoly[j].y + mNormals[k].y * mDelta)));
+			mDestPoly.push(new IntPoint(round(mSrcPoly[j].x.toFloat() + mNormals[k].x * mDelta), round(mSrcPoly[j].y.toFloat() + mNormals[k].y * mDelta)));
 			mDestPoly.push(mSrcPoly[j]);
-			mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mNormals[j].x * mDelta), round(mSrcPoly[j].y + mNormals[j].y * mDelta)));
+			mDestPoly.push(new IntPoint(round(mSrcPoly[j].x.toFloat() + mNormals[j].x * mDelta), round(mSrcPoly[j].y.toFloat() + mNormals[j].y * mDelta)));
 		} else switch (joinType) {
 			case JoinType.JT_MITER:
 				{
@@ -4252,30 +4153,30 @@ class ClipperOffset
 
 	/*internal*/ function doSquare(j:Int, k:Int):Void {
 		var dx:Float = Math.tan(Math.atan2(mSinA, mNormals[k].x * mNormals[j].x + mNormals[k].y * mNormals[j].y) / 4);
-		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mDelta * (mNormals[k].x - mNormals[k].y * dx)), round(mSrcPoly[j].y + mDelta * (mNormals[k].y + mNormals[k].x * dx))));
-		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mDelta * (mNormals[j].x + mNormals[j].y * dx)), round(mSrcPoly[j].y + mDelta * (mNormals[j].y - mNormals[j].x * dx))));
+		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x.toFloat() + mDelta * (mNormals[k].x - mNormals[k].y * dx)), round(mSrcPoly[j].y.toFloat() + mDelta * (mNormals[k].y + mNormals[k].x * dx))));
+		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x.toFloat() + mDelta * (mNormals[j].x + mNormals[j].y * dx)), round(mSrcPoly[j].y.toFloat() + mDelta * (mNormals[j].y - mNormals[j].x * dx))));
 	}
 	//------------------------------------------------------------------------------
 
 	/*internal*/ function doMiter(j:Int, k:Int, r:Float):Void {
 		var q:Float = mDelta / r;
-		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + (mNormals[k].x + mNormals[j].x) * q), round(mSrcPoly[j].y + (mNormals[k].y + mNormals[j].y) * q)));
+		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x.toFloat() + (mNormals[k].x + mNormals[j].x) * q), round(mSrcPoly[j].y.toFloat() + (mNormals[k].y + mNormals[j].y) * q)));
 	}
 	//------------------------------------------------------------------------------
 
 	/*internal*/ function doRound(j:Int, k:Int):Void {
 		var a:Float = Math.atan2(mSinA, mNormals[k].x * mNormals[j].x + mNormals[k].y * mNormals[j].y);
 		// NOTE: cast
-		var steps:Int = Std.int(Math.max(Std.int(round(mStepsPerRad * Math.abs(a))), 1));
+		var steps:Int = Std.int(Math.max(Std.int(round(mStepsPerRad * Math.abs(a)).toFloat()), 1));
 
 		var x:Float = mNormals[k].x, y = mNormals[k].y, x2;
 		for (i in 0...steps) {
-			mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + x * mDelta), round(mSrcPoly[j].y + y * mDelta)));
+			mDestPoly.push(new IntPoint(round(mSrcPoly[j].x.toFloat() + x * mDelta), round(mSrcPoly[j].y.toFloat() + y * mDelta)));
 			x2 = x;
 			x = x * mCos - mSin * y;
 			y = x2 * mSin + y * mCos;
 		}
-		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mNormals[j].x * mDelta), round(mSrcPoly[j].y + mNormals[j].y * mDelta)));
+		mDestPoly.push(new IntPoint(round(mSrcPoly[j].x.toFloat() + mNormals[j].x * mDelta), round(mSrcPoly[j].y.toFloat() + mNormals[j].y * mDelta)));
 	}
 	//------------------------------------------------------------------------------
 }
@@ -4309,6 +4210,16 @@ class InternalTools
 	static inline public function xor(a:Bool, b:Bool):Bool
 	{
 		return (a && !b) || (b && !a);
+	}
+	
+	static inline public function toFloat(bi:BigInt):Float
+	{
+		return Std.parseFloat(bi.toString());
+	}
+	
+	static inline public function toBigInt(f:Float):BigInt
+	{
+		return FunBigIntTools.parseValueUnsigned(Std.string(Math.fround(f)));
 	}
 }
 //------------------------------------------------------------------------------

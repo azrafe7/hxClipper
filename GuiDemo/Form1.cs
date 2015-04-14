@@ -1,5 +1,9 @@
 //#define UsePolyTree
 
+#define USE_INT64
+#define USE_XYZ
+#define USE_LINES
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -32,7 +36,7 @@ namespace WindowsFormsApplication1
         //via Polygon (or Polygons) objects because Clipper no longer accepts floating  
         //point values. Likewise when Clipper returns a solution in a Polygons object, 
         //we need to scale down these returned values by the same amount before displaying.
-        private float scale = 10; //or 1 or 10 or 10000 etc for lesser or greater precision.
+        private float scale = 100; //or 1 or 10 or 10000 etc for lesser or greater precision.
 
         //------------------------------------------------------------------------------
         //---------------------------------------------------------------------
@@ -104,7 +108,7 @@ namespace WindowsFormsApplication1
             }
 
             public Boolean SaveToFile(string filename, double scale = 1.0, int margin = 10)
-            {
+            {/*
                 if (scale == 0) scale = 1.0;
                 if (margin < 0) margin = 0;
 
@@ -205,7 +209,7 @@ namespace WindowsFormsApplication1
                         }
                     }
                     writer.Write("</svg>\n");
-                }
+                }*/
                 return true;
             }
         }
@@ -265,7 +269,7 @@ namespace WindowsFormsApplication1
                     {
                         float x = polyStream.ReadSingle() * scale;
                         float y = polyStream.ReadSingle() * scale;
-                        pg.push(new IntPoint(new haxe.lang.Null<int>((int)x, true), new haxe.lang.Null<int>((int)y, true)));
+                        pg.push(new IntPoint(new haxe.lang.Null<int>((int)x, true), new haxe.lang.Null<int>((int)y, true), new haxe.lang.Null<int>((int)0, true)));
                     }
                     subjects.push(pg);
                 }

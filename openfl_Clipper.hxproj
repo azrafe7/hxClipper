@@ -17,14 +17,15 @@
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
     <class path="c:\HaxeToolkit\haxe\openfl\git" />
-    <class path="c:\HaxeToolkit\haxe\lime\2,3,0" />
+    <class path="c:\HaxeToolkit\haxe\lime\2,3,1" />
+    <class path="c:\HaxeToolkit\haxe\hxBitcoin\0,1,1" />
     <class path="src" />
     <class path="..\..\src" />
     <class path="bin\flash\haxe" />
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="openfl=3.0.0-beta.3&#xA;lime=2.3.0&#xA;openfl-next&#xA;tools=2.3.0&#xA;no-compilation&#xA;openfl-flash&#xA;web&#xA;USE_LINES&#xA;USE_XYZ&#xA;swf-script-timeout=60" />
+    <option directives="openfl=3.0.1&#xA;lime=2.3.1&#xA;hxBitcoin=0.1.1&#xA;hybrid&#xA;openfl-next&#xA;tools=2.3.1&#xA;no-compilation&#xA;openfl-flash&#xA;web&#xA;USE_INT64&#xA;USE_LINES&#xA;USE_XYZ&#xA;swf-script-timeout=60" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />
