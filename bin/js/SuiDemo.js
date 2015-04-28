@@ -130,6 +130,22 @@ Lambda.has = function(it,elt) {
 	}
 	return false;
 };
+var List = function() {
+	this.length = 0;
+};
+List.__name__ = ["List"];
+List.prototype = {
+	h: null
+	,q: null
+	,length: null
+	,add: function(item) {
+		var x = [item];
+		if(this.h == null) this.h = x; else this.q[1] = x;
+		this.q = x;
+		this.length++;
+	}
+	,__class__: List
+};
 Math.__name__ = ["Math"];
 var Reflect = function() { };
 Reflect.__name__ = ["Reflect"];
@@ -251,6 +267,7 @@ var SuiDemoJS = function() {
 	this.offset = 0;
 	this.nudCount = 50;
 	this.scale = 10;
+	Tests.run();
 	this.australia = this.getPolysFromBytes(haxe_Resource.getBytes("australia"),this.scale);
 	this.clipType = hxClipper_ClipType.CT_INTERSECTION;
 	this.fillType = hxClipper_PolyFillType.PFT_NON_ZERO;
@@ -564,6 +581,1202 @@ SuiDemoJS.prototype = {
 	}
 	,__class__: SuiDemoJS
 };
+var haxe_unit_TestCase = function() {
+};
+haxe_unit_TestCase.__name__ = ["haxe","unit","TestCase"];
+haxe_unit_TestCase.prototype = {
+	currentTest: null
+	,setup: function() {
+	}
+	,tearDown: function() {
+	}
+	,print: function(v) {
+		haxe_unit_TestRunner.print(v);
+	}
+	,assertTrue: function(b,c) {
+		this.currentTest.done = true;
+		if(b != true) {
+			this.currentTest.success = false;
+			this.currentTest.error = "expected true but was false";
+			this.currentTest.posInfos = c;
+			throw new js__$Boot_HaxeError(this.currentTest);
+		}
+	}
+	,assertFalse: function(b,c) {
+		this.currentTest.done = true;
+		if(b == true) {
+			this.currentTest.success = false;
+			this.currentTest.error = "expected false but was true";
+			this.currentTest.posInfos = c;
+			throw new js__$Boot_HaxeError(this.currentTest);
+		}
+	}
+	,assertEquals: function(expected,actual,c) {
+		this.currentTest.done = true;
+		if(actual != expected) {
+			this.currentTest.success = false;
+			this.currentTest.error = "expected '" + Std.string(expected) + "' but was '" + Std.string(actual) + "'";
+			this.currentTest.posInfos = c;
+			throw new js__$Boot_HaxeError(this.currentTest);
+		}
+	}
+	,__class__: haxe_unit_TestCase
+};
+var Tests = function() {
+	haxe_unit_TestCase.call(this);
+	this.subj = [];
+	this.subj = [];
+	this.clip = [];
+	this.solution = [];
+	this.polytree = new hxClipper_PolyTree();
+	this.pft = null;
+};
+Tests.__name__ = ["Tests"];
+Tests.MakePolygonFromInts = function(ints,scale) {
+	if(scale == null) scale = 1.0;
+	var i = 0;
+	var p = [];
+	while(i < ints.length) {
+		p.push(new hxClipper_IntPoint(ints[i] * scale | 0,ints[i + 1] * scale | 0));
+		i += 2;
+	}
+	return p;
+};
+Tests.MakeSquarePolygons = function(size,totalWidth,totalHeight) {
+	var cols = totalWidth / size | 0;
+	var rows = totalHeight / size | 0;
+	var p = [];
+	var _g = 0;
+	while(_g < rows) {
+		var i = _g++;
+		var _g1 = 0;
+		while(_g1 < cols) {
+			var j = _g1++;
+			var ints = [j * size,i * size,(j + 1) * size,i * size,(j + 1) * size,(i + 1) * size,j * size,(i + 1) * size];
+			p[j * rows + i] = Tests.MakePolygonFromInts(ints);
+		}
+	}
+	return p;
+};
+Tests.MakeDiamondPolygons = function(size,totalWidth,totalHeight) {
+	var halfSize = size / 2 | 0;
+	size = halfSize * 2;
+	var cols = totalWidth / size | 0;
+	var rows = totalHeight * 2 / size | 0;
+	var p = [];
+	var dx = 0;
+	var _g = 0;
+	while(_g < rows) {
+		var i = _g++;
+		if(dx == 0) dx = halfSize; else dx = 0;
+		var _g1 = 0;
+		while(_g1 < cols) {
+			var j = _g1++;
+			var ints = [dx + j * size,i * halfSize + halfSize,dx + j * size + halfSize,i * halfSize,dx + (j + 1) * size,i * halfSize + halfSize,dx + j * size + halfSize,i * halfSize + halfSize * 2];
+			p[j * rows + i] = Tests.MakePolygonFromInts(ints);
+		}
+	}
+	return p;
+};
+Tests.run = function() {
+	var runner = new _$Tests_CustomTestRunner();
+	runner.add(new Tests());
+	var startTime = haxe_Timer.stamp();
+	var success = runner.run();
+	haxe_Log.trace("Tests executed in " + (haxe_Timer.stamp() - startTime) + "s",{ fileName : "Tests.hx", lineNumber : 1497, className : "Tests", methodName : "run"});
+};
+Tests.__super__ = haxe_unit_TestCase;
+Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
+	subj: null
+	,clip: null
+	,solution: null
+	,polytree: null
+	,pft: null
+	,testDifference1: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints1 = [29,342,115,68,141,86];
+		var ints2 = [128,160,99,132,97,174];
+		var ints3 = [99,212,128,160,97,174,58,160];
+		var ints4 = [97,174,99,132,60,124,58,160];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[0]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 139, className : "Tests", methodName : "testDifference1"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 140, className : "Tests", methodName : "testDifference1"});
+	}
+	,testDifference2: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints1 = [-103,-219,-103,-136,-115,-136];
+		var ints2 = [-110,-174,-70,-174,-110,-155];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 160, className : "Tests", methodName : "testDifference2"});
+		this.assertEquals(1,this.solution.length,{ fileName : "Tests.hx", lineNumber : 161, className : "Tests", methodName : "testDifference2"});
+	}
+	,testHorz1: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints1 = [380,280,450,280,130,400,490,430,320,200,450,260];
+		var ints2 = [350,240,520,470,100,300];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 180, className : "Tests", methodName : "testHorz1"});
+		this.assertTrue(this.solution.length <= 2,{ fileName : "Tests.hx", lineNumber : 181, className : "Tests", methodName : "testHorz1"});
+	}
+	,testHorz2: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints1 = [120,400,350,380,340,140];
+		var ints2 = [350,370,150,370,560,20,350,390,340,150,570,230,390,40];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 201, className : "Tests", methodName : "testHorz2"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 202, className : "Tests", methodName : "testHorz2"});
+	}
+	,testHorz3: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints1 = [470,190,100,520,280,270,380,270,460,170];
+		var ints2 = [170,70,500,350,110,90];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 221, className : "Tests", methodName : "testHorz3"});
+		this.assertEquals(1,this.solution.length,{ fileName : "Tests.hx", lineNumber : 222, className : "Tests", methodName : "testHorz3"});
+	}
+	,testHorz4: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [904,901,1801,901,1801,1801,902,1803];
+		var ints2 = [2,1800,902,1800,902,2704,4,2701];
+		var ints3 = [902,1802,902,2704,1804,2703,1801,1804];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.subj.push(Tests.MakePolygonFromInts(ints3));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[0]) && !hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 242, className : "Tests", methodName : "testHorz4"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 243, className : "Tests", methodName : "testHorz4"});
+	}
+	,testHorz5: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [93,92,183,93,184,184,94,183];
+		var ints2 = [184,1,270,2,272,91,183,94];
+		var ints3 = [92,2,91,91,184,91,184,0];
+		var ints4 = [183,93,184,184,271,182,274,94];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 266, className : "Tests", methodName : "testHorz5"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 267, className : "Tests", methodName : "testHorz5"});
+	}
+	,testHorz6: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [14,15,16,12,10,12];
+		var ints2 = [15,14,11,14,13,16,17,10,10,17,18,13];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 286, className : "Tests", methodName : "testHorz6"});
+		this.assertEquals(1,this.solution.length,{ fileName : "Tests.hx", lineNumber : 287, className : "Tests", methodName : "testHorz6"});
+	}
+	,testHorz7: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [11,19,19,15,15,12,13,19,15,13,10,14,13,18,16,13];
+		var ints2 = [16,10,14,17,18,10,15,18,14,14,15,14,11,16];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 306, className : "Tests", methodName : "testHorz7"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 307, className : "Tests", methodName : "testHorz7"});
+	}
+	,testHorz8: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [12,11,15,15,18,16,16,18,15,14,14,14,19,15];
+		var ints2 = [13,12,17,17,19,15];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 326, className : "Tests", methodName : "testHorz8"});
+	}
+	,testHorz9: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints1 = [380,140,430,120,180,120,430,120,190,150];
+		var ints2 = [430,130,210,70,20,260];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 345, className : "Tests", methodName : "testHorz9"});
+	}
+	,testHorz10: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints1 = [40,310,410,110,460,110,260,200];
+		var ints2 = [120,260,450,220,330,220,240,220,50,380];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 364, className : "Tests", methodName : "testHorz10"});
+	}
+	,testOrientation1: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints1 = [470,130,330,10,370,10,290,190,290,280,190,10,70,370,10,400,310,10,490,220,130,10,150,400,490,150,250,60,410,320,430,410,470,10,10,10,250,220,10,180,250,160,490,130,190,320,170,240,290,280,370,240,350,90,450,190,10,370,110,180,290,160,190,350,490,360,190,190,370,230,90,220,270,10,70,190,10,270,430,100,190,140,370,80,10,40,250,260,430,40,130,350,190,420,10,10,130,50,90,400,530,50,150,90,250,150,390,310,250,180,310,220,350,280,30,140,430,260,130,10,430,310,10,60,190,60,490,320,190,360,430,130,210,220,270,190,10,10,510,10,150,210,90,400,110,10,130,110,130,80,130,30,430,190,190,380,90,300,10,340,10,70,250,380,310,370,370,240,190,130,490,100,470,70,10,420,190,20,430,290,430,10,330,70,450,140,430,40,150,220,170,190,10,110,470,310,510,160,10,200];
+		var ints2 = [50,420,10,180,190,160,50,40,490,40,450,130,450,290,290,310,430,110,370,250,490,220,430,230,410,220,10,200,530,130,50,350,370,290,130,130,110,390,10,350,210,340,370,220,530,280,370,170,190,370,330,310,510,280,90,10,50,250,170,100,110,40,310,370,430,80,390,40,250,360,350,150,130,310,10,260,390,90,370,280,70,100,530,190,10,250,470,340,110,180,10,10,70,380,370,60,190,290,250,70,10,150,70,120,490,340,330,40,90,10,210,40,50,10,450,370,310,390,10,10,10,270,250,180,130,120,10,150,10,220,150,280,490,10,150,370,370,220,10,310,10,330,450,150,310,80,410,40,530,290,110,240,70,140,190,410,10,250,270,230,370,380,270,280,230,220,430,110,10,290,130,250,190,40,170,320,210,220,290,40,370,380,30,380,130,50,370,340,130,190,70,250,310,270,250,290,310,280,230,150];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		if(res) {
+			var _g1 = 0;
+			var _g = this.solution.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				if(!hxClipper_Clipper.orientation(this.solution[i])) {
+					res = false;
+					break;
+				}
+			}
+		}
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 423, className : "Tests", methodName : "testOrientation1"});
+	}
+	,testOrientation2: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [370,150,130,400,490,290,490,400,170,10,130,130,270,90,430,230,310,230,10,80,390,110,370,20,190,210,370,410,110,100,410,230,370,290,350,190,350,100,230,290];
+		var ints2 = [510,400,250,100,410,410,170,210,390,100,10,100,10,250,10,220,130,90,410,330,450,160,50,180,110,100,210,320,410,220,190,30,370,70,270,260,450,250,90,280];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		var cnt = 0;
+		if(res) {
+			var _g1 = 0;
+			var _g = this.solution.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				if(!hxClipper_Clipper.orientation(this.solution[i])) cnt++;
+			}
+		}
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 454, className : "Tests", methodName : "testOrientation2"});
+		this.assertEquals(4,cnt,{ fileName : "Tests.hx", lineNumber : 455, className : "Tests", methodName : "testOrientation2"});
+	}
+	,testOrientation3: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints1 = [70,290,10,410,10,220];
+		var ints2 = [430,20,10,30,10,370,250,300,190,10,10,370,30,220,490,100,10,370];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		if(res) {
+			var _g1 = 0;
+			var _g = this.solution.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				if(!hxClipper_Clipper.orientation(this.solution[i])) {
+					res = false;
+					break;
+				}
+			}
+		}
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 484, className : "Tests", methodName : "testOrientation3"});
+	}
+	,testOrientation4: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [40,190,400,10,510,450,300,50,440,230,340,290,260,510,110,50,500,90,450,410,550,70,70,130,410,110,130,130,470,50,410,10,360,50,460,90,170,270,400,210,240,370,50,370,350,270,530,330,170,250,440,170,40,430,410,90,170,510,470,130,290,390,510,410,500,230,490,490,430,430,10,250,240,190,80,370,60,190,570,490,110,270,550,290,90,10,200,10,580,450,500,450,370,210,10,250,60,70,220,10,530,130,190,10,350,170,440,330,260,50,320,10,570,10,350,170,130,470,350,370,40,130,540,50,10,50,320,450,270,470,460,10,60,110,280,170,300,410,300,370,520,170,460,410,180,270,270,450,50,110,490,490,10,150,240,490,200,190,10,10,30,370,170,410,560,290,140,10,350,190,290,10,460,210,70,290,300,270,570,450,250,330,250,290,300,410,210,330,320,390,160,290,70,190,40,170,490,70,70,50];
+		var ints2 = [160,510,440,90,400,510,220,250,480,210,80,410,530,170,10,50,220,290,110,490,110,10,350,130,510,330,10,410,190,30,90,10,380,270,50,250,510,50,580,10,50,130,540,330,120,250,440,250,10,430,10,410,150,190,510,490,400,170,200,10,170,470,300,10,130,130,190,10,500,350,40,10,400,230,20,370,230,510,140,10,220,490,90,370,490,190,520,210,180,70,440,490,510,10,420,210,340,410,80,10,100,190,100,250,340,390,360,10,170,70,300,290,110,370,160,330,210,10,300,10,540,410,380,490,550,290,170,450,580,390,360,10,450,370,520,330,100,30,160,450,160,190,300,90,400,270,40,170,40,90,210,330,450,50,430,370,290,370,150,10,340,170,10,90,180,150,530,450,310,490,400,450,340,10,420,210,500,70,100,10,400,470,40,490,550,190,30,90,100,130,70,490,20,270,490,410,570,370,220,90];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		var cnt = 0;
+		if(res) {
+			var _g1 = 0;
+			var _g = this.solution.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				if(!hxClipper_Clipper.orientation(this.solution[i])) cnt++;
+			}
+		}
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 543, className : "Tests", methodName : "testOrientation4"});
+		this.assertEquals(2,cnt,{ fileName : "Tests.hx", lineNumber : 544, className : "Tests", methodName : "testOrientation4"});
+	}
+	,testOrientation5: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [5237,5237,68632,5164,10315,61247,10315,20643,16045,29877,24374,11012,10359,19690,10315,20643,10315,67660];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft);
+		res = res && !hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 563, className : "Tests", methodName : "testOrientation5"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 564, className : "Tests", methodName : "testOrientation5"});
+	}
+	,testOrientation6: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,100,0,101,116,0,109];
+		var ints2 = [110,112,200,106,200,200,111,200];
+		var ints3 = [0,106,101,114,107,200,0,200];
+		var ints4 = [117,0,200,0,200,110,115,102];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[1]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 589, className : "Tests", methodName : "testOrientation6"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 590, className : "Tests", methodName : "testOrientation6"});
+	}
+	,testOrientation7: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,100,0,104,116,0,118];
+		var ints2 = [111,115,200,103,200,200,105,200];
+		var ints3 = [0,103,112,111,105,200,0,200];
+		var ints4 = [116,0,200,0,200,113,101,110];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[1]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 615, className : "Tests", methodName : "testOrientation7"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 616, className : "Tests", methodName : "testOrientation7"});
+	}
+	,testOrientation8: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,112,0,111,116,0,108];
+		var ints2 = [112,114,200,108,200,200,116,200];
+		var ints3 = [0,102,118,111,117,200,0,200];
+		var ints4 = [109,0,200,0,200,117,105,110];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[1]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 641, className : "Tests", methodName : "testOrientation8"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 642, className : "Tests", methodName : "testOrientation8"});
+	}
+	,testOrientation9: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,114,0,113,110,0,117];
+		var ints2 = [109,114,200,106,200,200,104,200];
+		var ints3 = [0,100,118,106,103,200,0,200];
+		var ints4 = [110,0,200,0,200,116,101,105];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[1]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 667, className : "Tests", methodName : "testOrientation9"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 668, className : "Tests", methodName : "testOrientation9"});
+	}
+	,testOrientation10: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,102,0,103,118,0,106];
+		var ints2 = [110,115,200,108,200,200,113,200];
+		var ints3 = [0,110,103,117,109,200,0,200];
+		var ints4 = [118,0,200,0,200,108,116,101];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[1]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 693, className : "Tests", methodName : "testOrientation10"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 694, className : "Tests", methodName : "testOrientation10"});
+	}
+	,testOrientation11: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,100,0,107,116,0,104];
+		var ints2 = [116,100,200,115,200,200,118,200];
+		var ints3 = [0,115,107,115,115,200,0,200];
+		var ints4 = [101,0,200,0,200,100,100,100];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[1]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 719, className : "Tests", methodName : "testOrientation11"});
+	}
+	,testOrientation12: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,119,0,113,105,0,100];
+		var ints2 = [117,103,200,105,200,200,106,200];
+		var ints3 = [0,112,116,104,108,200,0,200];
+		var ints4 = [101,0,200,0,200,117,104,112];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[1]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 744, className : "Tests", methodName : "testOrientation12"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 745, className : "Tests", methodName : "testOrientation12"});
+	}
+	,testOrientation13: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,119,0,109,108,0,101];
+		var ints2 = [115,100,200,103,200,200,101,200];
+		var ints3 = [0,117,110,100,103,200,0,200];
+		var ints4 = [115,0,200,0,200,109,119,102];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[1]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 770, className : "Tests", methodName : "testOrientation13"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 771, className : "Tests", methodName : "testOrientation13"});
+	}
+	,testOrientation14: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,102,0,119,107,0,101];
+		var ints2 = [116,110,200,114,200,200,107,200];
+		var ints3 = [0,108,117,106,111,200,0,200];
+		var ints4 = [112,0,200,0,200,117,101,112];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[1]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 796, className : "Tests", methodName : "testOrientation14"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 797, className : "Tests", methodName : "testOrientation14"});
+	}
+	,testOrientation15: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,106,0,107,111,0,102];
+		var ints2 = [119,116,200,118,200,200,117,200];
+		var ints3 = [0,101,107,106,111,200,0,200];
+		var ints4 = [113,0,200,0,200,114,117,117];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[1]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 822, className : "Tests", methodName : "testOrientation15"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 823, className : "Tests", methodName : "testOrientation15"});
+	}
+	,testSelfInt1: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,201,0,203,217,0,207];
+		var ints2 = [204,214,400,217,400,400,205,400];
+		var ints3 = [0,211,203,214,208,400,0,400];
+		var ints4 = [207,0,400,0,400,208,218,200];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[0]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 848, className : "Tests", methodName : "testSelfInt1"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 849, className : "Tests", methodName : "testSelfInt1"});
+	}
+	,testSelfInt2: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,200,0,219,207,0,200];
+		var ints2 = [201,207,400,200,400,400,200,400];
+		var ints3 = [0,200,214,207,200,400,0,400];
+		var ints4 = [200,0,400,0,400,200,209,215];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && this.solution.length == 2 && hxClipper_Clipper.orientation(this.solution[0]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 874, className : "Tests", methodName : "testSelfInt2"});
+	}
+	,testSelfInt3: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,201,0,207,214,0,207];
+		var ints2 = [209,211,400,206,400,400,214,400];
+		var ints3 = [0,211,207,208,213,400,0,400];
+		var ints4 = [213,0,400,0,400,210,213,200];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && this.solution.length == 2 && hxClipper_Clipper.orientation(this.solution[0]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 899, className : "Tests", methodName : "testSelfInt3"});
+	}
+	,testSelfInt4: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [0,0,214,0,209,206,0,201];
+		var ints2 = [205,208,400,207,400,400,200,400];
+		var ints3 = [201,0,400,0,400,217,205,217];
+		var ints4 = [0,205,215,206,217,400,0,400];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && hxClipper_Clipper.orientation(this.solution[0]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 924, className : "Tests", methodName : "testSelfInt4"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 925, className : "Tests", methodName : "testSelfInt4"});
+	}
+	,testSelfInt5: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints1 = [0,0,219,0,217,217,0,200];
+		var ints2 = [214,219,400,200,400,400,219,400];
+		var ints3 = [0,207,205,211,214,400,0,400];
+		var ints4 = [202,0,400,0,400,217,205,217];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_DIFFERENCE,this.solution,this.pft,this.pft);
+		res = res && this.solution.length == 2 && hxClipper_Clipper.orientation(this.solution[0]) && hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 950, className : "Tests", methodName : "testSelfInt5"});
+	}
+	,testSelfInt6: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints = [182,179,477,123,25,55];
+		var ints2 = [477,122,485,103,122,265,55,207];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_INTERSECTION,this.solution,this.pft,this.pft);
+		res = res && this.solution.length == 1 && hxClipper_Clipper.orientation(this.solution[0]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 972, className : "Tests", methodName : "testSelfInt6"});
+	}
+	,testUnion1: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints1 = [1026,1126,1026,235,4505,401,4522,1145,4503,1162,2280,1129];
+		var ints2 = [4501,1100,4501,866,1146,462,1071,1067,4469,1000];
+		var ints3 = [4499,1135,3360,1050,3302,1107];
+		var ints4 = [3360,1050,3291,1118,4512,1136];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints1));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		this.subj.push(Tests.MakePolygonFromInts(ints3));
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints4));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft);
+		res = res && this.solution.length == 2 && hxClipper_Clipper.orientation(this.solution[0]) && !hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 999, className : "Tests", methodName : "testUnion1"});
+	}
+	,testUnion2: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints = [[10,10,20,10,20,20,10,20],[20,10,30,10,30,20,20,20],[30,10,40,10,40,20,30,20],[40,10,50,10,50,20,40,20],[50,10,60,10,60,20,50,20],[10,20,20,20,20,30,10,30],[30,20,40,20,40,30,30,30],[10,30,20,30,20,40,10,40],[20,30,30,30,30,40,20,40],[30,30,40,30,40,40,30,40],[40,30,50,30,50,40,40,40]];
+		this.subj.length = 0;
+		var _g = 0;
+		while(_g < 11) {
+			var i = _g++;
+			this.subj.push(Tests.MakePolygonFromInts(ints[i]));
+		}
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1025, className : "Tests", methodName : "testUnion2"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1026, className : "Tests", methodName : "testUnion2"});
+	}
+	,testUnion3: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints = [[1,3,2,4,2,5],[1,3,3,3,2,4]];
+		this.subj.length = 0;
+		var _g = 0;
+		while(_g < 2) {
+			var i = _g++;
+			this.subj.push(Tests.MakePolygonFromInts(ints[i]));
+		}
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1040, className : "Tests", methodName : "testUnion3"});
+		this.assertEquals(1,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1041, className : "Tests", methodName : "testUnion3"});
+	}
+	,testAddPath1: function() {
+		var ints_0 = [480,20,480,110,320,30,480,30,250,250,480,30];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1052, className : "Tests", methodName : "testAddPath1"});
+	}
+	,testAddPath2: function() {
+		var ints_0 = [60,320,390,320,100,320,220,120,120,10,20,380,120,20,280,20,480,20];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1064, className : "Tests", methodName : "testAddPath2"});
+	}
+	,testAddPath3: function() {
+		var ints_0 = [320,70,420,370,250,170,60,290,10,290,210,290,400,150,410,340];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1075, className : "Tests", methodName : "testAddPath3"});
+	}
+	,testAddPath4: function() {
+		var ints_0 = [300,80,280,220,180,220,170,220,290,220,40,180];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1087, className : "Tests", methodName : "testAddPath4"});
+	}
+	,testAddPath5: function() {
+		var ints_0 = [170,340,280,230,160,50,430,370,280,230];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1098, className : "Tests", methodName : "testAddPath5"});
+	}
+	,testAddPath6: function() {
+		var ints_0 = [30,380,70,160,170,220,70,160,240,160];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1109, className : "Tests", methodName : "testAddPath6"});
+	}
+	,testAddPath7: function() {
+		var ints_0 = [440,300,40,40,440,300,80,360];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1120, className : "Tests", methodName : "testAddPath7"});
+	}
+	,testAddPath8: function() {
+		var ints_0 = [260,10,260,240,190,100,260,10,420,120];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1131, className : "Tests", methodName : "testAddPath8"});
+	}
+	,testAddPath9: function() {
+		var ints_0 = [60,240,30,10,460,170,110,280,30,10];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1142, className : "Tests", methodName : "testAddPath9"});
+	}
+	,testAddPath10: function() {
+		var ints_0 = [430,270,440,260,470,30,280,30,430,270,450,40];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1153, className : "Tests", methodName : "testAddPath10"});
+	}
+	,testAddPath11: function() {
+		var ints_0 = [320,10,240,300,260,140,320,10,240,300];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1164, className : "Tests", methodName : "testAddPath11"});
+	}
+	,testAddPath12: function() {
+		var ints_0 = [270,340,130,50,50,350,270,340,290,40];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1175, className : "Tests", methodName : "testAddPath12"});
+	}
+	,testAddPath13: function() {
+		var ints_0 = [430,330,280,10,210,280,430,330,280,10];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1186, className : "Tests", methodName : "testAddPath13"});
+	}
+	,testAddPath14: function() {
+		var ints_0 = [50,30,410,330,50,30,310,50];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1197, className : "Tests", methodName : "testAddPath14"});
+	}
+	,testAddPath15: function() {
+		var ints_0 = [230,50,10,50,110,50];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1208, className : "Tests", methodName : "testAddPath15"});
+	}
+	,testAddPath16: function() {
+		var ints_0 = [260,320,40,130,100,30,80,360,260,320,40,50];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1219, className : "Tests", methodName : "testAddPath16"});
+	}
+	,testAddPath17: function() {
+		var ints_0 = [190,170,350,290,110,290,250,290,430,90];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1230, className : "Tests", methodName : "testAddPath17"});
+	}
+	,testAddPath18: function() {
+		var ints_0 = [150,330,210,70,90,70,210,70,150,330];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1241, className : "Tests", methodName : "testAddPath18"});
+	}
+	,testAddPath19: function() {
+		var ints_0 = [170,290,50,290,170,290,410,310,170,290];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1252, className : "Tests", methodName : "testAddPath19"});
+	}
+	,testAddPath20: function() {
+		var ints_0 = [430,10,150,110,430,10,230,50];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var c = new hxClipper_Clipper();
+		var res = c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1263, className : "Tests", methodName : "testAddPath20"});
+	}
+	,testOpenPath1: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints_0 = [290,370,160,150,230,150,160,150,250,280];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints_0));
+		var ints2_0 = [150,10,160,290,200,80,50,340];
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2_0));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePolyTree(hxClipper_ClipType.CT_INTERSECTION,this.polytree,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1280, className : "Tests", methodName : "testOpenPath1"});
+	}
+	,testOpenPath2: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints = [50,310,210,110,260,110,170,110,350,200];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints));
+		var ints2 = [310,30,90,90,370,130];
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePolyTree(hxClipper_ClipType.CT_INTERSECTION,this.polytree,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1297, className : "Tests", methodName : "testOpenPath2"});
+	}
+	,testOpenPath3: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints = [40,360,260,50,180,270,180,250,410,250,140,250,350,380];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints));
+		var ints2 = [30,110,330,90,20,370];
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePolyTree(hxClipper_ClipType.CT_INTERSECTION,this.polytree,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1314, className : "Tests", methodName : "testOpenPath3"});
+	}
+	,testOpenPath4: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints = [10,50,200,50];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints));
+		var ints2 = [50,10,150,10,150,100,50,100];
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,false);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePolyTree(hxClipper_ClipType.CT_INTERSECTION,this.polytree,this.pft,this.pft) && this.polytree.get_numChildren() == 1;
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1331, className : "Tests", methodName : "testOpenPath4"});
+	}
+	,testSimplify1: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints = [5048400,1719180,5050250,1717630,5049070,1717320,5049150,1717200,5049350,1717570];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints));
+		var c = new hxClipper_Clipper();
+		c.strictlySimple = true;
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1345, className : "Tests", methodName : "testSimplify1"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1346, className : "Tests", methodName : "testSimplify1"});
+	}
+	,testSimplify2: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints = [220,720,420,720,420,520,320,520,320,480,480,480,480,800,180,800,180,480,320,480,320,520,220,520];
+		var ints2 = [440,520,620,520,620,420,440,420];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints));
+		this.subj.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1361, className : "Tests", methodName : "testSimplify2"});
+		this.assertEquals(3,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1362, className : "Tests", methodName : "testSimplify2"});
+	}
+	,testJoins1: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints = [[0,0,0,32,32,32,32,0],[32,0,32,32,64,32,64,0],[64,0,64,32,96,32,96,0],[96,0,96,32,128,32,128,0],[0,32,0,64,32,64,32,32],[64,32,64,64,96,64,96,32],[0,64,0,96,32,96,32,64],[32,64,32,96,64,96,64,64]];
+		this.subj.length = 0;
+		var _g = 0;
+		while(_g < 8) {
+			var i = _g++;
+			this.subj.push(Tests.MakePolygonFromInts(ints[i]));
+		}
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1385, className : "Tests", methodName : "testJoins1"});
+		this.assertEquals(1,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1386, className : "Tests", methodName : "testJoins1"});
+	}
+	,testJoins2: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints = [[100,100,100,91,200,91,200,100],[200,91,209,91,209,250,200,250],[209,250,209,259,100,259,100,250],[100,250,109,250,109,300,100,300],[109,300,109,309,50,309,50,300],[50,309,41,309,41,250,50,250],[50,250,50,259,0,259,0,250],[0,259,-9,259,-9,100,0,100],[-9,100,-9,91,50,91,50,100],[50,100,41,100,41,50,50,50],[41,50,41,41,100,41,100,50],[100,41,109,41,109,100,100,100]];
+		this.subj.length = 0;
+		var _g = 0;
+		while(_g < 12) {
+			var i = _g++;
+			this.subj.push(Tests.MakePolygonFromInts(ints[i]));
+		}
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft) && hxClipper_Clipper.orientation(this.solution[0]) != hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1413, className : "Tests", methodName : "testJoins2"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1414, className : "Tests", methodName : "testJoins2"});
+	}
+	,testJoins3: function() {
+		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
+		var ints = [220,720,420,720,420,520,320,520,320,480,480,480,480,800,180,800,180,480,320,480,320,520,220,520];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints));
+		var ints2 = [440,520,620,520,620,420,440,420];
+		this.clip.length = 0;
+		this.clip.push(Tests.MakePolygonFromInts(ints2));
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		c.addPaths(this.clip,hxClipper_PolyType.PT_CLIP,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft) && hxClipper_Clipper.orientation(this.solution[0]) != hxClipper_Clipper.orientation(this.solution[1]);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1432, className : "Tests", methodName : "testJoins3"});
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1433, className : "Tests", methodName : "testJoins3"});
+	}
+	,testJoins4: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints = [1172,318,337,1066,154,639,479,448,1197,545,1041,773,30,888,444,308,1051,552,1109,102,658,683,394,596,972,1145,442,179,470,441,227,564,1179,1037,213,379,1072,872,587,171,723,329,272,242,952,1121,714,1148,91,217,735,561,903,1009,664,1168,1160,847,9,7,619,142,1139,1116,1134,369,760,647,372,134,1106,183,311,103,265,185,1062,856,453,944,44,653,766,527,334,965,443,971,474,36,397,1138,901,841,775,612,222,465,148,955,417,540,997,472,666,802,754,32,907,638,927,42,990,406,99,682,17,281,106,848];
+		this.subj = Tests.MakeDiamondPolygons(20,600,400);
+		var _g = 0;
+		while(_g < 120) {
+			var i = _g++;
+			this.subj[ints[i]].length = 0;
+		}
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1455, className : "Tests", methodName : "testJoins4"});
+		this.assertEquals(69,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1456, className : "Tests", methodName : "testJoins4"});
+	}
+	,testJoins5: function() {
+		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
+		var ints = [553,388,574,20,191,26,461,258,509,19,466,257,90,269,373,516,350,333,288,141,47,217,247,519,535,336,504,497,344,341,293,177,558,598,399,286,482,185,266,24,27,118,338,413,514,510,366,46,593,465,405,32,449,6,326,59,75,173,127,130];
+		this.subj = Tests.MakeSquarePolygons(20,600,400);
+		var _g = 0;
+		while(_g < 60) {
+			var i = _g++;
+			this.subj[ints[i]].length = 0;
+		}
+		var c = new hxClipper_Clipper();
+		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
+		var res = c.executePaths(hxClipper_ClipType.CT_UNION,this.solution,this.pft,this.pft);
+		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1472, className : "Tests", methodName : "testJoins5"});
+		this.assertEquals(37,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1473, className : "Tests", methodName : "testJoins5"});
+	}
+	,testOffsetPoly1: function() {
+		var scale = 10.0;
+		var ints2 = [348,257,364,148,362,148,326,241,295,219,258,88,440,129,370,196,372,275];
+		this.subj.length = 0;
+		this.subj.push(Tests.MakePolygonFromInts(ints2,scale));
+		var co = new hxClipper_ClipperOffset();
+		co.addPaths(this.subj,hxClipper_JoinType.JT_ROUND,hxClipper_EndType.ET_CLOSED_POLYGON);
+		this.solution.length = 0;
+		co.executePaths(this.solution,-7. * scale);
+		this.assertEquals(2,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1486, className : "Tests", methodName : "testOffsetPoly1"});
+	}
+	,__class__: Tests
+});
+var haxe_unit_TestRunner = function() {
+	this.result = new haxe_unit_TestResult();
+	this.cases = new List();
+};
+haxe_unit_TestRunner.__name__ = ["haxe","unit","TestRunner"];
+haxe_unit_TestRunner.print = function(v) {
+	var msg = js_Boot.__string_rec(v,"");
+	var d;
+	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) {
+		msg = StringTools.htmlEscape(msg).split("\n").join("<br/>");
+		d.innerHTML += msg + "<br/>";
+	} else if(typeof process != "undefined" && process.stdout != null && process.stdout.write != null) process.stdout.write(msg); else if(typeof console != "undefined" && console.log != null) console.log(msg);
+};
+haxe_unit_TestRunner.customTrace = function(v,p) {
+	haxe_unit_TestRunner.print(p.fileName + ":" + p.lineNumber + ": " + Std.string(v) + "\n");
+};
+haxe_unit_TestRunner.prototype = {
+	result: null
+	,cases: null
+	,add: function(c) {
+		this.cases.add(c);
+	}
+	,run: function() {
+		this.result = new haxe_unit_TestResult();
+		var _g_head = this.cases.h;
+		var _g_val = null;
+		while(_g_head != null) {
+			var c;
+			c = (function($this) {
+				var $r;
+				_g_val = _g_head[0];
+				_g_head = _g_head[1];
+				$r = _g_val;
+				return $r;
+			}(this));
+			this.runCase(c);
+		}
+		haxe_unit_TestRunner.print(this.result.toString());
+		return this.result.success;
+	}
+	,runCase: function(t) {
+		var old = haxe_Log.trace;
+		haxe_Log.trace = haxe_unit_TestRunner.customTrace;
+		var cl;
+		if(t == null) cl = null; else cl = js_Boot.getClass(t);
+		var fields = Type.getInstanceFields(cl);
+		haxe_unit_TestRunner.print("Class: " + Type.getClassName(cl) + " ");
+		var _g = 0;
+		while(_g < fields.length) {
+			var f = fields[_g];
+			++_g;
+			var fname = f;
+			var field = Reflect.field(t,f);
+			if(StringTools.startsWith(fname,"test") && Reflect.isFunction(field)) {
+				t.currentTest = new haxe_unit_TestStatus();
+				t.currentTest.classname = Type.getClassName(cl);
+				t.currentTest.method = fname;
+				t.setup();
+				try {
+					Reflect.callMethod(t,field,[]);
+					if(t.currentTest.done) {
+						t.currentTest.success = true;
+						haxe_unit_TestRunner.print(".");
+					} else {
+						t.currentTest.success = false;
+						t.currentTest.error = "(warning) no assert";
+						haxe_unit_TestRunner.print("W");
+					}
+				} catch( $e0 ) {
+					haxe_CallStack.lastException = $e0;
+					if ($e0 instanceof js__$Boot_HaxeError) $e0 = $e0.val;
+					if( js_Boot.__instanceof($e0,haxe_unit_TestStatus) ) {
+						var e = $e0;
+						haxe_unit_TestRunner.print("F");
+						t.currentTest.backtrace = haxe_CallStack.toString(haxe_CallStack.exceptionStack());
+					} else {
+					var e1 = $e0;
+					haxe_unit_TestRunner.print("E");
+					if(e1.message != null) t.currentTest.error = "exception thrown : " + Std.string(e1) + " [" + Std.string(e1.message) + "]"; else t.currentTest.error = "exception thrown : " + Std.string(e1);
+					t.currentTest.backtrace = haxe_CallStack.toString(haxe_CallStack.exceptionStack());
+					}
+				}
+				this.result.add(t.currentTest);
+				t.tearDown();
+			}
+		}
+		haxe_unit_TestRunner.print("\n");
+		haxe_Log.trace = old;
+	}
+	,__class__: haxe_unit_TestRunner
+};
+var _$Tests_CustomTestRunner = function() {
+	haxe_unit_TestRunner.call(this);
+};
+_$Tests_CustomTestRunner.__name__ = ["_Tests","CustomTestRunner"];
+_$Tests_CustomTestRunner.__super__ = haxe_unit_TestRunner;
+_$Tests_CustomTestRunner.prototype = $extend(haxe_unit_TestRunner.prototype,{
+	__class__: _$Tests_CustomTestRunner
+});
 var ValueType = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] };
 ValueType.TNull = ["TNull",0];
 ValueType.TNull.toString = $estr;
@@ -931,6 +2144,11 @@ haxe_Resource.getBytes = function(name) {
 		}
 	}
 	return null;
+};
+var haxe_Timer = function() { };
+haxe_Timer.__name__ = ["haxe","Timer"];
+haxe_Timer.stamp = function() {
+	return new Date().getTime() / 1000;
 };
 var haxe_io_Bytes = function(data) {
 	this.length = data.byteLength;
@@ -1315,6 +2533,88 @@ haxe_io_FPHelper.doubleToI64 = function(v) {
 		i64.high = (v < 0?-2147483648:0) | exp + 1023 << 20 | sig_h;
 	}
 	return i64;
+};
+var haxe_unit_TestResult = function() {
+	this.m_tests = new List();
+	this.success = true;
+};
+haxe_unit_TestResult.__name__ = ["haxe","unit","TestResult"];
+haxe_unit_TestResult.prototype = {
+	m_tests: null
+	,success: null
+	,add: function(t) {
+		this.m_tests.add(t);
+		if(!t.success) this.success = false;
+	}
+	,toString: function() {
+		var buf_b = "";
+		var failures = 0;
+		var _g_head = this.m_tests.h;
+		var _g_val = null;
+		while(_g_head != null) {
+			var test;
+			test = (function($this) {
+				var $r;
+				_g_val = _g_head[0];
+				_g_head = _g_head[1];
+				$r = _g_val;
+				return $r;
+			}(this));
+			if(test.success == false) {
+				buf_b += "* ";
+				if(test.classname == null) buf_b += "null"; else buf_b += "" + test.classname;
+				buf_b += "::";
+				if(test.method == null) buf_b += "null"; else buf_b += "" + test.method;
+				buf_b += "()";
+				buf_b += "\n";
+				buf_b += "ERR: ";
+				if(test.posInfos != null) {
+					buf_b += Std.string(test.posInfos.fileName);
+					buf_b += ":";
+					buf_b += Std.string(test.posInfos.lineNumber);
+					buf_b += "(";
+					buf_b += Std.string(test.posInfos.className);
+					buf_b += ".";
+					buf_b += Std.string(test.posInfos.methodName);
+					buf_b += ") - ";
+				}
+				if(test.error == null) buf_b += "null"; else buf_b += "" + test.error;
+				buf_b += "\n";
+				if(test.backtrace != null) {
+					if(test.backtrace == null) buf_b += "null"; else buf_b += "" + test.backtrace;
+					buf_b += "\n";
+				}
+				buf_b += "\n";
+				failures++;
+			}
+		}
+		buf_b += "\n";
+		if(failures == 0) buf_b += "OK "; else buf_b += "FAILED ";
+		buf_b += Std.string(this.m_tests.length);
+		buf_b += " tests, ";
+		if(failures == null) buf_b += "null"; else buf_b += "" + failures;
+		buf_b += " failed, ";
+		buf_b += Std.string(this.m_tests.length - failures);
+		buf_b += " success";
+		buf_b += "\n";
+		return buf_b;
+	}
+	,__class__: haxe_unit_TestResult
+};
+var haxe_unit_TestStatus = function() {
+	this.done = false;
+	this.success = false;
+};
+haxe_unit_TestStatus.__name__ = ["haxe","unit","TestStatus"];
+haxe_unit_TestStatus.prototype = {
+	done: null
+	,success: null
+	,error: null
+	,method: null
+	,classname: null
+	,posInfos: null
+	,backtrace: null
+	,__class__: haxe_unit_TestStatus
 };
 var hxClipper_DoublePoint = function(x,y) {
 	if(y == null) y = 0;
@@ -1861,7 +3161,7 @@ hxClipper_ClipperBase.prototype = {
 		return result;
 	}
 	,addPath: function(path,polyType,closed) {
-		if(!closed) throw new js__$Boot_HaxeError(new hxClipper_ClipperException("AddPath: Open paths have been disabled (define USE_LINES to enable them)."));
+		if(!closed && polyType == hxClipper_PolyType.PT_CLIP) throw new js__$Boot_HaxeError(new hxClipper_ClipperException("AddPath: Open paths must be subject."));
 		var highI = path.length - 1;
 		if(closed) while(highI > 0 && path[highI].equals(path[0])) --highI;
 		while(highI > 0 && path[highI].equals(path[highI - 1])) --highI;
@@ -3147,6 +4447,28 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 	,intersectEdges: function(e1,e2,pt) {
 		var e1Contributing = e1.outIdx >= 0;
 		var e2Contributing = e2.outIdx >= 0;
+		if(e1.windDelta == 0 || e2.windDelta == 0) {
+			if(e1.windDelta == 0 && e2.windDelta == 0) return; else if(e1.polyType == e2.polyType && e1.windDelta != e2.windDelta && this.mClipType == hxClipper_ClipType.CT_UNION) {
+				if(e1.windDelta == 0) {
+					if(e2Contributing) {
+						this.addOutPt(e1,pt);
+						if(e1Contributing) e1.outIdx = -1;
+					}
+				} else if(e1Contributing) {
+					this.addOutPt(e2,pt);
+					if(e2Contributing) e2.outIdx = -1;
+				}
+			} else if(e1.polyType != e2.polyType) {
+				if(e1.windDelta == 0 && Math.abs(e2.windCnt) == 1 && (this.mClipType != hxClipper_ClipType.CT_UNION || e2.windCnt2 == 0)) {
+					this.addOutPt(e1,pt);
+					if(e1Contributing) e1.outIdx = -1;
+				} else if(e2.windDelta == 0 && Math.abs(e1.windCnt) == 1 && (this.mClipType != hxClipper_ClipType.CT_UNION || e1.windCnt2 == 0)) {
+					this.addOutPt(e2,pt);
+					if(e2Contributing) e2.outIdx = -1;
+				}
+			}
+			return;
+		}
 		if(e1.polyType == e2.polyType) {
 			if(this.isEvenOddFillType(e1)) {
 				var oldE1WindCnt = e1.windCnt;
@@ -3634,6 +4956,17 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		} else if(e.outIdx >= 0 && eMaxPair.outIdx >= 0) {
 			if(e.outIdx >= 0) this.addLocalMaxPoly(e,eMaxPair,e.top);
 			this.deleteFromAEL(e);
+			this.deleteFromAEL(eMaxPair);
+		} else if(e.windDelta == 0) {
+			if(e.outIdx >= 0) {
+				this.addOutPt(e,e.top);
+				e.outIdx = -1;
+			}
+			this.deleteFromAEL(e);
+			if(eMaxPair.outIdx >= 0) {
+				this.addOutPt(eMaxPair,e.top);
+				eMaxPair.outIdx = -1;
+			}
 			this.deleteFromAEL(eMaxPair);
 		} else throw new js__$Boot_HaxeError(new hxClipper_ClipperException("DoMaxima error"));
 	}

@@ -65,6 +65,8 @@ class SuiDemoJS {
 
 	public function new()
 	{
+		Tests.run();
+		
 		australia = getPolysFromBytes(Resource.getBytes("australia"), scale);
 
 		clipType = CT_INTERSECTION;
