@@ -239,6 +239,8 @@ StringTools.fastCodeAt = function(s,index) {
 	return s.charCodeAt(index);
 };
 var SuiDemoJS = function() {
+	this.randomCircles = [];
+	this.randomPolys = [];
 	this.generatingCircles = false;
 	this.showSolution = true;
 	this.showClips = true;
@@ -255,9 +257,8 @@ var SuiDemoJS = function() {
 	this.joinType = hxClipper_JoinType.JT_ROUND;
 	var canvas = this.createCanvas(SuiDemoJS.width,SuiDemoJS.height,10,10);
 	this.ctx = canvas.getContext("2d",null);
+	this.genRandomPolygons();
 	this.createUI();
-	this.subjects.length = 0;
-	this.genRandomPolygons(this.nudCount);
 	this.update();
 };
 SuiDemoJS.__name__ = ["SuiDemoJS"];
@@ -280,6 +281,8 @@ SuiDemoJS.prototype = {
 	,showClips: null
 	,showSolution: null
 	,generatingCircles: null
+	,randomPolys: null
+	,randomCircles: null
 	,subjAreaControl: null
 	,clipAreaControl: null
 	,intersectAreaControl: null
@@ -288,6 +291,8 @@ SuiDemoJS.prototype = {
 	,ctx: null
 	,createUI: function() {
 		var _g = this;
+		var debouncedUpdate;
+		debouncedUpdate = thx_core_Timer.debounce($bind(this,this.update),50);
 		var sui1 = new sui_Sui();
 		var ui = sui1.folder("hxClipper - SuiDemo");
 		var uiFolder = ui.folder("Options");
@@ -304,7 +309,7 @@ SuiDemoJS.prototype = {
 		uiFolder.grid.add(sui_components_CellContent.HorizontalPair(this.countLabel,countControl));
 		uiFolder["float"]("Offset",this.offset,{ step : 1, min : -20, max : 20},function(v2) {
 			_g.offset = v2;
-			_g.update();
+			debouncedUpdate();
 		});
 		uiFolder.text("Join Type","JT_ROUND",{ list : [{ label : "miter", value : "JT_MITER"},{ label : "square", value : "JT_SQUARE"},{ label : "round", value : "JT_ROUND"}], listonly : true},function(v3) {
 			_g.joinType = Type.createEnum(hxClipper_JoinType,v3);
@@ -314,15 +319,17 @@ SuiDemoJS.prototype = {
 		uiFolder.trigger("random polys",null,null,function() {
 			_g.generatingCircles = false;
 			_g.countLabel.set("Vertex Count");
-			_g.genRandomPolygons(_g.nudCount);
+			_g.genRandomPolygons();
+			_g.setRandomPolygons();
 			_g.update();
 		});
 		uiFolder.trigger("australia + circles",null,null,function() {
 			_g.generatingCircles = true;
 			_g.countLabel.set("Circle Count");
-			_g.genRandomCircles(_g.nudCount);
 			_g.subjects.length = 0;
 			_g.subjects = _g.australia.concat([]);
+			_g.genRandomCircles();
+			_g.setRandomCircles();
 			_g.update();
 		});
 		uiFolder = ui.folder("Visibility");
@@ -351,8 +358,8 @@ SuiDemoJS.prototype = {
 		});
 		countControl.streams.value.subscribe(function(v12) {
 			_g.nudCount = v12;
-			if(_g.generatingCircles) _g.genRandomCircles(_g.nudCount); else _g.genRandomPolygons(_g.nudCount);
-			_g.update();
+			if(_g.generatingCircles) _g.setRandomCircles(); else _g.setRandomPolygons();
+			debouncedUpdate();
 		});
 		sui1.attach();
 	}
@@ -427,6 +434,16 @@ SuiDemoJS.prototype = {
 		this.sciAreaControl.set(Math.round(sciArea / 100000));
 		this.unionAreaControl.set(Math.round(unionArea / 100000));
 	}
+	,setRandomPolygons: function() {
+		this.subjects.length = 0;
+		this.subjects[0] = this.randomPolys[0].slice(0,this.nudCount);
+		this.clips.length = 0;
+		this.clips[0] = this.randomPolys[1].slice(0,this.nudCount);
+	}
+	,setRandomCircles: function() {
+		this.clips.length = 0;
+		this.clips = this.randomCircles.slice(0,this.nudCount);
+	}
 	,drawPoly: function(poly) {
 		var p0 = poly[0];
 		this.ctx.moveTo(p0.x / this.scale,p0.y / this.scale);
@@ -482,8 +499,9 @@ SuiDemoJS.prototype = {
 		var Q = 10;
 		return new hxClipper_IntPoint(Std["int"]((Math.random() * (r / Q) * Q + l + 10) * this.scale),Std["int"]((Math.random() * (b / Q) * Q + t + 10) * this.scale));
 	}
-	,genRandomCircles: function(count) {
-		this.clips.length = 0;
+	,genRandomCircles: function() {
+		var count = 100;
+		this.randomCircles.length = 0;
 		var max_radius = 50;
 		var margin = 10;
 		var _g = 0;
@@ -502,31 +520,23 @@ SuiDemoJS.prototype = {
 				var s = _g1++;
 				circle.push(new hxClipper_IntPoint(Std["int"](this.scale * (x + radius * Math.cos(theta * s))),Std["int"](this.scale * (y + radius * Math.sin(theta * s)))));
 			}
-			this.clips.push(circle);
+			this.randomCircles.push(circle);
 		}
 	}
-	,genRandomPolygons: function(count) {
+	,genRandomPolygons: function() {
+		var count = 100;
 		var Q = 10;
 		var l = 10;
 		var t = 10;
 		var r = (SuiDemoJS.width - 20) / Q * Q | 0;
 		var b = (SuiDemoJS.height - 20) / Q * Q | 0;
-		this.subjects.length = 0;
-		this.clips.length = 0;
-		var subj = [];
+		this.randomPolys = [[],[]];
 		var _g = 0;
 		while(_g < count) {
 			var i = _g++;
-			subj.push(this.genRandomPoint(l,t,r,b));
+			this.randomPolys[0].push(this.genRandomPoint(l,t,r,b));
+			this.randomPolys[1].push(this.genRandomPoint(l,t,r,b));
 		}
-		this.subjects.push(subj);
-		var clip = [];
-		var _g1 = 0;
-		while(_g1 < count) {
-			var i1 = _g1++;
-			clip.push(this.genRandomPoint(l,t,r,b));
-		}
-		this.clips.push(clip);
 	}
 	,getPolysFromBytes: function(bytes,scale) {
 		if(scale == null) scale = 1;

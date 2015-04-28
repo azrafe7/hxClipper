@@ -10,6 +10,7 @@ import js.html.CanvasRenderingContext2D;
 import js.html.CanvasWindingRule;
 import sui.*;
 import sui.controls.*;
+import thx.core.Timer;
 
 using hxClipper.Clipper.InternalTools;
 
@@ -46,6 +47,8 @@ class SuiDemoJS {
 	var showSolution:Bool = true;
 	
 	var generatingCircles:Bool = false;
+	var randomPolys:Polygons = [];
+	var randomCircles:Polygons = [];
 	
 	var subjAreaControl:FloatControl;
 	var clipAreaControl:FloatControl;
@@ -71,15 +74,17 @@ class SuiDemoJS {
 		var canvas = createCanvas(width, height, 10, 10);
 		ctx = canvas.getContext2d();
 		
+		genRandomPolygons();
 		createUI();
 		
-		subjects.clear();
-		genRandomPolygons(nudCount);
 		update();
 	}
 	
 	function createUI():Void
 	{
+		var debouncedUpdate:Void->Void;
+		debouncedUpdate = Timer.debounce(update, 50);
+		
 		var sui = new Sui();
 		var ui = sui.folder("hxClipper - SuiDemo");
 		
@@ -115,7 +120,7 @@ class SuiDemoJS {
 			max: 20
 		}, function (v):Void {
 			offset = v;
-			update();
+			debouncedUpdate();
 		});
 		uiFolder.text("Join Type", "JT_ROUND", {
 			list: [
@@ -131,15 +136,17 @@ class SuiDemoJS {
 		uiFolder.trigger("random polys", function ():Void {
 			generatingCircles = false;
 			countLabel.set("Vertex Count");
-			genRandomPolygons(nudCount);
+			genRandomPolygons();
+			setRandomPolygons();
 			update();
 		});
 		uiFolder.trigger("australia + circles", function ():Void {
 			generatingCircles = true;
 			countLabel.set("Circle Count");
-			genRandomCircles(nudCount);
 			subjects.clear();
 			subjects = australia.concat([]);
+			genRandomCircles();
+			setRandomCircles();
 			update();
 		});
 		
@@ -167,9 +174,9 @@ class SuiDemoJS {
 		// moved here so it can access areaControls
 		countControl.streams.value.subscribe(function (v):Void {
 			nudCount = v;
-			if (generatingCircles) genRandomCircles(nudCount);
-			else genRandomPolygons(nudCount);
-			update();
+			if (generatingCircles) setRandomCircles();
+			else setRandomPolygons();
+			debouncedUpdate();
 		});
 		
 		sui.attach();
@@ -261,6 +268,20 @@ class SuiDemoJS {
 		unionAreaControl.set(Math.round(unionArea / 100000));
 	}
 	
+	function setRandomPolygons():Void
+	{
+		subjects.clear();
+		subjects[0] = randomPolys[0].slice(0, nudCount);
+		clips.clear();
+		clips[0] = randomPolys[1].slice(0, nudCount);
+	}
+	
+	function setRandomCircles():Void
+	{
+		clips.clear();
+		clips = randomCircles.slice(0, nudCount);
+	}
+	
 	function drawPoly(poly:Polygon):Void
 	{
 		var p0 = poly[0];
@@ -316,9 +337,10 @@ class SuiDemoJS {
 		);
 	}
 	
-	function genRandomCircles(count:Int):Void
+	function genRandomCircles():Void
 	{
-		clips.clear();
+		var count = 100;
+		randomCircles.clear();
 		
 		var max_radius = 50, margin = 10;
 		
@@ -342,30 +364,24 @@ class SuiDemoJS {
 					Std.int(scale * (y + radius * Math.sin(theta * s)))
 				));
 			}
-			clips.push(circle);
+			randomCircles.push(circle);
 		}
 	}
 	
-	function genRandomPolygons(count:Int):Void
+	function genRandomPolygons():Void
 	{
+		var count = 100;
 		var Q:Int = 10;
 		var l = 10;
 		var t = 10;
 		var r = Std.int((width - 20) / Q * Q);
 		var b = Std.int((height - 20) / Q * Q);
 
-		subjects.clear();
-		clips.clear();
-
-		var subj = new Polygon();
-		for (i in 0...count)
-			subj.push(genRandomPoint(l, t, r, b));
-		subjects.push(subj);
-
-		var clip = new Polygon();
-		for (i in 0...count)
-			clip.push(genRandomPoint(l, t, r, b));
-		clips.push(clip);
+		randomPolys = [[], []];
+		for (i in 0...count) {
+			randomPolys[0].push(genRandomPoint(l, t, r, b));
+			randomPolys[1].push(genRandomPoint(l, t, r, b));
+		}
 	}
 
 	function getPolysFromBytes(bytes:Bytes, scale:Float = 1):Polygons
