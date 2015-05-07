@@ -52,15 +52,10 @@
 package hxClipper;
 
 import haxe.ds.ArraySort;
-import haxe.Int32;
-import haxe.Int64;
 import hxClipper.Clipper.ClipperBase;
 import hxClipper.Clipper.DoublePoint;
-import hxClipper.Clipper.Int128;
 import hxClipper.Clipper.IntPoint;
 
-using haxe.Int64;
-using hxClipper.Clipper.Int128;
 using hxClipper.Clipper.InternalTools;
 
 //USE_INT64: When enabled 64bit ints are used instead of 32bit ints. This
@@ -219,6 +214,7 @@ class PolyNode
 }
 
 
+#if USE_INT64
 //------------------------------------------------------------------------------
 // Int128 struct (enables safe math on signed 64bit integers)
 // eg Int128 val1((Int64)9223372036854775807); //ie 2^63 -1
@@ -302,7 +298,7 @@ class PolyNode
 	}
 
 }
-
+#end
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
