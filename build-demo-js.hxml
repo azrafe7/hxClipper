@@ -2,6 +2,9 @@
 -js bin/js/SuiDemo.js
 -resource GuiDemo/aust.bin@australia
 -lib sui
+-lib hxBitcoin
 -D debug
+-D USE_INT64
+-D USE_XYZ
 -D USE_LINES
 -main SuiDemoJS

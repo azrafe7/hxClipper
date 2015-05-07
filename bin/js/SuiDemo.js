@@ -184,6 +184,9 @@ Reflect.isObject = function(v) {
 };
 var Std = function() { };
 Std.__name__ = ["Std"];
+Std.instance = function(value,c) {
+	if((value instanceof c)) return value; else return null;
+};
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
 };
@@ -195,6 +198,9 @@ Std.parseInt = function(x) {
 	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
 	if(isNaN(v)) return null;
 	return v;
+};
+Std.parseFloat = function(x) {
+	return parseFloat(x);
 };
 Std.random = function(x) {
 	if(x <= 0) return 0; else return Math.floor(Math.random() * x);
@@ -266,7 +272,7 @@ var SuiDemoJS = function() {
 	this.subjects = [];
 	this.offset = 0;
 	this.nudCount = 50;
-	this.scale = 10;
+	this.scale = 1000;
 	Tests.run();
 	this.australia = this.getPolysFromBytes(haxe_Resource.getBytes("australia"),this.scale);
 	this.clipType = hxClipper_ClipType.CT_INTERSECTION;
@@ -309,7 +315,7 @@ SuiDemoJS.prototype = {
 	,createUI: function() {
 		var _g = this;
 		var debouncedUpdate;
-		debouncedUpdate = thx_core_Timer.debounce($bind(this,this.update),50);
+		debouncedUpdate = thx_Timer.debounce($bind(this,this.update),50);
 		var sui1 = new sui_Sui();
 		var ui = sui1.folder("hxClipper - SuiDemo");
 		var uiFolder = ui.folder("Options");
@@ -463,15 +469,100 @@ SuiDemoJS.prototype = {
 	}
 	,drawPoly: function(poly) {
 		var p0 = poly[0];
-		this.ctx.moveTo(p0.x / this.scale,p0.y / this.scale);
+		var scale = Math.round(this.scale);
+		this.ctx.moveTo(hxClipper_InternalTools.toFloat((function($this) {
+			var $r;
+			var this1;
+			{
+				var a = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p0.x,scale);
+				this1 = a;
+			}
+			$r = (function($this) {
+				var $r;
+				var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+				$r = a1;
+				return $r;
+			}($this));
+			return $r;
+		}(this))),hxClipper_InternalTools.toFloat((function($this) {
+			var $r;
+			var this2;
+			{
+				var a2 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p0.y,scale);
+				this2 = a2;
+			}
+			$r = (function($this) {
+				var $r;
+				var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+				$r = a3;
+				return $r;
+			}($this));
+			return $r;
+		}(this))));
 		var _g1 = 1;
 		var _g = poly.length;
 		while(_g1 < _g) {
 			var i = _g1++;
 			var p = poly[i];
-			this.ctx.lineTo(p.x / this.scale,p.y / this.scale);
+			this.ctx.lineTo(hxClipper_InternalTools.toFloat((function($this) {
+				var $r;
+				var this3;
+				{
+					var a4 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p.x,scale);
+					this3 = a4;
+				}
+				$r = (function($this) {
+					var $r;
+					var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this3);
+					$r = a5;
+					return $r;
+				}($this));
+				return $r;
+			}(this))),hxClipper_InternalTools.toFloat((function($this) {
+				var $r;
+				var this4;
+				{
+					var a6 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p.y,scale);
+					this4 = a6;
+				}
+				$r = (function($this) {
+					var $r;
+					var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this4);
+					$r = a7;
+					return $r;
+				}($this));
+				return $r;
+			}(this))));
 		}
-		this.ctx.lineTo(p0.x / this.scale,p0.y / this.scale);
+		this.ctx.lineTo(hxClipper_InternalTools.toFloat((function($this) {
+			var $r;
+			var this5;
+			{
+				var a8 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p0.x,scale);
+				this5 = a8;
+			}
+			$r = (function($this) {
+				var $r;
+				var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this5);
+				$r = a9;
+				return $r;
+			}($this));
+			return $r;
+		}(this))),hxClipper_InternalTools.toFloat((function($this) {
+			var $r;
+			var this6;
+			{
+				var a10 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p0.y,scale);
+				this6 = a10;
+			}
+			$r = (function($this) {
+				var $r;
+				var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this6);
+				$r = a11;
+				return $r;
+			}($this));
+			return $r;
+		}(this))));
 	}
 	,drawPolys: function(polys,strokeColor,fillColor,strokeAlpha,fillAlpha,lineWidth,fillRule) {
 		if(lineWidth == null) lineWidth = 1;
@@ -514,7 +605,27 @@ SuiDemoJS.prototype = {
 	}
 	,genRandomPoint: function(l,t,r,b) {
 		var Q = 10;
-		return new hxClipper_IntPoint(Std["int"]((Math.random() * (r / Q) * Q + l + 10) * this.scale),Std["int"]((Math.random() * (b / Q) * Q + t + 10) * this.scale));
+		return new hxClipper_IntPoint((function($this) {
+			var $r;
+			var a = Std["int"]((Math.random() * (r / Q) * Q + l + 10) * $this.scale);
+			$r = (function($this) {
+				var $r;
+				var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a);
+				$r = a1;
+				return $r;
+			}($this));
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = Std["int"]((Math.random() * (b / Q) * Q + t + 10) * $this.scale);
+			$r = (function($this) {
+				var $r;
+				var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a2);
+				$r = a3;
+				return $r;
+			}($this));
+			return $r;
+		}(this)));
 	}
 	,genRandomCircles: function() {
 		var count = 100;
@@ -535,7 +646,27 @@ SuiDemoJS.prototype = {
 			var _g1 = 0;
 			while(_g1 < steps) {
 				var s = _g1++;
-				circle.push(new hxClipper_IntPoint(Std["int"](this.scale * (x + radius * Math.cos(theta * s))),Std["int"](this.scale * (y + radius * Math.sin(theta * s)))));
+				circle.push(new hxClipper_IntPoint((function($this) {
+					var $r;
+					var a = Std["int"]($this.scale * (x + radius * Math.cos(theta * s)));
+					$r = (function($this) {
+						var $r;
+						var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a);
+						$r = a1;
+						return $r;
+					}($this));
+					return $r;
+				}(this)),(function($this) {
+					var $r;
+					var a2 = Std["int"]($this.scale * (y + radius * Math.sin(theta * s)));
+					$r = (function($this) {
+						var $r;
+						var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a2);
+						$r = a3;
+						return $r;
+					}($this));
+					return $r;
+				}(this))));
 			}
 			this.randomCircles.push(circle);
 		}
@@ -573,7 +704,17 @@ SuiDemoJS.prototype = {
 				var x = bytes.getFloat(pos) * scale;
 				pos += 4;
 				var y = bytes.getFloat(pos) * scale;
-				pg.push(new hxClipper_IntPoint(x | 0,y | 0));
+				pg.push(new hxClipper_IntPoint((function($this) {
+					var $r;
+					var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(x | 0);
+					$r = a;
+					return $r;
+				}(this)),(function($this) {
+					var $r;
+					var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(y | 0);
+					$r = a1;
+					return $r;
+				}(this))));
 			}
 			res.push(pg);
 		}
@@ -637,7 +778,27 @@ Tests.MakePolygonFromInts = function(ints,scale) {
 	var i = 0;
 	var p = [];
 	while(i < ints.length) {
-		p.push(new hxClipper_IntPoint(ints[i] * scale | 0,ints[i + 1] * scale | 0));
+		p.push(new hxClipper_IntPoint((function($this) {
+			var $r;
+			var a = Std["int"](hxClipper_InternalTools.toFloat(ints[i]) * scale);
+			$r = (function($this) {
+				var $r;
+				var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a);
+				$r = a1;
+				return $r;
+			}($this));
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = Std["int"](hxClipper_InternalTools.toFloat(ints[i + 1]) * scale);
+			$r = (function($this) {
+				var $r;
+				var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a2);
+				$r = a3;
+				return $r;
+			}($this));
+			return $r;
+		}(this))));
 		i += 2;
 	}
 	return p;
@@ -652,7 +813,47 @@ Tests.MakeSquarePolygons = function(size,totalWidth,totalHeight) {
 		var _g1 = 0;
 		while(_g1 < cols) {
 			var j = _g1++;
-			var ints = [j * size,i * size,(j + 1) * size,i * size,(j + 1) * size,(i + 1) * size,j * size,(i + 1) * size];
+			var ints = [(function($this) {
+				var $r;
+				var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(j * size);
+				$r = a;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(i * size);
+				$r = a1;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt((j + 1) * size);
+				$r = a2;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(i * size);
+				$r = a3;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt((j + 1) * size);
+				$r = a4;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt((i + 1) * size);
+				$r = a5;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(j * size);
+				$r = a6;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt((i + 1) * size);
+				$r = a7;
+				return $r;
+			}(this))];
 			p[j * rows + i] = Tests.MakePolygonFromInts(ints);
 		}
 	}
@@ -672,7 +873,47 @@ Tests.MakeDiamondPolygons = function(size,totalWidth,totalHeight) {
 		var _g1 = 0;
 		while(_g1 < cols) {
 			var j = _g1++;
-			var ints = [dx + j * size,i * halfSize + halfSize,dx + j * size + halfSize,i * halfSize,dx + (j + 1) * size,i * halfSize + halfSize,dx + j * size + halfSize,i * halfSize + halfSize * 2];
+			var ints = [(function($this) {
+				var $r;
+				var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(dx + j * size);
+				$r = a;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(i * halfSize + halfSize);
+				$r = a1;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(dx + j * size + halfSize);
+				$r = a2;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(i * halfSize);
+				$r = a3;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(dx + (j + 1) * size);
+				$r = a4;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(i * halfSize + halfSize);
+				$r = a5;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(dx + j * size + halfSize);
+				$r = a6;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(i * halfSize + halfSize * 2);
+				$r = a7;
+				return $r;
+			}(this))];
 			p[j * rows + i] = Tests.MakePolygonFromInts(ints);
 		}
 	}
@@ -694,10 +935,150 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	,pft: null
 	,testDifference1: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints1 = [29,342,115,68,141,86];
-		var ints2 = [128,160,99,132,97,174];
-		var ints3 = [99,212,128,160,97,174,58,160];
-		var ints4 = [97,174,99,132,60,124,58,160];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(29);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(342);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(115);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(68);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(141);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(86);
+			$r = a5;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(128);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(99);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(132);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(97);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(174);
+			$r = a11;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(99);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(212);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(128);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(97);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(174);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(58);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a19;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(97);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(174);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(99);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(132);
+			$r = a23;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(124);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(58);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a27;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -714,8 +1095,68 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testDifference2: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints1 = [-103,-219,-103,-136,-115,-136];
-		var ints2 = [-110,-174,-70,-174,-110,-155];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-103);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-219);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-103);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-136);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-115);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-136);
+			$r = a5;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-110);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-174);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-70);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-174);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-110);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-155);
+			$r = a11;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -729,8 +1170,98 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testHorz1: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints1 = [380,280,450,280,130,400,490,430,320,200,450,260];
-		var ints2 = [350,240,520,470,100,300];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a11;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a17;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -744,8 +1275,108 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testHorz2: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints1 = [120,400,350,380,340,140];
-		var ints2 = [350,370,150,370,560,20,350,390,340,150,570,230,390,40];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(140);
+			$r = a5;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(560);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(570);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a19;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -759,8 +1390,88 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testHorz3: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints1 = [470,190,100,520,280,270,380,270,460,170];
-		var ints2 = [170,70,500,350,110,90];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(460);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a9;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(500);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a15;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -774,9 +1485,129 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testHorz4: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [904,901,1801,901,1801,1801,902,1803];
-		var ints2 = [2,1800,902,1800,902,2704,4,2701];
-		var ints3 = [902,1802,902,2704,1804,2703,1801,1804];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(904);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(901);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1801);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(901);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1801);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1801);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(902);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1803);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1800);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(902);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1800);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(902);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2704);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2701);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(902);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1802);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(902);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2704);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1804);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2703);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1801);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1804);
+			$r = a23;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -790,10 +1621,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testHorz5: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [93,92,183,93,184,184,94,183];
-		var ints2 = [184,1,270,2,272,91,183,94];
-		var ints3 = [92,2,91,91,184,91,184,0];
-		var ints4 = [183,93,184,184,271,182,274,94];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(93);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(92);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(183);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(93);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(184);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(184);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(94);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(183);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(184);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(272);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(183);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(94);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(92);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(184);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(184);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(183);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(93);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(184);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(184);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(271);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(182);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(274);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(94);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -809,8 +1800,98 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testHorz6: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [14,15,16,12,10,12];
-		var ints2 = [15,14,11,14,13,16,17,10,10,17,18,13];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(16);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(12);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(12);
+			$r = a5;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(11);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(13);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(16);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(17);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(17);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(18);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(13);
+			$r = a17;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -824,8 +1905,158 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testHorz7: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [11,19,19,15,15,12,13,19,15,13,10,14,13,18,16,13];
-		var ints2 = [16,10,14,17,18,10,15,18,14,14,15,14,11,16];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(11);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(19);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(19);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(12);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(13);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(19);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(13);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(13);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(18);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(16);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(13);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(16);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(17);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(18);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(18);
+			$r = a23;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(11);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(16);
+			$r = a29;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -839,8 +2070,108 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testHorz8: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [12,11,15,15,18,16,16,18,15,14,14,14,19,15];
-		var ints2 = [13,12,17,17,19,15];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(12);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(11);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(18);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(16);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(16);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(18);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(14);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(19);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a13;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(13);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(12);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(17);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(17);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(19);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(15);
+			$r = a19;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -853,8 +2184,88 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testHorz9: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints1 = [380,140,430,120,180,120,430,120,190,150];
-		var ints2 = [430,130,210,70,20,260];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(140);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a9;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a15;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -867,8 +2278,98 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testHorz10: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints1 = [40,310,410,110,460,110,260,200];
-		var ints2 = [120,260,450,220,330,220,240,220,50,380];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(460);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a17;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -881,8 +2382,2008 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation1: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints1 = [470,130,330,10,370,10,290,190,290,280,190,10,70,370,10,400,310,10,490,220,130,10,150,400,490,150,250,60,410,320,430,410,470,10,10,10,250,220,10,180,250,160,490,130,190,320,170,240,290,280,370,240,350,90,450,190,10,370,110,180,290,160,190,350,490,360,190,190,370,230,90,220,270,10,70,190,10,270,430,100,190,140,370,80,10,40,250,260,430,40,130,350,190,420,10,10,130,50,90,400,530,50,150,90,250,150,390,310,250,180,310,220,350,280,30,140,430,260,130,10,430,310,10,60,190,60,490,320,190,360,430,130,210,220,270,190,10,10,510,10,150,210,90,400,110,10,130,110,130,80,130,30,430,190,190,380,90,300,10,340,10,70,250,380,310,370,370,240,190,130,490,100,470,70,10,420,190,20,430,290,430,10,330,70,450,140,430,40,150,220,170,190,10,110,470,310,510,160,10,200];
-		var ints2 = [50,420,10,180,190,160,50,40,490,40,450,130,450,290,290,310,430,110,370,250,490,220,430,230,410,220,10,200,530,130,50,350,370,290,130,130,110,390,10,350,210,340,370,220,530,280,370,170,190,370,330,310,510,280,90,10,50,250,170,100,110,40,310,370,430,80,390,40,250,360,350,150,130,310,10,260,390,90,370,280,70,100,530,190,10,250,470,340,110,180,10,10,70,380,370,60,190,290,250,70,10,150,70,120,490,340,330,40,90,10,210,40,50,10,450,370,310,390,10,10,10,270,250,180,130,120,10,150,10,220,150,280,490,10,150,370,370,220,10,310,10,330,450,150,310,80,410,40,530,290,110,240,70,140,190,410,10,250,270,230,370,380,270,280,230,220,430,110,10,290,130,250,190,40,170,320,210,220,290,40,370,380,30,380,130,50,370,340,130,190,70,250,310,270,250,290,310,280,230,150];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a23;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a31;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a32 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a32;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a33 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a33;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a34 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a34;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a35 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a35;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a36 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a36;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a37 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a37;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a38 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a38;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a39 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a39;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a40 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a40;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a41 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a41;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a42 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a42;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a43 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a43;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a44 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a44;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a45 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a45;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a46 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a46;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a47 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a47;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a48 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a48;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a49 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a49;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a50 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a50;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a51 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a51;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a52 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a52;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a53 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a53;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a54 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a54;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a55 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a55;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a56 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a56;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a57 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a57;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a58 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a58;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a59 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a59;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a60 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a60;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a61 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a61;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a62 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a62;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a63 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a63;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a64 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a64;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a65 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(360);
+			$r = a65;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a66 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a66;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a67 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a67;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a68 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a68;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a69 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a69;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a70 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a70;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a71 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a71;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a72 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a72;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a73 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a73;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a74 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a74;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a75 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a75;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a76 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a76;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a77 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a77;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a78 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a78;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a79 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a79;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a80 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a80;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a81 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(140);
+			$r = a81;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a82 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a82;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a83 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a83;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a84 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a84;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a85 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a85;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a86 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a86;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a87 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a87;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a88 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a88;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a89 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a89;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a90 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a90;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a91 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a91;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a92 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a92;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a93 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a93;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a94 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a94;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a95 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a95;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a96 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a96;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a97 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a97;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a98 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a98;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a99 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a99;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a100 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(530);
+			$r = a100;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a101 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a101;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a102 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a102;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a103 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a103;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a104 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a104;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a105 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a105;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a106 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a106;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a107 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a107;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a108 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a108;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a109 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a109;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a110 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a110;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a111 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a111;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a112 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a112;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a113 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a113;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a114 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a114;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a115 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(140);
+			$r = a115;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a116 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a116;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a117 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a117;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a118 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a118;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a119 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a119;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a120 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a120;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a121 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a121;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a122 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a122;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a123 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a123;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a124 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a124;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a125 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a125;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a126 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a126;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a127 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a127;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a128 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a128;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a129 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(360);
+			$r = a129;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a130 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a130;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a131 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a131;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a132 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a132;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a133 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a133;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a134 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a134;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a135 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a135;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a136 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a136;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a137 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a137;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a138 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a138;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a139 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a139;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a140 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a140;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a141 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a141;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a142 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a142;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a143 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a143;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a144 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a144;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a145 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a145;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a146 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a146;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a147 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a147;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a148 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a148;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a149 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a149;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a150 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a150;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a151 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a151;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a152 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a152;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a153 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a153;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a154 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a154;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a155 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a155;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a156 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a156;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a157 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a157;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a158 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a158;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a159 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a159;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a160 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a160;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a161 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a161;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a162 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a162;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a163 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a163;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a164 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a164;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a165 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a165;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a166 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a166;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a167 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a167;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a168 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a168;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a169 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a169;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a170 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a170;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a171 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a171;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a172 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a172;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a173 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a173;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a174 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a174;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a175 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a175;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a176 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a176;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a177 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a177;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a178 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a178;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a179 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a179;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a180 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a180;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a181 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a181;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a182 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a182;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a183 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a183;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a184 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a184;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a185 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(140);
+			$r = a185;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a186 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a186;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a187 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a187;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a188 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a188;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a189 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a189;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a190 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a190;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a191 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a191;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a192 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a192;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a193 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a193;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a194 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a194;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a195 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a195;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a196 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a196;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a197 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a197;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a198 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a198;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a199 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a199;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a200 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a200;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a201 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a201;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a202 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a202;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a203 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a203;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a204 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a204;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a205 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a205;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a206 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a206;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a207 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a207;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a208 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a208;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a209 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a209;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a210 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a210;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a211 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a211;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a212 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a212;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a213 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a213;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a214 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a214;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a215 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a215;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a216 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a216;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a217 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a217;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a218 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a218;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a219 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a219;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a220 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a220;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a221 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a221;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a222 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a222;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a223 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a223;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a224 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a224;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a225 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a225;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a226 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a226;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a227 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a227;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a228 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(530);
+			$r = a228;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a229 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a229;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a230 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a230;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a231 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a231;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a232 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a232;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a233 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a233;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a234 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a234;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a235 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a235;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a236 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a236;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a237 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a237;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a238 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a238;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a239 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a239;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a240 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a240;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a241 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a241;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a242 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a242;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a243 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a243;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a244 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(530);
+			$r = a244;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a245 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a245;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a246 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a246;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a247 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a247;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a248 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a248;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a249 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a249;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a250 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a250;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a251 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a251;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a252 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a252;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a253 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a253;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a254 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a254;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a255 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a255;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a256 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a256;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a257 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a257;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a258 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a258;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a259 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a259;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a260 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a260;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a261 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a261;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a262 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a262;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a263 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a263;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a264 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a264;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a265 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a265;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a266 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a266;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a267 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a267;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a268 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a268;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a269 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(360);
+			$r = a269;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a270 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a270;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a271 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a271;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a272 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a272;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a273 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a273;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a274 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a274;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a275 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a275;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a276 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a276;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a277 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a277;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a278 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a278;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a279 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a279;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a280 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a280;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a281 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a281;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a282 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(530);
+			$r = a282;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a283 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a283;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a284 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a284;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a285 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a285;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a286 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a286;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a287 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a287;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a288 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a288;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a289 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a289;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a290 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a290;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a291 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a291;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a292 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a292;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a293 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a293;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a294 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a294;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a295 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a295;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a296 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a296;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a297 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a297;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a298 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a298;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a299 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a299;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a300 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a300;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a301 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a301;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a302 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a302;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a303 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a303;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a304 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a304;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a305 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a305;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a306 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a306;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a307 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a307;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a308 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a308;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a309 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a309;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a310 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a310;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a311 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a311;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a312 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a312;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a313 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a313;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a314 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a314;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a315 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a315;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a316 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a316;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a317 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a317;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a318 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a318;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a319 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a319;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a320 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a320;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a321 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a321;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a322 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a322;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a323 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a323;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a324 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a324;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a325 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a325;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a326 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a326;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a327 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a327;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a328 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a328;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a329 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a329;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a330 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a330;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a331 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a331;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a332 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a332;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a333 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a333;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a334 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a334;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a335 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a335;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a336 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a336;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a337 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a337;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a338 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a338;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a339 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a339;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a340 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a340;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a341 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a341;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a342 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a342;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a343 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a343;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a344 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a344;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a345 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a345;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a346 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a346;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a347 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a347;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a348 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(530);
+			$r = a348;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a349 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a349;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a350 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a350;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a351 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a351;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a352 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a352;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a353 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(140);
+			$r = a353;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a354 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a354;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a355 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a355;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a356 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a356;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a357 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a357;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a358 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a358;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a359 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a359;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a360 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a360;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a361 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a361;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a362 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a362;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a363 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a363;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a364 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a364;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a365 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a365;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a366 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a366;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a367 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a367;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a368 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a368;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a369 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a369;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a370 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a370;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a371 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a371;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a372 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a372;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a373 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a373;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a374 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a374;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a375 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a375;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a376 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a376;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a377 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a377;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a378 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a378;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a379 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a379;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a380 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a380;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a381 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a381;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a382 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a382;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a383 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a383;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a384 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a384;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a385 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a385;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a386 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a386;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a387 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a387;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a388 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a388;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a389 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a389;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a390 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a390;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a391 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a391;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a392 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a392;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a393 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a393;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a394 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a394;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a395 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a395;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a396 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a396;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a397 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a397;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a398 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a398;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a399 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a399;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -906,8 +4407,408 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation2: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [370,150,130,400,490,290,490,400,170,10,130,130,270,90,430,230,310,230,10,80,390,110,370,20,190,210,370,410,110,100,410,230,370,290,350,190,350,100,230,290];
-		var ints2 = [510,400,250,100,410,410,170,210,390,100,10,100,10,250,10,220,130,90,410,330,450,160,50,180,110,100,210,320,410,220,190,30,370,70,270,260,450,250,90,280];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a23;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a31;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a32 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a32;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a33 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a33;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a34 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a34;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a35 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a35;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a36 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a36;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a37 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a37;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a38 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a38;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a39 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a39;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a40 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a40;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a41 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a41;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a42 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a42;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a43 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a43;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a44 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a44;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a45 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a45;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a46 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a46;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a47 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a47;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a48 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a48;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a49 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a49;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a50 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a50;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a51 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a51;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a52 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a52;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a53 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a53;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a54 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a54;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a55 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a55;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a56 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a56;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a57 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a57;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a58 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a58;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a59 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a59;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a60 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a60;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a61 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a61;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a62 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a62;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a63 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a63;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a64 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a64;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a65 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a65;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a66 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a66;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a67 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a67;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a68 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a68;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a69 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a69;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a70 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a70;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a71 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a71;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a72 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a72;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a73 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a73;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a74 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a74;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a75 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a75;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a76 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a76;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a77 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a77;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a78 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a78;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a79 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a79;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -930,8 +4831,128 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation3: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints1 = [70,290,10,410,10,220];
-		var ints2 = [430,20,10,30,10,370,250,300,190,10,10,370,30,220,490,100,10,370];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a5;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a23;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -955,8 +4976,2008 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation4: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [40,190,400,10,510,450,300,50,440,230,340,290,260,510,110,50,500,90,450,410,550,70,70,130,410,110,130,130,470,50,410,10,360,50,460,90,170,270,400,210,240,370,50,370,350,270,530,330,170,250,440,170,40,430,410,90,170,510,470,130,290,390,510,410,500,230,490,490,430,430,10,250,240,190,80,370,60,190,570,490,110,270,550,290,90,10,200,10,580,450,500,450,370,210,10,250,60,70,220,10,530,130,190,10,350,170,440,330,260,50,320,10,570,10,350,170,130,470,350,370,40,130,540,50,10,50,320,450,270,470,460,10,60,110,280,170,300,410,300,370,520,170,460,410,180,270,270,450,50,110,490,490,10,150,240,490,200,190,10,10,30,370,170,410,560,290,140,10,350,190,290,10,460,210,70,290,300,270,570,450,250,330,250,290,300,410,210,330,320,390,160,290,70,190,40,170,490,70,70,50];
-		var ints2 = [160,510,440,90,400,510,220,250,480,210,80,410,530,170,10,50,220,290,110,490,110,10,350,130,510,330,10,410,190,30,90,10,380,270,50,250,510,50,580,10,50,130,540,330,120,250,440,250,10,430,10,410,150,190,510,490,400,170,200,10,170,470,300,10,130,130,190,10,500,350,40,10,400,230,20,370,230,510,140,10,220,490,90,370,490,190,520,210,180,70,440,490,510,10,420,210,340,410,80,10,100,190,100,250,340,390,360,10,170,70,300,290,110,370,160,330,210,10,300,10,540,410,380,490,550,290,170,450,580,390,360,10,450,370,520,330,100,30,160,450,160,190,300,90,400,270,40,170,40,90,210,330,450,50,430,370,290,370,150,10,340,170,10,90,180,150,530,450,310,490,400,450,340,10,420,210,500,70,100,10,400,470,40,490,550,190,30,90,100,130,70,490,20,270,490,410,570,370,220,90];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(500);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(550);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a23;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a31;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a32 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(360);
+			$r = a32;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a33 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a33;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a34 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(460);
+			$r = a34;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a35 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a35;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a36 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a36;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a37 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a37;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a38 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a38;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a39 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a39;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a40 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a40;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a41 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a41;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a42 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a42;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a43 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a43;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a44 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a44;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a45 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a45;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a46 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(530);
+			$r = a46;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a47 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a47;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a48 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a48;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a49 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a49;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a50 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a50;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a51 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a51;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a52 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a52;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a53 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a53;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a54 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a54;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a55 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a55;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a56 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a56;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a57 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a57;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a58 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a58;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a59 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a59;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a60 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a60;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a61 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a61;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a62 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a62;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a63 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a63;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a64 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(500);
+			$r = a64;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a65 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a65;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a66 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a66;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a67 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a67;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a68 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a68;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a69 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a69;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a70 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a70;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a71 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a71;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a72 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a72;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a73 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a73;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a74 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a74;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a75 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a75;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a76 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a76;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a77 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a77;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a78 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(570);
+			$r = a78;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a79 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a79;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a80 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a80;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a81 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a81;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a82 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(550);
+			$r = a82;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a83 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a83;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a84 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a84;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a85 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a85;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a86 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a86;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a87 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a87;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a88 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(580);
+			$r = a88;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a89 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a89;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a90 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(500);
+			$r = a90;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a91 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a91;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a92 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a92;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a93 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a93;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a94 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a94;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a95 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a95;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a96 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a96;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a97 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a97;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a98 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a98;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a99 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a99;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a100 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(530);
+			$r = a100;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a101 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a101;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a102 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a102;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a103 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a103;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a104 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a104;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a105 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a105;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a106 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a106;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a107 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a107;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a108 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a108;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a109 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a109;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a110 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a110;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a111 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a111;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a112 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(570);
+			$r = a112;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a113 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a113;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a114 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a114;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a115 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a115;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a116 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a116;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a117 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a117;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a118 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a118;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a119 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a119;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a120 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a120;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a121 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a121;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a122 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(540);
+			$r = a122;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a123 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a123;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a124 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a124;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a125 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a125;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a126 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a126;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a127 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a127;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a128 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a128;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a129 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a129;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a130 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(460);
+			$r = a130;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a131 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a131;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a132 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a132;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a133 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a133;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a134 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a134;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a135 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a135;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a136 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a136;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a137 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a137;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a138 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a138;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a139 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a139;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a140 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a140;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a141 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a141;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a142 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(460);
+			$r = a142;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a143 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a143;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a144 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a144;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a145 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a145;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a146 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a146;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a147 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a147;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a148 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a148;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a149 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a149;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a150 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a150;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a151 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a151;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a152 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a152;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a153 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a153;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a154 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a154;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a155 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a155;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a156 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a156;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a157 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a157;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a158 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a158;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a159 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a159;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a160 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a160;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a161 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a161;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a162 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a162;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a163 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a163;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a164 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(560);
+			$r = a164;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a165 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a165;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a166 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(140);
+			$r = a166;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a167 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a167;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a168 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a168;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a169 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a169;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a170 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a170;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a171 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a171;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a172 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(460);
+			$r = a172;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a173 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a173;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a174 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a174;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a175 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a175;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a176 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a176;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a177 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a177;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a178 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(570);
+			$r = a178;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a179 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a179;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a180 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a180;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a181 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a181;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a182 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a182;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a183 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a183;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a184 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a184;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a185 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a185;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a186 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a186;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a187 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a187;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a188 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a188;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a189 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a189;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a190 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a190;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a191 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a191;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a192 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a192;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a193 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a193;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a194 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a194;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a195 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a195;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a196 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a196;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a197 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a197;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a198 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a198;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a199 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a199;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a200 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a200;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a201 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a201;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a202 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a202;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a203 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a203;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a204 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a204;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a205 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a205;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a206 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a206;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a207 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a207;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a208 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a208;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a209 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a209;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a210 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a210;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a211 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a211;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a212 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(530);
+			$r = a212;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a213 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a213;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a214 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a214;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a215 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a215;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a216 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a216;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a217 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a217;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a218 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a218;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a219 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a219;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a220 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a220;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a221 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a221;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a222 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a222;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a223 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a223;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a224 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a224;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a225 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a225;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a226 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a226;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a227 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a227;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a228 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a228;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a229 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a229;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a230 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a230;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a231 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a231;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a232 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a232;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a233 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a233;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a234 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a234;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a235 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a235;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a236 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a236;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a237 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a237;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a238 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(580);
+			$r = a238;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a239 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a239;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a240 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a240;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a241 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a241;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a242 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(540);
+			$r = a242;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a243 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a243;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a244 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a244;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a245 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a245;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a246 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a246;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a247 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a247;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a248 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a248;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a249 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a249;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a250 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a250;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a251 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a251;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a252 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a252;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a253 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a253;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a254 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a254;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a255 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a255;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a256 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a256;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a257 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a257;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a258 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a258;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a259 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a259;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a260 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a260;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a261 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a261;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a262 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a262;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a263 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a263;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a264 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a264;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a265 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a265;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a266 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a266;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a267 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a267;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a268 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(500);
+			$r = a268;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a269 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a269;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a270 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a270;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a271 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a271;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a272 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a272;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a273 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a273;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a274 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a274;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a275 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a275;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a276 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a276;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a277 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a277;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a278 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(140);
+			$r = a278;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a279 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a279;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a280 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a280;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a281 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a281;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a282 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a282;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a283 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a283;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a284 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a284;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a285 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a285;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a286 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a286;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a287 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a287;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a288 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a288;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a289 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a289;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a290 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a290;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a291 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a291;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a292 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a292;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a293 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a293;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a294 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a294;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a295 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a295;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a296 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a296;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a297 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a297;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a298 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a298;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a299 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a299;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a300 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a300;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a301 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a301;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a302 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a302;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a303 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a303;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a304 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a304;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a305 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a305;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a306 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(360);
+			$r = a306;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a307 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a307;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a308 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a308;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a309 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a309;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a310 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a310;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a311 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a311;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a312 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a312;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a313 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a313;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a314 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a314;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a315 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a315;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a316 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a316;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a317 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a317;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a318 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a318;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a319 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a319;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a320 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(540);
+			$r = a320;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a321 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a321;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a322 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a322;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a323 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a323;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a324 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(550);
+			$r = a324;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a325 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a325;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a326 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a326;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a327 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a327;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a328 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(580);
+			$r = a328;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a329 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a329;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a330 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(360);
+			$r = a330;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a331 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a331;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a332 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a332;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a333 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a333;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a334 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a334;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a335 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a335;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a336 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a336;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a337 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a337;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a338 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a338;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a339 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a339;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a340 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a340;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a341 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a341;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a342 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a342;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a343 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a343;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a344 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a344;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a345 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a345;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a346 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a346;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a347 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a347;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a348 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a348;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a349 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a349;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a350 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a350;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a351 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a351;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a352 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a352;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a353 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a353;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a354 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a354;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a355 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a355;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a356 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a356;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a357 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a357;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a358 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a358;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a359 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a359;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a360 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a360;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a361 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a361;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a362 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a362;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a363 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a363;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a364 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a364;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a365 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a365;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a366 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(530);
+			$r = a366;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a367 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a367;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a368 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a368;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a369 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a369;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a370 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a370;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a371 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a371;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a372 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a372;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a373 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a373;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a374 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a374;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a375 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a375;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a376 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(500);
+			$r = a376;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a377 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a377;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a378 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a378;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a379 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a379;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a380 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a380;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a381 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a381;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a382 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a382;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a383 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a383;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a384 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(550);
+			$r = a384;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a385 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a385;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a386 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a386;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a387 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a387;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a388 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a388;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a389 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a389;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a390 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a390;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a391 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a391;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a392 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a392;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a393 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a393;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a394 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(490);
+			$r = a394;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a395 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a395;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a396 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(570);
+			$r = a396;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a397 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a397;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a398 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a398;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a399 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a399;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.clip.length = 0;
@@ -979,7 +7000,97 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation5: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [5237,5237,68632,5164,10315,61247,10315,20643,16045,29877,24374,11012,10359,19690,10315,20643,10315,67660];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(5237);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(5237);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(68632);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(5164);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10315);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(61247);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10315);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20643);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(16045);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(29877);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(24374);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(11012);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10359);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(19690);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10315);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20643);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10315);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(67660);
+			$r = a17;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		var c = new hxClipper_Clipper();
@@ -991,10 +7102,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation6: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,100,0,101,116,0,109];
-		var ints2 = [110,112,200,106,200,200,111,200];
-		var ints3 = [0,106,101,114,107,200,0,200];
-		var ints4 = [117,0,200,0,200,110,115,102];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(112);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(106);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(111);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(106);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(114);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(107);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(115);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(102);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1011,10 +7282,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation7: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,100,0,104,116,0,118];
-		var ints2 = [111,115,200,103,200,200,105,200];
-		var ints3 = [0,103,112,111,105,200,0,200];
-		var ints4 = [116,0,200,0,200,113,101,110];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(104);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(118);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(111);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(115);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(103);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(105);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(103);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(112);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(111);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(105);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(113);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1031,10 +7462,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation8: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,112,0,111,116,0,108];
-		var ints2 = [112,114,200,108,200,200,116,200];
-		var ints3 = [0,102,118,111,117,200,0,200];
-		var ints4 = [109,0,200,0,200,117,105,110];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(112);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(111);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(108);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(112);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(114);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(108);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(102);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(118);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(111);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(105);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1051,10 +7642,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation9: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,114,0,113,110,0,117];
-		var ints2 = [109,114,200,106,200,200,104,200];
-		var ints3 = [0,100,118,106,103,200,0,200];
-		var ints4 = [110,0,200,0,200,116,101,105];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(114);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(113);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(114);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(106);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(104);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(118);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(106);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(103);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(105);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1071,10 +7822,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation10: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,102,0,103,118,0,106];
-		var ints2 = [110,115,200,108,200,200,113,200];
-		var ints3 = [0,110,103,117,109,200,0,200];
-		var ints4 = [118,0,200,0,200,108,116,101];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(102);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(103);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(118);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(106);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(115);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(108);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(113);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(103);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(118);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(108);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1091,10 +8002,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation11: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,100,0,107,116,0,104];
-		var ints2 = [116,100,200,115,200,200,118,200];
-		var ints3 = [0,115,107,115,115,200,0,200];
-		var ints4 = [101,0,200,0,200,100,100,100];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(107);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(104);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(115);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(118);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(115);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(107);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(115);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(115);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1110,10 +8181,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation12: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,119,0,113,105,0,100];
-		var ints2 = [117,103,200,105,200,200,106,200];
-		var ints3 = [0,112,116,104,108,200,0,200];
-		var ints4 = [101,0,200,0,200,117,104,112];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(119);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(113);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(105);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(103);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(105);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(106);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(112);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(104);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(108);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(104);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(112);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1130,10 +8361,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation13: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,119,0,109,108,0,101];
-		var ints2 = [115,100,200,103,200,200,101,200];
-		var ints3 = [0,117,110,100,103,200,0,200];
-		var ints4 = [115,0,200,0,200,109,119,102];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(119);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(108);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(115);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(103);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(103);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(115);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(119);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(102);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1150,10 +8541,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation14: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,102,0,119,107,0,101];
-		var ints2 = [116,110,200,114,200,200,107,200];
-		var ints3 = [0,108,117,106,111,200,0,200];
-		var ints4 = [112,0,200,0,200,117,101,112];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(102);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(119);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(107);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(114);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(107);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(108);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(106);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(111);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(112);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(112);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1170,10 +8721,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOrientation15: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,106,0,107,111,0,102];
-		var ints2 = [119,116,200,118,200,200,117,200];
-		var ints3 = [0,101,107,106,111,200,0,200];
-		var ints4 = [113,0,200,0,200,114,117,117];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(106);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(107);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(111);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(102);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(119);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(116);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(118);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(101);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(107);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(106);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(111);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(113);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(114);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(117);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1190,10 +8901,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testSelfInt1: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,201,0,203,217,0,207];
-		var ints2 = [204,214,400,217,400,400,205,400];
-		var ints3 = [0,211,203,214,208,400,0,400];
-		var ints4 = [207,0,400,0,400,208,218,200];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(201);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(203);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(204);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(214);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(205);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(211);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(203);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(214);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(208);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(208);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(218);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1210,10 +9081,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testSelfInt2: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,200,0,219,207,0,200];
-		var ints2 = [201,207,400,200,400,400,200,400];
-		var ints3 = [0,200,214,207,200,400,0,400];
-		var ints4 = [200,0,400,0,400,200,209,215];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(219);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(201);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(214);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(209);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(215);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1229,10 +9260,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testSelfInt3: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,201,0,207,214,0,207];
-		var ints2 = [209,211,400,206,400,400,214,400];
-		var ints3 = [0,211,207,208,213,400,0,400];
-		var ints4 = [213,0,400,0,400,210,213,200];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(201);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(214);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(209);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(211);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(206);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(214);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(211);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(208);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(213);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(213);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(213);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1248,10 +9439,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testSelfInt4: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [0,0,214,0,209,206,0,201];
-		var ints2 = [205,208,400,207,400,400,200,400];
-		var ints3 = [201,0,400,0,400,217,205,217];
-		var ints4 = [0,205,215,206,217,400,0,400];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(214);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(209);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(206);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(201);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(205);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(208);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(201);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(205);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(205);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(215);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(206);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1268,10 +9619,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testSelfInt5: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints1 = [0,0,219,0,217,217,0,200];
-		var ints2 = [214,219,400,200,400,400,219,400];
-		var ints3 = [0,207,205,211,214,400,0,400];
-		var ints4 = [202,0,400,0,400,217,205,217];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(219);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a7;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(214);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(219);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(219);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a15;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(205);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(211);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(214);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(202);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(205);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1287,8 +9798,78 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testSelfInt6: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints = [182,179,477,123,25,55];
-		var ints2 = [477,122,485,103,122,265,55,207];
+		var ints = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(182);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(179);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(477);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(123);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(25);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(55);
+			$r = a5;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(477);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(122);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(485);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(103);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(122);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(265);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(55);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(207);
+			$r = a13;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints));
 		this.clip.length = 0;
@@ -1302,10 +9883,180 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testUnion1: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints1 = [1026,1126,1026,235,4505,401,4522,1145,4503,1162,2280,1129];
-		var ints2 = [4501,1100,4501,866,1146,462,1071,1067,4469,1000];
-		var ints3 = [4499,1135,3360,1050,3302,1107];
-		var ints4 = [3360,1050,3291,1118,4512,1136];
+		var ints1 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1026);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1126);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1026);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(235);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4505);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(401);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4522);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1145);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4503);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1162);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2280);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1129);
+			$r = a11;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4501);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1100);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4501);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(866);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1146);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(462);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1071);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1067);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4469);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1000);
+			$r = a21;
+			return $r;
+		}(this))];
+		var ints3 = [(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4499);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1135);
+			$r = a23;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(3360);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1050);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(3302);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1107);
+			$r = a27;
+			return $r;
+		}(this))];
+		var ints4 = [(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(3360);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1050);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(3291);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1118);
+			$r = a31;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a32 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4512);
+			$r = a32;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a33 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1136);
+			$r = a33;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints1));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1321,7 +10072,447 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testUnion2: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints = [[10,10,20,10,20,20,10,20],[20,10,30,10,30,20,20,20],[30,10,40,10,40,20,30,20],[40,10,50,10,50,20,40,20],[50,10,60,10,60,20,50,20],[10,20,20,20,20,30,10,30],[30,20,40,20,40,30,30,30],[10,30,20,30,20,40,10,40],[20,30,30,30,30,40,20,40],[30,30,40,30,40,40,30,40],[40,30,50,30,50,40,40,40]];
+		var ints = [[(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a7;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a15;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a23;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a31;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a32 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a32;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a33 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a33;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a34 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a34;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a35 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a35;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a36 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a36;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a37 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a37;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a38 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a38;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a39 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a39;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a40 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a40;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a41 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a41;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a42 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a42;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a43 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a43;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a44 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a44;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a45 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a45;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a46 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a46;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a47 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a47;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a48 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a48;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a49 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a49;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a50 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a50;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a51 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a51;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a52 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a52;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a53 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a53;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a54 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a54;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a55 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a55;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a56 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a56;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a57 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a57;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a58 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a58;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a59 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a59;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a60 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a60;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a61 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a61;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a62 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a62;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a63 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a63;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a64 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a64;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a65 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a65;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a66 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a66;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a67 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a67;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a68 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a68;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a69 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a69;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a70 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a70;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a71 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a71;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a72 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a72;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a73 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a73;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a74 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a74;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a75 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a75;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a76 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a76;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a77 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a77;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a78 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a78;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a79 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a79;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a80 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a80;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a81 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a81;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a82 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a82;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a83 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a83;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a84 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a84;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a85 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a85;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a86 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a86;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a87 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a87;
+			return $r;
+		}(this))]];
 		this.subj.length = 0;
 		var _g = 0;
 		while(_g < 11) {
@@ -1336,7 +10527,67 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testUnion3: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints = [[1,3,2,4,2,5],[1,3,3,3,2,4]];
+		var ints = [[(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(3);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(5);
+			$r = a5;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(3);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(3);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(3);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(2);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(4);
+			$r = a11;
+			return $r;
+		}(this))]];
 		this.subj.length = 0;
 		var _g = 0;
 		while(_g < 2) {
@@ -1350,7 +10601,67 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertEquals(1,this.solution.length,{ fileName : "Tests.hx", lineNumber : 1041, className : "Tests", methodName : "testUnion3"});
 	}
 	,testAddPath1: function() {
-		var ints_0 = [480,20,480,110,320,30,480,30,250,250,480,30];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a11;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1358,7 +10669,97 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1052, className : "Tests", methodName : "testAddPath1"});
 	}
 	,testAddPath2: function() {
-		var ints_0 = [60,320,390,320,100,320,220,120,120,10,20,380,120,20,280,20,480,20];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(390);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a17;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1366,7 +10767,87 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1064, className : "Tests", methodName : "testAddPath2"});
 	}
 	,testAddPath3: function() {
-		var ints_0 = [320,70,420,370,250,170,60,290,10,290,210,290,400,150,410,340];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(400);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a15;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1374,7 +10855,67 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1075, className : "Tests", methodName : "testAddPath3"});
 	}
 	,testAddPath4: function() {
-		var ints_0 = [300,80,280,220,180,220,170,220,290,220,40,180];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a11;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1382,7 +10923,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1087, className : "Tests", methodName : "testAddPath4"});
 	}
 	,testAddPath5: function() {
-		var ints_0 = [170,340,280,230,160,50,430,370,280,230];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1390,7 +10981,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1098, className : "Tests", methodName : "testAddPath5"});
 	}
 	,testAddPath6: function() {
-		var ints_0 = [30,380,70,160,170,220,70,160,240,160];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1398,7 +11039,47 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1109, className : "Tests", methodName : "testAddPath6"});
 	}
 	,testAddPath7: function() {
-		var ints_0 = [440,300,40,40,440,300,80,360];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(360);
+			$r = a7;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1406,7 +11087,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1120, className : "Tests", methodName : "testAddPath7"});
 	}
 	,testAddPath8: function() {
-		var ints_0 = [260,10,260,240,190,100,260,10,420,120];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(120);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1414,7 +11145,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1131, className : "Tests", methodName : "testAddPath8"});
 	}
 	,testAddPath9: function() {
-		var ints_0 = [60,240,30,10,460,170,110,280,30,10];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(60);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(460);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1422,7 +11203,67 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1142, className : "Tests", methodName : "testAddPath9"});
 	}
 	,testAddPath10: function() {
-		var ints_0 = [430,270,440,260,470,30,280,30,430,270,450,40];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(450);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a11;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1430,7 +11271,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1153, className : "Tests", methodName : "testAddPath10"});
 	}
 	,testAddPath11: function() {
-		var ints_0 = [320,10,240,300,260,140,320,10,240,300];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(140);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(240);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1438,7 +11329,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1164, className : "Tests", methodName : "testAddPath11"});
 	}
 	,testAddPath12: function() {
-		var ints_0 = [270,340,130,50,50,350,270,340,290,40];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1446,7 +11387,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1175, className : "Tests", methodName : "testAddPath12"});
 	}
 	,testAddPath13: function() {
-		var ints_0 = [430,330,280,10,210,280,430,330,280,10];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1454,7 +11445,47 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1186, className : "Tests", methodName : "testAddPath13"});
 	}
 	,testAddPath14: function() {
-		var ints_0 = [50,30,410,330,50,30,310,50];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a7;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1462,7 +11493,37 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1197, className : "Tests", methodName : "testAddPath14"});
 	}
 	,testAddPath15: function() {
-		var ints_0 = [230,50,10,50,110,50];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a5;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1470,7 +11531,67 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1208, className : "Tests", methodName : "testAddPath15"});
 	}
 	,testAddPath16: function() {
-		var ints_0 = [260,320,40,130,100,30,80,360,260,320,40,50];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(360);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a11;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1478,7 +11599,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1219, className : "Tests", methodName : "testAddPath16"});
 	}
 	,testAddPath17: function() {
-		var ints_0 = [190,170,350,290,110,290,250,290,430,90];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(190);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1486,7 +11657,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1230, className : "Tests", methodName : "testAddPath17"});
 	}
 	,testAddPath18: function() {
-		var ints_0 = [150,330,210,70,90,70,210,70,150,330];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(70);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1494,7 +11715,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1241, className : "Tests", methodName : "testAddPath18"});
 	}
 	,testAddPath19: function() {
-		var ints_0 = [170,290,50,290,170,290,410,310,170,290];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1502,7 +11773,47 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 		this.assertTrue(res,{ fileName : "Tests.hx", lineNumber : 1252, className : "Tests", methodName : "testAddPath19"});
 	}
 	,testAddPath20: function() {
-		var ints_0 = [430,10,150,110,430,10,230,50];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(430);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a7;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
 		var c = new hxClipper_Clipper();
@@ -1511,10 +11822,100 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOpenPath1: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints_0 = [290,370,160,150,230,150,160,150,250,280];
+		var ints_0 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(230);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(280);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints_0));
-		var ints2_0 = [150,10,160,290,200,80,50,340];
+		var ints2_0 = [(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(160);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(290);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(80);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(340);
+			$r = a17;
+			return $r;
+		}(this))];
 		this.clip.length = 0;
 		this.clip.push(Tests.MakePolygonFromInts(ints2_0));
 		var c = new hxClipper_Clipper();
@@ -1525,10 +11926,90 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOpenPath2: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints = [50,310,210,110,260,110,170,110,350,200];
+		var ints = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(210);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(170);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints));
-		var ints2 = [310,30,90,90,370,130];
+		var ints2 = [(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(310);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a15;
+			return $r;
+		}(this))];
 		this.clip.length = 0;
 		this.clip.push(Tests.MakePolygonFromInts(ints2));
 		var c = new hxClipper_Clipper();
@@ -1539,10 +12020,110 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOpenPath3: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints = [40,360,260,50,180,270,180,250,410,250,140,250,350,380];
+		var ints = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(40);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(360);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(260);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(270);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(410);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(140);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(380);
+			$r = a13;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints));
-		var ints2 = [30,110,330,90,20,370];
+		var ints2 = [(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(110);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(330);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a19;
+			return $r;
+		}(this))];
 		this.clip.length = 0;
 		this.clip.push(Tests.MakePolygonFromInts(ints2));
 		var c = new hxClipper_Clipper();
@@ -1553,10 +12134,70 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOpenPath4: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints = [10,50,200,50];
+		var ints = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a3;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints));
-		var ints2 = [50,10,150,10,150,100,50,100];
+		var ints2 = [(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(10);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(150);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a11;
+			return $r;
+		}(this))];
 		this.clip.length = 0;
 		this.clip.push(Tests.MakePolygonFromInts(ints2));
 		var c = new hxClipper_Clipper();
@@ -1567,7 +12208,57 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testSimplify1: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints = [5048400,1719180,5050250,1717630,5049070,1717320,5049150,1717200,5049350,1717570];
+		var ints = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(5048400);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1719180);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(5050250);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1717630);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(5049070);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1717320);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(5049150);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1717200);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(5049350);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1717570);
+			$r = a9;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints));
 		var c = new hxClipper_Clipper();
@@ -1579,8 +12270,168 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testSimplify2: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints = [220,720,420,720,420,520,320,520,320,480,480,480,480,800,180,800,180,480,320,480,320,520,220,520];
-		var ints2 = [440,520,620,520,620,420,440,420];
+		var ints = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(720);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(720);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(800);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(800);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a23;
+			return $r;
+		}(this))];
+		var ints2 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(620);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(620);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints));
 		this.subj.push(Tests.MakePolygonFromInts(ints2));
@@ -1592,7 +12443,327 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testJoins1: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints = [[0,0,0,32,32,32,32,0],[32,0,32,32,64,32,64,0],[64,0,64,32,96,32,96,0],[96,0,96,32,128,32,128,0],[0,32,0,64,32,64,32,32],[64,32,64,64,96,64,96,32],[0,64,0,96,32,96,32,64],[32,64,32,96,64,96,64,64]];
+		var ints = [[(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a7;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a15;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(96);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(96);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a23;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(96);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(96);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(128);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(128);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a31;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a32 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a32;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a33 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a33;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a34 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a34;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a35 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a35;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a36 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a36;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a37 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a37;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a38 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a38;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a39 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a39;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a40 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a40;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a41 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a41;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a42 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a42;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a43 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a43;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a44 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(96);
+			$r = a44;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a45 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a45;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a46 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(96);
+			$r = a46;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a47 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a47;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a48 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a48;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a49 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a49;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a50 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a50;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a51 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(96);
+			$r = a51;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a52 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a52;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a53 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(96);
+			$r = a53;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a54 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a54;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a55 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a55;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a56 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a56;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a57 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a57;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a58 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a58;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a59 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(96);
+			$r = a59;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a60 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a60;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a61 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(96);
+			$r = a61;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a62 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a62;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a63 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(64);
+			$r = a63;
+			return $r;
+		}(this))]];
 		this.subj.length = 0;
 		var _g = 0;
 		while(_g < 8) {
@@ -1607,7 +12778,487 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testJoins2: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints = [[100,100,100,91,200,91,200,100],[200,91,209,91,209,250,200,250],[209,250,209,259,100,259,100,250],[100,250,109,250,109,300,100,300],[109,300,109,309,50,309,50,300],[50,309,41,309,41,250,50,250],[50,250,50,259,0,259,0,250],[0,259,-9,259,-9,100,0,100],[-9,100,-9,91,50,91,50,100],[50,100,41,100,41,50,50,50],[41,50,41,41,100,41,100,50],[100,41,109,41,109,100,100,100]];
+		var ints = [[(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a7;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(209);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(209);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(200);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a15;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(209);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(209);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(259);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(259);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a23;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a31;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a32 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a32;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a33 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a33;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a34 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a34;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a35 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(309);
+			$r = a35;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a36 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a36;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a37 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(309);
+			$r = a37;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a38 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a38;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a39 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(300);
+			$r = a39;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a40 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a40;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a41 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(309);
+			$r = a41;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a42 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(41);
+			$r = a42;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a43 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(309);
+			$r = a43;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a44 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(41);
+			$r = a44;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a45 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a45;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a46 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a46;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a47 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a47;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a48 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a48;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a49 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a49;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a50 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a50;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a51 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(259);
+			$r = a51;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a52 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a52;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a53 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(259);
+			$r = a53;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a54 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a54;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a55 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(250);
+			$r = a55;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a56 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a56;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a57 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(259);
+			$r = a57;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a58 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-9);
+			$r = a58;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a59 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(259);
+			$r = a59;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a60 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-9);
+			$r = a60;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a61 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a61;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a62 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			$r = a62;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a63 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a63;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a64 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-9);
+			$r = a64;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a65 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a65;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a66 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-9);
+			$r = a66;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a67 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a67;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a68 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a68;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a69 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a69;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a70 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a70;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a71 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a71;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a72 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a72;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a73 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a73;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a74 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(41);
+			$r = a74;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a75 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a75;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a76 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(41);
+			$r = a76;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a77 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a77;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a78 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a78;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a79 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a79;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a80 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(41);
+			$r = a80;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a81 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a81;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a82 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(41);
+			$r = a82;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a83 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(41);
+			$r = a83;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a84 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a84;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a85 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(41);
+			$r = a85;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a86 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a86;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a87 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(50);
+			$r = a87;
+			return $r;
+		}(this))],[(function($this) {
+			var $r;
+			var a88 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a88;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a89 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(41);
+			$r = a89;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a90 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a90;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a91 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(41);
+			$r = a91;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a92 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(109);
+			$r = a92;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a93 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a93;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a94 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a94;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a95 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(100);
+			$r = a95;
+			return $r;
+		}(this))]];
 		this.subj.length = 0;
 		var _g = 0;
 		while(_g < 12) {
@@ -1622,10 +13273,170 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testJoins3: function() {
 		this.pft = hxClipper_PolyFillType.PFT_NON_ZERO;
-		var ints = [220,720,420,720,420,520,320,520,320,480,480,480,480,800,180,800,180,480,320,480,320,520,220,520];
+		var ints = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(720);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(720);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(800);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(800);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(180);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(480);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(320);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(220);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a23;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints));
-		var ints2 = [440,520,620,520,620,420,440,420];
+		var ints2 = [(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(620);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(520);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(620);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(420);
+			$r = a31;
+			return $r;
+		}(this))];
 		this.clip.length = 0;
 		this.clip.push(Tests.MakePolygonFromInts(ints2));
 		var c = new hxClipper_Clipper();
@@ -1637,12 +13448,612 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testJoins4: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints = [1172,318,337,1066,154,639,479,448,1197,545,1041,773,30,888,444,308,1051,552,1109,102,658,683,394,596,972,1145,442,179,470,441,227,564,1179,1037,213,379,1072,872,587,171,723,329,272,242,952,1121,714,1148,91,217,735,561,903,1009,664,1168,1160,847,9,7,619,142,1139,1116,1134,369,760,647,372,134,1106,183,311,103,265,185,1062,856,453,944,44,653,766,527,334,965,443,971,474,36,397,1138,901,841,775,612,222,465,148,955,417,540,997,472,666,802,754,32,907,638,927,42,990,406,99,682,17,281,106,848];
+		var ints = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1172);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(318);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(337);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1066);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(154);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(639);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(479);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(448);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1197);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(545);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1041);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(773);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(30);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(888);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(444);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(308);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1051);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(552);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1109);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(102);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(658);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(683);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(394);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(596);
+			$r = a23;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(972);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1145);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(442);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(179);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(470);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(441);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(227);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(564);
+			$r = a31;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a32 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1179);
+			$r = a32;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a33 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1037);
+			$r = a33;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a34 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(213);
+			$r = a34;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a35 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(379);
+			$r = a35;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a36 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1072);
+			$r = a36;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a37 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(872);
+			$r = a37;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a38 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(587);
+			$r = a38;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a39 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(171);
+			$r = a39;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a40 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(723);
+			$r = a40;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a41 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(329);
+			$r = a41;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a42 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(272);
+			$r = a42;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a43 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(242);
+			$r = a43;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a44 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(952);
+			$r = a44;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a45 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1121);
+			$r = a45;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a46 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(714);
+			$r = a46;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a47 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1148);
+			$r = a47;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a48 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(91);
+			$r = a48;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a49 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a49;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a50 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(735);
+			$r = a50;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a51 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(561);
+			$r = a51;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a52 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(903);
+			$r = a52;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a53 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1009);
+			$r = a53;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a54 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(664);
+			$r = a54;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a55 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1168);
+			$r = a55;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a56 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1160);
+			$r = a56;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a57 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(847);
+			$r = a57;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a58 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(9);
+			$r = a58;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a59 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(7);
+			$r = a59;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a60 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(619);
+			$r = a60;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a61 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(142);
+			$r = a61;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a62 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1139);
+			$r = a62;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a63 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1116);
+			$r = a63;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a64 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1134);
+			$r = a64;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a65 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(369);
+			$r = a65;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a66 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(760);
+			$r = a66;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a67 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(647);
+			$r = a67;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a68 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(372);
+			$r = a68;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a69 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(134);
+			$r = a69;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a70 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1106);
+			$r = a70;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a71 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(183);
+			$r = a71;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a72 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(311);
+			$r = a72;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a73 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(103);
+			$r = a73;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a74 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(265);
+			$r = a74;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a75 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(185);
+			$r = a75;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a76 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1062);
+			$r = a76;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a77 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(856);
+			$r = a77;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a78 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(453);
+			$r = a78;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a79 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(944);
+			$r = a79;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a80 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(44);
+			$r = a80;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a81 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(653);
+			$r = a81;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a82 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(766);
+			$r = a82;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a83 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(527);
+			$r = a83;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a84 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(334);
+			$r = a84;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a85 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(965);
+			$r = a85;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a86 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(443);
+			$r = a86;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a87 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(971);
+			$r = a87;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a88 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(474);
+			$r = a88;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a89 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(36);
+			$r = a89;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a90 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(397);
+			$r = a90;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a91 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1138);
+			$r = a91;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a92 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(901);
+			$r = a92;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a93 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(841);
+			$r = a93;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a94 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(775);
+			$r = a94;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a95 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(612);
+			$r = a95;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a96 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(222);
+			$r = a96;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a97 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(465);
+			$r = a97;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a98 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(148);
+			$r = a98;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a99 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(955);
+			$r = a99;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a100 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(417);
+			$r = a100;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a101 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(540);
+			$r = a101;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a102 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(997);
+			$r = a102;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a103 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(472);
+			$r = a103;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a104 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(666);
+			$r = a104;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a105 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(802);
+			$r = a105;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a106 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(754);
+			$r = a106;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a107 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a107;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a108 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(907);
+			$r = a108;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a109 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(638);
+			$r = a109;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a110 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(927);
+			$r = a110;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a111 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(42);
+			$r = a111;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a112 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(990);
+			$r = a112;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a113 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(406);
+			$r = a113;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a114 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(99);
+			$r = a114;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a115 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(682);
+			$r = a115;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a116 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(17);
+			$r = a116;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a117 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(281);
+			$r = a117;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a118 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(106);
+			$r = a118;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a119 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(848);
+			$r = a119;
+			return $r;
+		}(this))];
 		this.subj = Tests.MakeDiamondPolygons(20,600,400);
 		var _g = 0;
 		while(_g < 120) {
 			var i = _g++;
-			this.subj[ints[i]].length = 0;
+			hxClipper_InternalTools.clear(this.subj[Std["int"](hxClipper_InternalTools.toFloat(ints[i]))]);
 		}
 		var c = new hxClipper_Clipper();
 		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
@@ -1652,12 +14063,312 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testJoins5: function() {
 		this.pft = hxClipper_PolyFillType.PFT_EVEN_ODD;
-		var ints = [553,388,574,20,191,26,461,258,509,19,466,257,90,269,373,516,350,333,288,141,47,217,247,519,535,336,504,497,344,341,293,177,558,598,399,286,482,185,266,24,27,118,338,413,514,510,366,46,593,465,405,32,449,6,326,59,75,173,127,130];
+		var ints = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(553);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(388);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(574);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(20);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(191);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(26);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(461);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(258);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(509);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(19);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(466);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(257);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(90);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(269);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(373);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(516);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(350);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(333);
+			$r = a17;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(288);
+			$r = a18;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a19 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(141);
+			$r = a19;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a20 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(47);
+			$r = a20;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a21 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(217);
+			$r = a21;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a22 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(247);
+			$r = a22;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a23 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(519);
+			$r = a23;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a24 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(535);
+			$r = a24;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a25 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(336);
+			$r = a25;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a26 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(504);
+			$r = a26;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a27 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(497);
+			$r = a27;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a28 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(344);
+			$r = a28;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a29 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(341);
+			$r = a29;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a30 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(293);
+			$r = a30;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a31 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(177);
+			$r = a31;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a32 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(558);
+			$r = a32;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a33 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(598);
+			$r = a33;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a34 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(399);
+			$r = a34;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a35 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(286);
+			$r = a35;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a36 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(482);
+			$r = a36;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a37 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(185);
+			$r = a37;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a38 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(266);
+			$r = a38;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a39 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(24);
+			$r = a39;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a40 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(27);
+			$r = a40;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a41 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(118);
+			$r = a41;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a42 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(338);
+			$r = a42;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a43 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(413);
+			$r = a43;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a44 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(514);
+			$r = a44;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a45 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(510);
+			$r = a45;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a46 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(366);
+			$r = a46;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a47 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(46);
+			$r = a47;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a48 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(593);
+			$r = a48;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a49 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(465);
+			$r = a49;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a50 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(405);
+			$r = a50;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a51 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(32);
+			$r = a51;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a52 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(449);
+			$r = a52;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a53 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(6);
+			$r = a53;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a54 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(326);
+			$r = a54;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a55 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(59);
+			$r = a55;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a56 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(75);
+			$r = a56;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a57 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(173);
+			$r = a57;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a58 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(127);
+			$r = a58;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a59 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(130);
+			$r = a59;
+			return $r;
+		}(this))];
 		this.subj = Tests.MakeSquarePolygons(20,600,400);
 		var _g = 0;
 		while(_g < 60) {
 			var i = _g++;
-			this.subj[ints[i]].length = 0;
+			hxClipper_InternalTools.clear(this.subj[Std["int"](hxClipper_InternalTools.toFloat(ints[i]))]);
 		}
 		var c = new hxClipper_Clipper();
 		c.addPaths(this.subj,hxClipper_PolyType.PT_SUBJECT,true);
@@ -1667,7 +14378,97 @@ Tests.prototype = $extend(haxe_unit_TestCase.prototype,{
 	}
 	,testOffsetPoly1: function() {
 		var scale = 10.0;
-		var ints2 = [348,257,364,148,362,148,326,241,295,219,258,88,440,129,370,196,372,275];
+		var ints2 = [(function($this) {
+			var $r;
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(348);
+			$r = a;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(257);
+			$r = a1;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(364);
+			$r = a2;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(148);
+			$r = a3;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(362);
+			$r = a4;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(148);
+			$r = a5;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(326);
+			$r = a6;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(241);
+			$r = a7;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(295);
+			$r = a8;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(219);
+			$r = a9;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(258);
+			$r = a10;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(88);
+			$r = a11;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(440);
+			$r = a12;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(129);
+			$r = a13;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(370);
+			$r = a14;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(196);
+			$r = a15;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(372);
+			$r = a16;
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(275);
+			$r = a17;
+			return $r;
+		}(this))];
 		this.subj.length = 0;
 		this.subj.push(Tests.MakePolygonFromInts(ints2,scale));
 		var co = new hxClipper_ClipperOffset();
@@ -1860,6 +14661,2133 @@ Type["typeof"] = function(v) {
 	default:
 		return ValueType.TUnknown;
 	}
+};
+var com_fundoware_engine_bigint_FunBigInt_$ = function() {
+};
+com_fundoware_engine_bigint_FunBigInt_$.__name__ = ["com","fundoware","engine","bigint","FunBigInt_"];
+com_fundoware_engine_bigint_FunBigInt_$.fromInt = function(value) {
+	var c = com_fundoware_engine_bigint_FunBigInt_$.getCachedValue(value);
+	if(c == null) c = com_fundoware_engine_bigint_FunBigInt_$.newFromInt(value);
+	return c;
+};
+com_fundoware_engine_bigint_FunBigInt_$.fromString = function(value) {
+	var bi = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	bi.setFromString(value);
+	return bi;
+};
+com_fundoware_engine_bigint_FunBigInt_$.fromHexSigned = function(value) {
+	var bi = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	bi._setFromHex(value,true);
+	return bi;
+};
+com_fundoware_engine_bigint_FunBigInt_$.fromHexUnsigned = function(value) {
+	var bi = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	bi._setFromHex(value,false);
+	return bi;
+};
+com_fundoware_engine_bigint_FunBigInt_$.fromUnsignedInts = function(value,length) {
+	if(length == null) length = 0;
+	var bi = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	bi.setFromUnsignedInts(value,length);
+	return bi;
+};
+com_fundoware_engine_bigint_FunBigInt_$.newFromInt = function(value) {
+	var bi = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	bi.setFromInt(value);
+	return bi;
+};
+com_fundoware_engine_bigint_FunBigInt_$.getCachedValue = function(value) {
+	if(-16 <= value && value <= 16) {
+		com_fundoware_engine_bigint_FunBigInt_$.initCache();
+		return com_fundoware_engine_bigint_FunBigInt_$.s_cache[value - -16];
+	}
+	return null;
+};
+com_fundoware_engine_bigint_FunBigInt_$.initCache = function() {
+	if(com_fundoware_engine_bigint_FunBigInt_$.s_cache == null) {
+		var this1;
+		this1 = new Array(33);
+		com_fundoware_engine_bigint_FunBigInt_$.s_cache = this1;
+		var _g1 = 0;
+		var _g = com_fundoware_engine_bigint_FunBigInt_$.s_cache.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var val = com_fundoware_engine_bigint_FunBigInt_$.newFromInt(i + -16);
+			com_fundoware_engine_bigint_FunBigInt_$.s_cache[i] = val;
+		}
+	}
+};
+com_fundoware_engine_bigint_FunBigInt_$.negate1 = function(a) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.negate(r,a);
+	return r;
+};
+com_fundoware_engine_bigint_FunBigInt_$.equals2Int = function(a,b) {
+	return a.equalsInt(b);
+};
+com_fundoware_engine_bigint_FunBigInt_$.equals2 = function(a,b) {
+	return a.equals(b);
+};
+com_fundoware_engine_bigint_FunBigInt_$.addInt2 = function(a,b) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.addInt(r,a,b);
+	return r;
+};
+com_fundoware_engine_bigint_FunBigInt_$.add2 = function(a,b) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.add(r,a,b);
+	return r;
+};
+com_fundoware_engine_bigint_FunBigInt_$.subInt2 = function(a,b) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.subtractInt(r,a,b);
+	return r;
+};
+com_fundoware_engine_bigint_FunBigInt_$.sub2 = function(a,b) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.subtract(r,a,b);
+	return r;
+};
+com_fundoware_engine_bigint_FunBigInt_$.multiplyInt2 = function(a,b) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.multiplyInt(r,a,b);
+	return r;
+};
+com_fundoware_engine_bigint_FunBigInt_$.multiply2 = function(a,b) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.multiply(r,a,b);
+	return r;
+};
+com_fundoware_engine_bigint_FunBigInt_$.divideInt2 = function(a,b) {
+	var q = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.divideInt(a,b,q);
+	return q;
+};
+com_fundoware_engine_bigint_FunBigInt_$.divide2 = function(a,b) {
+	var q = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.divide(a,b,q,null);
+	return q;
+};
+com_fundoware_engine_bigint_FunBigInt_$.modulusInt2 = function(a,b) {
+	var q = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.divideInt(a,b,q);
+};
+com_fundoware_engine_bigint_FunBigInt_$.modulus2 = function(a,b) {
+	var q = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.divide(a,b,q,r);
+	return r;
+};
+com_fundoware_engine_bigint_FunBigInt_$.arithmeticShiftLeft2 = function(a,b) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.arithmeticShiftLeft(r,a,b);
+	return r;
+};
+com_fundoware_engine_bigint_FunBigInt_$.arithmeticShiftRight2 = function(a,b) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.arithmeticShiftRight(r,a,b);
+	return r;
+};
+com_fundoware_engine_bigint_FunBigInt_$.sign1 = function(a) {
+	return a.m_data[a.m_count - 1] >> 31;
+};
+com_fundoware_engine_bigint_FunBigInt_$.isZero1 = function(a) {
+	return a.m_count == 1 && a.m_data[0] == 0;
+};
+com_fundoware_engine_bigint_FunBigInt_$.isNegative1 = function(a) {
+	return a.m_data[a.m_count - 1] < 0;
+};
+com_fundoware_engine_bigint_FunBigInt_$.toString1 = function(a) {
+	return com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(a.m_data,a.m_count);
+};
+com_fundoware_engine_bigint_FunBigInt_$.toHex1 = function(a) {
+	return a.toHex();
+};
+com_fundoware_engine_bigint_FunBigInt_$.toBytes1 = function(a) {
+	return a.toBytes();
+};
+com_fundoware_engine_bigint_FunBigInt_$.toInts1 = function(a,v) {
+	return a.toInts(v);
+};
+com_fundoware_engine_bigint_FunBigInt_$.prototype = {
+	isZero: function() {
+		return this.m_count == 1 && this.m_data[0] == 0;
+	}
+	,isNegative: function() {
+		return this.m_data[this.m_count - 1] < 0;
+	}
+	,sign: function() {
+		return this.m_data[this.m_count - 1] >> 31;
+	}
+	,equals: function(other) {
+		if(other == null || this.m_count != other.m_count) return false;
+		var _g1 = 0;
+		var _g = this.m_count;
+		while(_g1 < _g) {
+			var n = _g1++;
+			if(this.m_data[n] != other.m_data[n]) return false;
+		}
+		return true;
+	}
+	,equalsInt: function(other) {
+		if(this.m_count != 1) return false;
+		return this.m_data[0] == other;
+	}
+	,toString: function() {
+		return com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(this.m_data,this.m_count);
+	}
+	,toHex: function() {
+		var sb_b = "";
+		var i = this.m_count;
+		while(--i >= 0) {
+			var v = this.m_data[i];
+			var _g = 0;
+			while(_g < 8) {
+				var j = _g++;
+				var c = v >> 28 & 15;
+				v <<= 4;
+				if(c < 10) c = c + 48; else c = c - 10 + 97;
+				sb_b += String.fromCharCode(c);
+			}
+		}
+		return sb_b;
+	}
+	,toBytes: function() {
+		var result = haxe_io_Bytes.alloc(this.m_count << 2);
+		var _g1 = 0;
+		var _g = this.m_count;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var v = this.m_data[this.m_count - i - 1];
+			result.b[i << 2] = v >> 24 & 255 & 255;
+			result.b[(i << 2) + 1] = v >> 16 & 255 & 255;
+			result.b[(i << 2) + 2] = v >> 8 & 255 & 255;
+			result.b[(i << 2) + 3] = v & 255 & 255;
+		}
+		return result;
+	}
+	,toInts: function(output) {
+		if(output != null) {
+			var n;
+			if(this.m_count > output.length) n = output.length; else n = this.m_count;
+			var _g = 0;
+			while(_g < n) {
+				var i = _g++;
+				output[i] = this.m_data[i];
+			}
+		}
+		return this.m_count;
+	}
+	,getUnsignedDigitCount: function() {
+		if(this.m_count > 1 && this.m_data[this.m_count - 1] == 0) return this.m_count - 1;
+		return this.m_count;
+	}
+	,getShort: function(n) {
+		return this.m_data[n >> 1] >> ((n & 1) << 4) & 65535;
+	}
+	,compact: function() {
+		if(this.m_data[this.m_count - 1] < 0) while(this.m_count > 1) if(this.m_data[this.m_count - 1] == -1 && this.m_data[this.m_count - 2] < 0) --this.m_count; else break; else while(this.m_count > 1) if(this.m_data[this.m_count - 1] == 0 && this.m_data[this.m_count - 2] >= 0) --this.m_count; else break;
+	}
+	,m_count: null
+	,m_data: null
+	,__class__: com_fundoware_engine_bigint_FunBigInt_$
+};
+var com_fundoware_engine_core_FunIClearable = function() { };
+com_fundoware_engine_core_FunIClearable.__name__ = ["com","fundoware","engine","core","FunIClearable"];
+com_fundoware_engine_core_FunIClearable.prototype = {
+	clear: null
+	,__class__: com_fundoware_engine_core_FunIClearable
+};
+var com_fundoware_engine_bigint_FunMutableBigInt_$ = function() {
+	this.m_owned = false;
+	com_fundoware_engine_bigint_FunBigInt_$.call(this);
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.__name__ = ["com","fundoware","engine","bigint","FunMutableBigInt_"];
+com_fundoware_engine_bigint_FunMutableBigInt_$.__interfaces__ = [com_fundoware_engine_core_FunIClearable];
+com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt = function(other) {
+	var c = com_fundoware_engine_bigint_FunBigInt_$.getCachedValue(other);
+	if(c != null) return com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(c);
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	if(com_fundoware_engine_bigint_FunMutableBigInt_$.s_testAllocation) {
+		r.ensureCapacityDebug(1,false);
+		null;
+	} else r.ensureCapacityProd(1,false);
+	r.m_data[0] = other;
+	r.m_count = 1;
+	return r;
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt = function(other) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	r.m_data = other.m_data;
+	r.m_count = other.m_count;
+	return r;
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.multiplyAssignInt2 = function(a,b) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.multiplyInt(r,a,b);
+	a.copy(r);
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.multiplyAssign2 = function(a,b) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.multiply(r,a,b);
+	a.copy(r);
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.divideAssignInt2 = function(a,b) {
+	var q = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.divideInt(a,b,q);
+	a.copy(q);
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.divideAssign2 = function(a,b) {
+	var q = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.divide(a,b,q,null);
+	a.copy(q);
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.modulusAssignInt2 = function(a,b) {
+	var q = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	var r = com_fundoware_engine_bigint_FunBigIntArithmetic.divideInt(a,b,q);
+	a.setFromInt(r);
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.modulusAssign2 = function(a,b) {
+	var q = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	com_fundoware_engine_bigint_FunBigIntArithmetic.divide(a,b,q,r);
+	a.copy(r);
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.arithmeticShiftLeftAssign2 = function(a,b) {
+	com_fundoware_engine_bigint_FunBigIntArithmetic.arithmeticShiftLeft(a,a,b);
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.arithmeticShiftRightAssign2 = function(a,b) {
+	com_fundoware_engine_bigint_FunBigIntArithmetic.arithmeticShiftRight(a,a,b);
+};
+com_fundoware_engine_bigint_FunMutableBigInt_$.__super__ = com_fundoware_engine_bigint_FunBigInt_$;
+com_fundoware_engine_bigint_FunMutableBigInt_$.prototype = $extend(com_fundoware_engine_bigint_FunBigInt_$.prototype,{
+	setFromInt: function(value) {
+		if(com_fundoware_engine_bigint_FunMutableBigInt_$.s_testAllocation) {
+			this.ensureCapacityDebug(1,false);
+			null;
+		} else this.ensureCapacityProd(1,false);
+		this.m_data[0] = value;
+		this.m_count = 1;
+	}
+	,setFromHexSigned: function(value) {
+		this._setFromHex(value,true);
+	}
+	,setFromHexUnsigned: function(value) {
+		this._setFromHex(value,false);
+	}
+	,setFromString: function(value) {
+		if(value == null || value.length < 1) throw new js__$Boot_HaxeError("invalid argument");
+		var negate = HxOverrides.cca(value,0) == 45;
+		var index;
+		if(negate) index = 1; else index = 0;
+		if(value.length <= index) throw new js__$Boot_HaxeError("invalid argument");
+		this.setFromInt(0);
+		var t = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+		var _g1 = index;
+		var _g = value.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var c = HxOverrides.cca(value,i);
+			if(48 <= c && c <= 57) {
+				com_fundoware_engine_bigint_FunBigIntArithmetic.multiplyInt(t,this,10);
+				com_fundoware_engine_bigint_FunBigIntArithmetic.addInt(this,t,c - 48);
+			} else throw new js__$Boot_HaxeError("invalid argument");
+		}
+		if(negate) com_fundoware_engine_bigint_FunBigIntArithmetic.negate(this,this);
+	}
+	,setFromUnsignedInts: function(value,length) {
+		if(length == null) length = 0;
+		if(length <= 0) length = value.length;
+		var neg = value[length - 1] >>> 31;
+		this.ensureCapacity(length + neg,false);
+		this.m_data[length + neg - 1] = 0;
+		com_fundoware_engine_bigint_FunMultiwordArithmetic.copy(this.m_data,value,length);
+		this.m_count = length + neg;
+		this.compact();
+	}
+	,setFromBigEndianBytesUnsigned: function(value,offset,valueLength) {
+		if(valueLength == null) valueLength = 0;
+		if(offset == null) offset = 0;
+		if(valueLength <= 0) valueLength = value.length;
+		if(offset + valueLength > value.length) throw new js__$Boot_HaxeError("buffer too small");
+		if(valueLength < 1) {
+			this.setFromInt(0);
+			return;
+		}
+		var neg;
+		if((valueLength & 3) == 0) neg = value.b[0] >> 7; else neg = 0;
+		var length = valueLength + 3 >> 2;
+		this.ensureCapacity(length + neg,false);
+		this.m_data[length + neg - 1] = 0;
+		var pos = 0;
+		var i = offset + valueLength;
+		while(i >= offset + 4) {
+			var index = pos++;
+			this.m_data[index] = value.b[i - 1] | value.b[i - 2] << 8 | value.b[i - 3] << 16 | value.b[i - 4] << 24;
+			i -= 4;
+		}
+		if(i > offset) {
+			var x = 0;
+			var _g = offset;
+			while(_g < i) {
+				var j = _g++;
+				x = x << 8 | value.b[j];
+			}
+			var index1 = pos++;
+			this.m_data[index1] = x;
+		}
+		this.m_count = length + neg;
+		this.compact();
+	}
+	,setFromLittleEndianBytesUnsigned: function(value,offset,valueLength) {
+		if(valueLength == null) valueLength = 0;
+		if(offset == null) offset = 0;
+		if(valueLength <= 0) valueLength = value.length;
+		if(offset + valueLength > value.length) throw new js__$Boot_HaxeError("buffer too small");
+		if(valueLength < 1) {
+			this.setFromInt(0);
+			return;
+		}
+		var neg;
+		if((valueLength & 3) == 0) neg = value.b[valueLength - 1] >> 7; else neg = 0;
+		var length = valueLength + 3 >> 2;
+		this.ensureCapacity(length + neg,false);
+		this.m_data[length + neg - 1] = 0;
+		var pos = 0;
+		var i = offset;
+		while(i <= offset + valueLength - 4) {
+			var index = pos++;
+			this.m_data[index] = value.b[i] | value.b[i + 1] << 8 | value.b[i + 2] << 16 | value.b[i + 3] << 24;
+			i += 4;
+		}
+		if(i < offset + valueLength) {
+			var x = 0;
+			var _g1 = i;
+			var _g = offset + valueLength;
+			while(_g1 < _g) {
+				var j = _g1++;
+				x |= value.b[j] << (j - i << 3);
+			}
+			var index1 = pos++;
+			this.m_data[index1] = x;
+		}
+		this.m_count = length + neg;
+		this.compact();
+	}
+	,clear: function() {
+		com_fundoware_engine_bigint_FunMultiwordArithmetic.setZero(this.m_data,this.m_data.length);
+		this.m_count = 1;
+	}
+	,copyFrom: function(other) {
+		if(other != this) {
+			this.ensureCapacity(other.m_count,false);
+			var _g1 = 0;
+			var _g = other.m_count;
+			while(_g1 < _g) {
+				var i = _g1++;
+				this.m_data[i] = other.m_data[i];
+			}
+			this.m_count = other.m_count;
+		}
+	}
+	,setShort: function(n,v) {
+		var s = (n & 1) << 4;
+		var t = this.m_data[n >> 1] & -65536 >>> s;
+		this.m_data[n >> 1] = t | (v & 65535) << s;
+	}
+	,copy: function(other) {
+		this.m_data = other.m_data;
+		this.m_count = other.m_count;
+		this.m_owned = other.m_owned;
+	}
+	,ensureCapacity: function(n,preserve) {
+		if(com_fundoware_engine_bigint_FunMutableBigInt_$.s_testAllocation) {
+			this.ensureCapacityDebug(n,preserve);
+			return;
+		}
+		this.ensureCapacityProd(n,preserve);
+	}
+	,ensureCapacityDebug: function(n,preserve) {
+		if(preserve && this.m_data != null && this.m_count > 0) {
+			if(this.m_count > n) n = this.m_count; else n = n;
+			n += com_fundoware_engine_bigint_FunMutableBigInt_$.s_debugAllocationPadding;
+			var newData;
+			var this1;
+			this1 = new Array(n);
+			newData = this1;
+			var _g1 = 0;
+			var _g = this.m_count;
+			while(_g1 < _g) {
+				var i = _g1++;
+				newData[i] = this.m_data[i];
+			}
+			var _g2 = this.m_count;
+			while(_g2 < n) {
+				var i1 = _g2++;
+				newData[i1] = -559038737;
+			}
+			this.m_data = newData;
+		} else {
+			n += com_fundoware_engine_bigint_FunMutableBigInt_$.s_debugAllocationPadding;
+			var this2;
+			this2 = new Array(n);
+			this.m_data = this2;
+			var _g3 = 0;
+			while(_g3 < n) {
+				var i2 = _g3++;
+				this.m_data[i2] = -559038737;
+			}
+		}
+	}
+	,ensureCapacityProd: function(n,preserve) {
+		if(n < 1) throw new js__$Boot_HaxeError("invalid argument");
+		if(!this.m_owned || this.m_data == null || n > this.m_data.length) {
+			n = com_fundoware_engine_math_FunInteger.clp2(n);
+			if(preserve && this.m_data != null) {
+				var newData;
+				var this1;
+				this1 = new Array(n);
+				newData = this1;
+				var _g1 = 0;
+				var _g = this.m_count;
+				while(_g1 < _g) {
+					var i = _g1++;
+					newData[i] = this.m_data[i];
+				}
+				this.m_data = newData;
+			} else {
+				var this2;
+				this2 = new Array(n);
+				this.m_data = this2;
+			}
+		}
+		this.m_owned = true;
+	}
+	,m_owned: null
+	,_setFromHex: function(value,signed) {
+		if(value == null) throw new js__$Boot_HaxeError("invalid argument");
+		var index = value.length;
+		if(index <= 0) throw new js__$Boot_HaxeError("invalid argument");
+		var extra;
+		if(signed) extra = 0; else extra = 1;
+		this.ensureCapacity((index + 7 >> 3) + extra,false);
+		var pos = -1;
+		var bit = 32;
+		var c = 0;
+		while(index > 0) {
+			var index1 = --index;
+			c = HxOverrides.cca(value,index1);
+			if(48 <= c && c <= 57) c -= 48; else if(65 <= c && c <= 70) c -= 55; else if(97 <= c && c <= 102) c -= 87; else if(c == 32) continue; else throw new js__$Boot_HaxeError("invalid argument");
+			if(bit >= 32) {
+				var index2 = ++pos;
+				this.m_data[index2] = 0;
+				bit = 0;
+			}
+			this.m_data[pos] = this.m_data[pos] | c << bit;
+			bit += 4;
+		}
+		this.m_count = pos + 1;
+		if(signed) {
+			if((c & 8) != 0) c = 15; else c = 0;
+			while(bit < 32) {
+				this.m_data[pos] = this.m_data[pos] | c << bit;
+				bit += 4;
+			}
+		} else if(this.m_data[pos] < 0) {
+			var index3 = this.m_count++;
+			this.m_data[index3] = 0;
+		}
+		this.compact();
+	}
+	,__class__: com_fundoware_engine_bigint_FunMutableBigInt_$
+});
+var com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$ = {};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.__name__ = ["com","fundoware","engine","bigint","_FunBigInt","FunBigInt_Impl_"];
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.sign = function(this1) {
+	return this1.m_data[this1.m_count - 1] >> 31;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.isZero = function(this1) {
+	return this1.m_count == 1 && this1.m_data[0] == 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.isNegative = function(this1) {
+	return this1.m_data[this1.m_count - 1] < 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.toString = function(this1) {
+	return com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(this1.m_data,this1.m_count);
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.toHex = function(this1) {
+	return this1.toHex();
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.toBytes = function(this1) {
+	return this1.toBytes();
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.toInts = function(this1,output) {
+	return this1.toInts(output);
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.fromInt = function(value) {
+	var a = com_fundoware_engine_bigint_FunBigInt_$.fromInt(value);
+	return a;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.fromString = function(value) {
+	var a = com_fundoware_engine_bigint_FunBigInt_$.fromString(value);
+	return a;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.fromHex = function(value) {
+	var a = com_fundoware_engine_bigint_FunBigInt_$.fromHexSigned(value);
+	return a;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.fromHexSigned = function(value) {
+	var a = com_fundoware_engine_bigint_FunBigInt_$.fromHexSigned(value);
+	return a;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.fromHexUnsigned = function(value) {
+	var a = com_fundoware_engine_bigint_FunBigInt_$.fromHexUnsigned(value);
+	return a;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.fromUnsignedInts = function(value,length) {
+	if(length == null) length = 0;
+	var a = com_fundoware_engine_bigint_FunBigInt_$.fromUnsignedInts(value,length);
+	return a;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.getBit = function(this1,index) {
+	return com_fundoware_engine_bigint_FunMultiwordArithmetic.getBitSigned(this1.m_data,this1.m_count,index);
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.negate_ = function(a) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.negate1(a);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.eqInt_ = function(a,b) {
+	return a.equalsInt(b);
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.eq_ = function(a,b) {
+	return a.equals(b);
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.eqMutable_ = function(a,b) {
+	return a.equals(b);
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.ineqInt_ = function(a,b) {
+	return !a.equalsInt(b);
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.ineq_ = function(a,b) {
+	return !a.equals(b);
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.ineqMutable_ = function(a,b) {
+	return !a.equals(b);
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.ltInt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(a,b) < 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.lt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) < 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.ltMutable_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) < 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.lteInt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(a,b) <= 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.lte_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) <= 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.lteMutable_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) <= 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.gtInt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(a,b) > 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.gt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) > 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.gtMutable_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) > 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.gteInt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(a,b) >= 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.gte_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) >= 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.gteMutable_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) >= 0;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.addInt_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.addInt2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.add_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.add2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.addMutable_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.add2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.subInt_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.subInt2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.sub_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.sub2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.subMutable_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.sub2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.mulInt_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.multiplyInt2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.mul_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.mulMutable_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.divInt_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.div_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.divide2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.divMutable_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.divide2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.modInt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigInt_$.modulusInt2(a,b);
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.mod_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.modulus2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.modMutable_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.modulus2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.andInt_ = function(a,b) {
+	return a.m_data[0] & b;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.asl_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.arithmeticShiftLeft2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.asr_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.arithmeticShiftRight2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.fromInt_ = function(a) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.fromInt(a);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.toFunBigInt_ = function(this1) {
+	return this1;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.toFunMutableBigInt = function(this1) {
+	var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+	return a;
+};
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$._new = function(a) {
+	return a;
+};
+var com_fundoware_engine_bigint_FunBigIntArithmetic = function() { };
+com_fundoware_engine_bigint_FunBigIntArithmetic.__name__ = ["com","fundoware","engine","bigint","FunBigIntArithmetic"];
+com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt = function(a,b) {
+	if(a.m_count > 1) return (a.m_data[a.m_count - 1] >> 31 << 1) + 1;
+	var x = a.m_data[0];
+	var lt = x - b ^ (x ^ b) & (x - b ^ x);
+	var gt = b - x ^ (x ^ b) & (b - x ^ b);
+	return lt >> 31 | gt >>> 31;
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.compare = function(a,b) {
+	if(a != b) {
+		var c = (a.m_data[a.m_count - 1] >> 31 & 2) + (b.m_data[b.m_count - 1] >> 31 & 1);
+		switch(c) {
+		case 0:
+			if(a.m_count > b.m_count) return 1;
+			if(a.m_count < b.m_count) return -1;
+			break;
+		case 1:
+			return 1;
+		case 2:
+			return -1;
+		case 3:
+			if(a.m_count > b.m_count) return -1;
+			if(a.m_count < b.m_count) return 1;
+			break;
+		}
+		return com_fundoware_engine_bigint_FunMultiwordArithmetic.compareUnsigned(a.m_data,b.m_data,a.m_count);
+	}
+	return 0;
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.negate = function(result,operand) {
+	var c = 1;
+	var x = 0;
+	var z = 0;
+	result.ensureCapacity(operand.m_count + 1,result == operand);
+	var _g1 = 0;
+	var _g = operand.m_count;
+	while(_g1 < _g) {
+		var i = _g1++;
+		x = ~operand.m_data[i];
+		z = x + c;
+		result.m_data[i] = z;
+		c = (x & ~z) >>> 31;
+	}
+	result.m_count = operand.m_count;
+	if((~x & z) < 0) {
+		var index = result.m_count++;
+		result.m_data[index] = 0;
+	} else result.compact();
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.add = function(result,operand1,operand2) {
+	var c = 0;
+	var x = 0;
+	var y = 0;
+	var z = 0;
+	if(operand1.m_count == operand2.m_count) {
+		result.ensureCapacity(operand1.m_count + 1,result == operand1 || result == operand2);
+		var _g1 = 0;
+		var _g = operand1.m_count;
+		while(_g1 < _g) {
+			var i = _g1++;
+			x = operand1.m_data[i];
+			y = operand2.m_data[i];
+			z = x + y + c;
+			result.m_data[i] = z;
+			c = (x & y | (x | y) & ~z) >>> 31;
+		}
+		result.m_count = operand1.m_count;
+	} else {
+		var o1;
+		if(operand1.m_count > operand2.m_count) o1 = operand1; else o1 = operand2;
+		var o2;
+		if(operand1.m_count > operand2.m_count) o2 = operand2; else o2 = operand1;
+		result.ensureCapacity(o1.m_count + 1,result == operand1 || result == operand2);
+		var s = o2.m_data[o2.m_count - 1] >> 31;
+		var _g11 = 0;
+		var _g2 = o2.m_count;
+		while(_g11 < _g2) {
+			var i1 = _g11++;
+			x = o1.m_data[i1];
+			y = o2.m_data[i1];
+			z = x + y + c;
+			result.m_data[i1] = z;
+			c = (x & y | (x | y) & ~z) >>> 31;
+		}
+		y = s;
+		var _g12 = o2.m_count;
+		var _g3 = o1.m_count;
+		while(_g12 < _g3) {
+			var i2 = _g12++;
+			x = o1.m_data[i2];
+			z = x + y + c;
+			result.m_data[i2] = z;
+			c = (x & y | (x | y) & ~z) >>> 31;
+		}
+		result.m_count = o1.m_count;
+	}
+	var o = (z ^ x) & (z ^ y);
+	if(o < 0) {
+		var index = result.m_count++;
+		result.m_data[index] = ~(z >> 31);
+	} else result.compact();
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.addInt = function(result,operand1,operand2) {
+	var c = 0;
+	var x;
+	var y = operand2;
+	var z;
+	result.ensureCapacity(operand1.m_count + 1,result == operand1);
+	if(operand1.m_count > 1) {
+		x = operand1.m_data[0];
+		z = x + y;
+		c = (x & y | (x | y) & ~z) >>> 31;
+		result.m_data[0] = z;
+		y >>= 31;
+		var _g1 = 1;
+		var _g = operand1.m_count - 1;
+		while(_g1 < _g) {
+			var i = _g1++;
+			x = operand1.m_data[i];
+			z = x + y + c;
+			result.m_data[i] = z;
+			c = (x & y | (x | y) & ~z) >>> 31;
+		}
+	}
+	x = operand1.m_data[operand1.m_count - 1];
+	z = x + y + c;
+	result.m_data[operand1.m_count - 1] = z;
+	result.m_count = operand1.m_count;
+	var o = (z ^ x) & (z ^ y);
+	if(o < 0) {
+		var index = result.m_count++;
+		result.m_data[index] = x >> 31;
+	} else if(result.m_count > 1) {
+		if(z == result.m_data[result.m_count - 2] >> 31) --result.m_count;
+	}
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.subtract = function(result,operand1,operand2) {
+	var c = 0;
+	var x = 0;
+	var y = 0;
+	var z = 0;
+	if(operand1.m_count == operand2.m_count) {
+		result.ensureCapacity(operand1.m_count + 1,result == operand1 || result == operand2);
+		var _g1 = 0;
+		var _g = operand1.m_count;
+		while(_g1 < _g) {
+			var i = _g1++;
+			x = operand1.m_data[i];
+			y = operand2.m_data[i];
+			z = x - y - c;
+			result.m_data[i] = z;
+			c = (~x & y | ~(x ^ y) & z) >>> 31;
+		}
+		result.m_count = operand1.m_count;
+	} else if(operand1.m_count > operand2.m_count) {
+		result.ensureCapacity(operand1.m_count + 1,result == operand1 || result == operand2);
+		var s = operand2.m_data[operand2.m_count - 1] >> 31;
+		var _g11 = 0;
+		var _g2 = operand2.m_count;
+		while(_g11 < _g2) {
+			var i1 = _g11++;
+			x = operand1.m_data[i1];
+			y = operand2.m_data[i1];
+			z = x - y - c;
+			result.m_data[i1] = z;
+			c = (~x & y | ~(x ^ y) & z) >>> 31;
+		}
+		y = s;
+		var _g12 = operand2.m_count;
+		var _g3 = operand1.m_count;
+		while(_g12 < _g3) {
+			var i2 = _g12++;
+			x = operand1.m_data[i2];
+			z = x - y - c;
+			result.m_data[i2] = z;
+			c = (~x & y | ~(x ^ y) & z) >>> 31;
+		}
+		result.m_count = operand1.m_count;
+	} else {
+		result.ensureCapacity(operand2.m_count + 1,result == operand1 || result == operand2);
+		var s1 = operand1.m_data[operand1.m_count - 1] >> 31;
+		var _g13 = 0;
+		var _g4 = operand1.m_count;
+		while(_g13 < _g4) {
+			var i3 = _g13++;
+			x = operand1.m_data[i3];
+			y = operand2.m_data[i3];
+			z = x - y - c;
+			result.m_data[i3] = z;
+			c = (~x & y | ~(x ^ y) & z) >>> 31;
+		}
+		x = s1;
+		var _g14 = operand1.m_count;
+		var _g5 = operand2.m_count;
+		while(_g14 < _g5) {
+			var i4 = _g14++;
+			y = operand2.m_data[i4];
+			z = x - y - c;
+			result.m_data[i4] = z;
+			c = (~x & y | ~(x ^ y) & z) >>> 31;
+		}
+		result.m_count = operand2.m_count;
+	}
+	var o = (x ^ y) & (z ^ x);
+	if(o < 0) {
+		var index = result.m_count++;
+		result.m_data[index] = ~(z >> 31);
+	} else result.compact();
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.subtractInt = function(result,operand1,operand2) {
+	var c = 0;
+	var x;
+	var y = operand2;
+	var z;
+	result.ensureCapacity(operand1.m_count + 1,result == operand1);
+	if(operand1.m_count > 1) {
+		x = operand1.m_data[0];
+		z = x - y;
+		c = (~x & y | ~(x ^ y) & z) >>> 31;
+		result.m_data[0] = z;
+		y >>= 31;
+		var _g1 = 1;
+		var _g = operand1.m_count - 1;
+		while(_g1 < _g) {
+			var i = _g1++;
+			x = operand1.m_data[i];
+			z = x - y - c;
+			result.m_data[i] = z;
+			c = (~x & y | ~(x ^ y) & z) >>> 31;
+		}
+	}
+	x = operand1.m_data[operand1.m_count - 1];
+	z = x - y - c;
+	result.m_data[operand1.m_count - 1] = z;
+	result.m_count = operand1.m_count;
+	var o = (x ^ y) & (z ^ x);
+	if(o < 0) {
+		var index = result.m_count++;
+		result.m_data[index] = x >> 31;
+	} else if(result.m_count > 1) {
+		if(z == result.m_data[result.m_count - 2] >> 31) --result.m_count;
+	}
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.multiplyInt = function(result,operand1,operand2) {
+	com_fundoware_engine_bigint_FunBigIntArithmetic.multiply(result,operand1,com_fundoware_engine_bigint_FunBigInt_$.fromInt(operand2));
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.multiply = function(result,operand1,operand2) {
+	if(operand1 == result || operand2 == result) throw new js__$Boot_HaxeError("invalid argument");
+	if(operand1.m_count == 1 && operand1.m_data[0] == 0 || operand2.m_count == 1 && operand2.m_data[0] == 0) {
+		result.setFromInt(0);
+		return;
+	}
+	var resultSize = operand1.m_count + operand2.m_count;
+	if(com_fundoware_engine_bigint_FunMutableBigInt_$.s_testAllocation) {
+		result.ensureCapacityDebug(resultSize,false);
+		null;
+	} else result.ensureCapacityProd(resultSize,false);
+	var _g = 0;
+	while(_g < resultSize) {
+		var i = _g++;
+		result.m_data[i] = 0;
+	}
+	result.m_count = resultSize;
+	var b;
+	var k;
+	var t;
+	var u;
+	var v;
+	var w;
+	var m = operand1.m_count << 1;
+	var n = operand2.m_count << 1;
+	var _g1 = 0;
+	while(_g1 < n) {
+		var j = _g1++;
+		v = operand2.m_data[j >> 1] >> ((j & 1) << 4) & 65535;
+		k = 0;
+		var _g11 = 0;
+		while(_g11 < m) {
+			var i1 = _g11++;
+			u = operand1.m_data[i1 >> 1] >> ((i1 & 1) << 4) & 65535;
+			w = result.getShort(i1 + j);
+			t = u * v + w + k;
+			result.setShort(i1 + j,t);
+			k = t >>> 16;
+		}
+		result.setShort(j + m,k);
+	}
+	if(operand1.m_data[operand1.m_count - 1] < 0) {
+		b = 0;
+		var _g2 = 0;
+		while(_g2 < n) {
+			var j1 = _g2++;
+			w = result.getShort(j1 + m);
+			v = operand2.m_data[j1 >> 1] >> ((j1 & 1) << 4) & 65535;
+			t = w - v - b;
+			result.setShort(j1 + m,t);
+			b = t >>> 31;
+		}
+	}
+	if(operand2.m_data[operand2.m_count - 1] < 0) {
+		b = 0;
+		var _g3 = 0;
+		while(_g3 < m) {
+			var i2 = _g3++;
+			w = result.getShort(i2 + n);
+			u = operand1.m_data[i2 >> 1] >> ((i2 & 1) << 4) & 65535;
+			t = w - u - b;
+			result.setShort(i2 + n,t);
+			b = t >>> 31;
+		}
+	}
+	result.compact();
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.divideInt = function(dividend,divisor,quotientOut,work) {
+	var remainder = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	var divisorBi = com_fundoware_engine_bigint_FunBigInt_$.fromInt(divisor);
+	com_fundoware_engine_bigint_FunBigIntArithmetic.divide(dividend,divisorBi,quotientOut,remainder,work);
+	return remainder.m_data[0];
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.divide = function(dividend,divisor,quotientOut,remainderOut,work) {
+	var c = (dividend.m_data[dividend.m_count - 1] >> 31 & 2) + (divisor.m_data[divisor.m_count - 1] >> 31 & 1);
+	switch(c) {
+	case 0:
+		com_fundoware_engine_bigint_FunBigIntArithmetic.multiwordUnsignedDivide(dividend,divisor,quotientOut,remainderOut,work);
+		break;
+	case 1:
+		com_fundoware_engine_bigint_FunBigIntArithmetic.negate(quotientOut,divisor);
+		com_fundoware_engine_bigint_FunBigIntArithmetic.multiwordUnsignedDivide(dividend,quotientOut,quotientOut,remainderOut,work);
+		com_fundoware_engine_bigint_FunBigIntArithmetic.negate(quotientOut,quotientOut);
+		break;
+	case 2:
+		com_fundoware_engine_bigint_FunBigIntArithmetic.negate(quotientOut,dividend);
+		com_fundoware_engine_bigint_FunBigIntArithmetic.multiwordUnsignedDivide(quotientOut,divisor,quotientOut,remainderOut,work);
+		com_fundoware_engine_bigint_FunBigIntArithmetic.negate(quotientOut,quotientOut);
+		if(remainderOut != null) com_fundoware_engine_bigint_FunBigIntArithmetic.negate(remainderOut,remainderOut);
+		break;
+	case 3:
+		if(remainderOut == null) remainderOut = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+		com_fundoware_engine_bigint_FunBigIntArithmetic.negate(quotientOut,dividend);
+		com_fundoware_engine_bigint_FunBigIntArithmetic.negate(remainderOut,divisor);
+		com_fundoware_engine_bigint_FunBigIntArithmetic.multiwordUnsignedDivide(quotientOut,remainderOut,quotientOut,remainderOut,work);
+		com_fundoware_engine_bigint_FunBigIntArithmetic.negate(remainderOut,remainderOut);
+		break;
+	}
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.multiwordUnsignedDivide = function(dividend,divisor,quotientOut,remainderOut,work) {
+	if(quotientOut == null || dividend == null || divisor == null) throw new js__$Boot_HaxeError("invalid argument");
+	if(work == dividend || work == divisor || work == quotientOut) throw new js__$Boot_HaxeError("invalid argument");
+	var dividendInts;
+	if(dividend.m_count > 1 && dividend.m_data[dividend.m_count - 1] == 0) dividendInts = dividend.m_count - 1; else dividendInts = dividend.m_count;
+	var divisorInts;
+	if(divisor.m_count > 1 && divisor.m_data[divisor.m_count - 1] == 0) divisorInts = divisor.m_count - 1; else divisorInts = divisor.m_count;
+	var quotientLength = com_fundoware_engine_math_FunInteger.max(dividendInts - divisorInts + 1,1);
+	if(remainderOut != null) {
+		if(work == remainderOut) throw new js__$Boot_HaxeError("invalid argument");
+		remainderOut.ensureCapacity(divisor.m_count,remainderOut == dividend || remainderOut == divisor);
+	}
+	quotientOut.ensureCapacity(quotientLength + 1,quotientOut == dividend || quotientOut == divisor);
+	if(work == null) work = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	work.ensureCapacity(dividendInts + divisorInts + 1,false);
+	com_fundoware_engine_bigint_FunMultiwordArithmetic.divideUnsigned(dividend.m_data,dividendInts,divisor.m_data,divisorInts,quotientOut.m_data,remainderOut != null?remainderOut.m_data:null,work.m_data);
+	quotientOut.m_count = quotientLength;
+	if(quotientOut.m_data[quotientOut.m_count - 1] < 0) {
+		var index = quotientOut.m_count++;
+		quotientOut.m_data[index] = 0;
+	} else quotientOut.compact();
+	if(remainderOut != null) {
+		remainderOut.m_count = divisorInts;
+		if(remainderOut.m_data[remainderOut.m_count - 1] < 0) {
+			var index1 = remainderOut.m_count++;
+			remainderOut.m_data[index1] = 0;
+		} else remainderOut.compact();
+	}
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.arithmeticShiftLeft = function(result,operand1,operand2) {
+	if(operand2 < 0) throw new js__$Boot_HaxeError("invalid argument");
+	if(operand2 == 0 || operand1.m_count == 1 && operand1.m_data[0] == 0) {
+		result.copyFrom(operand1);
+		return;
+	}
+	result.ensureCapacity(operand1.m_count + (operand2 + 31 >> 5),result == operand1);
+	var whole = operand2 >> 5;
+	var n = operand2 & 31;
+	if(n > 0) {
+		com_fundoware_engine_bigint_FunBigIntArithmetic.asl32(result.m_data,whole,operand1.m_data,operand1.m_count,n);
+		result.m_count = operand1.m_count + whole + 1;
+		result.compact();
+	} else if(whole > 0) {
+		var _g1 = 0;
+		var _g = operand1.m_count;
+		while(_g1 < _g) {
+			var i = _g1++;
+			result.m_data[operand1.m_count - i - 1 + whole] = operand1.m_data[operand1.m_count - i - 1];
+		}
+		result.m_count = operand1.m_count + whole;
+	}
+	var _g2 = 0;
+	while(_g2 < whole) {
+		var i1 = _g2++;
+		result.m_data[i1] = 0;
+	}
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.arithmeticShiftRight = function(result,operand1,operand2) {
+	if(operand2 < 0) throw new js__$Boot_HaxeError("invalid argument");
+	if(operand2 == 0 || operand1.m_count == 1 && operand1.m_data[0] == 0) {
+		result.copyFrom(operand1);
+		return;
+	}
+	result.ensureCapacity(operand1.m_count,result == operand1);
+	var whole = operand2 >> 5;
+	var n = operand2 & 31;
+	if(whole >= operand1.m_count) {
+		result.m_data[0] = operand1.m_data[operand1.m_count - 1] >> 31;
+		result.m_count = 1;
+	} else if(n > 0) {
+		com_fundoware_engine_bigint_FunMultiwordArithmetic._asr32(result.m_data,operand1.m_data,operand1.m_count,whole,n);
+		result.m_count = operand1.m_count - whole;
+		result.compact();
+	} else if(whole > 0) {
+		var _g1 = 0;
+		var _g = operand1.m_count - whole;
+		while(_g1 < _g) {
+			var i = _g1++;
+			result.m_data[i] = operand1.m_data[i + whole];
+		}
+		result.m_count = operand1.m_count - whole;
+	}
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.getBit = function(value,index) {
+	return com_fundoware_engine_bigint_FunMultiwordArithmetic.getBitSigned(value.m_data,value.m_count,index);
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.bitwiseAndInt = function(operand1,operand2) {
+	return operand1.m_data[0] & operand2;
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.floorLog2 = function(input) {
+	return (input.m_count << 5) - com_fundoware_engine_math_FunInteger.nlz(input.m_data[input.m_count - 1]);
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.asl32 = function(output,outputOffset,input,inputSize,shift) {
+	var x = input[inputSize - 1] >> 31;
+	var r = 32 - shift;
+	var y;
+	while(inputSize > 0) {
+		y = input[inputSize - 1];
+		x = x << shift | y >>> r;
+		output[inputSize + outputOffset] = x;
+		x = y;
+		--inputSize;
+	}
+	output[outputOffset] = x << shift;
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.lsl32 = function(output,outputOffset,input,inputSize,shift) {
+	var x = 0;
+	var r = 32 - shift;
+	var y;
+	while(inputSize > 0) {
+		y = input[inputSize - 1];
+		x = x << shift | y >>> r;
+		output[inputSize + outputOffset] = x;
+		x = y;
+		--inputSize;
+	}
+	output[outputOffset] = x << shift;
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.lsr32 = function(output,input,inputSize,inputOffset,shift) {
+	var r = 32 - shift;
+	var i = 0;
+	while(i < inputSize - 1) {
+		output[i] = input[inputOffset + i] >>> shift | input[inputOffset + i + 1] << r;
+		++i;
+	}
+	output[i] = input[inputOffset + i] >>> shift;
+};
+com_fundoware_engine_bigint_FunBigIntArithmetic.copy = function(output,outputOffset,input,inputOffset,length) {
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		output[outputOffset + i] = input[inputOffset + i];
+	}
+};
+var com_fundoware_engine_bigint_FunBigIntTools = function() { };
+com_fundoware_engine_bigint_FunBigIntTools.__name__ = ["com","fundoware","engine","bigint","FunBigIntTools"];
+com_fundoware_engine_bigint_FunBigIntTools.isNull = function(value) {
+	var a = value;
+	return a == null;
+};
+com_fundoware_engine_bigint_FunBigIntTools.isBigInt = function(value) {
+	return js_Boot.__instanceof(value,com_fundoware_engine_bigint_FunBigInt_$);
+};
+com_fundoware_engine_bigint_FunBigIntTools.castFrom = function(value) {
+	var a = Std.instance(value,com_fundoware_engine_bigint_FunBigInt_$);
+	return a;
+};
+com_fundoware_engine_bigint_FunBigIntTools.parseValueUnsigned = function(value) {
+	var bi;
+	if(typeof(value) == "string") bi = com_fundoware_engine_bigint_FunBigIntTools.parseStringUnsigned(js_Boot.__cast(value , String)); else if(js_Boot.__instanceof(value,com_fundoware_engine_bigint_FunBigInt_$)) {
+		var t = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+		t.copyFrom((function($this) {
+			var $r;
+			var this1 = com_fundoware_engine_bigint_FunBigIntTools.castFrom(value);
+			$r = this1;
+			return $r;
+		}(this)));
+		return t;
+	} else if(((value | 0) === value)) {
+		var value1;
+		value1 = js_Boot.__cast(value , Int);
+		var a = com_fundoware_engine_bigint_FunBigInt_$.fromInt(value1);
+		bi = a;
+	} else throw new js__$Boot_HaxeError("invalid argument");
+	return bi;
+};
+com_fundoware_engine_bigint_FunBigIntTools.parseStringUnsigned = function(value) {
+	var result = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	if(StringTools.startsWith(value,"0x")) result.setFromHexUnsigned(HxOverrides.substr(value,2,null)); else result.setFromString(value);
+	var result2;
+	{
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(result);
+		result2 = a;
+	}
+	return result2;
+};
+var com_fundoware_engine_bigint_FunMultiwordArithmetic = function() { };
+com_fundoware_engine_bigint_FunMultiwordArithmetic.__name__ = ["com","fundoware","engine","bigint","FunMultiwordArithmetic"];
+com_fundoware_engine_bigint_FunMultiwordArithmetic.isZero = function(value,length) {
+	if(length < 1) throw new js__$Boot_HaxeError("invalid argument");
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		if(value[i] != 0) return false;
+	}
+	return true;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.isNegative = function(value,length) {
+	return value[length - 1] < 0;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.getLengthUnsigned = function(value,length) {
+	if(length < 1) throw new js__$Boot_HaxeError("invalid argument");
+	while(--length > 0) if(value[length] != 0) break;
+	return length + 1;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.extendUnsigned = function(result,resultLength,input,inputLength) {
+	if(input == result) {
+		if(resultLength > inputLength) {
+			var _g = inputLength;
+			while(_g < resultLength) {
+				var i = _g++;
+				result[i] = 0;
+			}
+		}
+	} else if(resultLength > inputLength) {
+		com_fundoware_engine_bigint_FunMultiwordArithmetic.copy(result,input,inputLength);
+		var _g1 = inputLength;
+		while(_g1 < resultLength) {
+			var i1 = _g1++;
+			result[i1] = 0;
+		}
+	} else com_fundoware_engine_bigint_FunMultiwordArithmetic.copy(result,input,resultLength);
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.negate = function(result,operand,length) {
+	var c = 1;
+	var x = 0;
+	var z = 0;
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		x = ~operand[i];
+		z = x + c;
+		result[i] = z;
+		c = (x & ~z) >>> 31;
+	}
+	return (~x & z) < 0;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.add = function(result,operand1,operand2,length) {
+	if(length < 1 || result.length < length || operand1.length < length || operand2.length < length) throw new js__$Boot_HaxeError("invalid argument");
+	var c = 0;
+	var x = 0;
+	var y = 0;
+	var z = 0;
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		x = operand1[i];
+		y = operand2[i];
+		z = x + y + c;
+		result[i] = z;
+		c = (x & y | (x | y) & ~z) >>> 31;
+	}
+	return c;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.subtract = function(result,operand1,operand2,length) {
+	if(length < 1 || result.length < length || operand1.length < length || operand2.length < length) throw new js__$Boot_HaxeError("invalid argument");
+	var c = 0;
+	var x = 0;
+	var y = 0;
+	var z = 0;
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		x = operand1[i];
+		y = operand2[i];
+		z = x - y - c;
+		result[i] = z;
+		c = (~x & y | ~(x ^ y) & z) >>> 31;
+	}
+	return c;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.multiplyIntUnsigned = function(result,operand1,operand1Length,operand2) {
+	var op2;
+	var this1;
+	this1 = new Array(1);
+	op2 = this1;
+	op2[0] = operand2;
+	com_fundoware_engine_bigint_FunMultiwordArithmetic.multiplyUnsigned(result,operand1,operand1Length,op2,1);
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.multiplyUnsigned = function(result,operand1,operand1Length,operand2,operand2Length) {
+	if(operand1 == result || operand2 == result) throw new js__$Boot_HaxeError("invalid argument");
+	if(operand1Length < 1 || operand2Length < 1) throw new js__$Boot_HaxeError("invalid argument");
+	if(operand1.length < operand1Length || operand2.length < operand2Length) throw new js__$Boot_HaxeError("invalid argument");
+	var resultSize = operand1Length + operand2Length;
+	if(result.length < resultSize) throw new js__$Boot_HaxeError("invalid argument");
+	com_fundoware_engine_bigint_FunMultiwordArithmetic.setZero(result,resultSize);
+	if(com_fundoware_engine_bigint_FunMultiwordArithmetic.isZero(operand1,operand1Length) || com_fundoware_engine_bigint_FunMultiwordArithmetic.isZero(operand2,operand2Length)) return;
+	var b;
+	var k;
+	var t;
+	var u;
+	var v;
+	var w;
+	var m = operand1Length << 1;
+	var n = operand2Length << 1;
+	var _g = 0;
+	while(_g < n) {
+		var j = _g++;
+		v = operand2[j >> 1] >> ((j & 1) << 4) & 65535;
+		k = 0;
+		var _g1 = 0;
+		while(_g1 < m) {
+			var i = _g1++;
+			u = operand1[i >> 1] >> ((i & 1) << 4) & 65535;
+			w = com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(result,i + j);
+			t = u * v + w + k;
+			com_fundoware_engine_bigint_FunMultiwordArithmetic.setShort(result,i + j,t);
+			k = t >>> 16;
+		}
+		com_fundoware_engine_bigint_FunMultiwordArithmetic.setShort(result,j + m,k);
+	}
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.getDivisionQuotientLengthUnsigned = function(dividendLength,divisorLength) {
+	return com_fundoware_engine_math_FunInteger.max(dividendLength - divisorLength + 1,1);
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.divideIntUnsigned = function(dividend,dividendLength,divisor,quotientOut,work) {
+	var remainder;
+	var this1;
+	this1 = new Array(1);
+	remainder = this1;
+	var vDivisor;
+	var this2;
+	this2 = new Array(1);
+	vDivisor = this2;
+	vDivisor[0] = divisor;
+	com_fundoware_engine_bigint_FunMultiwordArithmetic.divideUnsigned(dividend,dividendLength,vDivisor,1,quotientOut,remainder,work);
+	return remainder[0];
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.divideUnsigned = function(dividend,dividendLength,divisor,divisorLength,quotientOut,remainderOut,work) {
+	if(quotientOut == null || work == null || quotientOut == remainderOut) throw new js__$Boot_HaxeError("invalid argument");
+	if(work == dividend || work == divisor || work == quotientOut || work == remainderOut) throw new js__$Boot_HaxeError("invalid argument");
+	if(divisorLength < 1 || dividendLength < 1) throw new js__$Boot_HaxeError("invalid argument");
+	var quotientLength = com_fundoware_engine_math_FunInteger.max(dividendLength - divisorLength + 1,1);
+	if(quotientOut.length < quotientLength) throw new js__$Boot_HaxeError("invalid argument");
+	if(remainderOut != null && remainderOut.length < divisorLength) throw new js__$Boot_HaxeError("invalid argument");
+	if(work.length < dividendLength + divisorLength + 1) throw new js__$Boot_HaxeError("invalid argument");
+	var dh = divisor[divisorLength - 1];
+	if(divisorLength < 2) switch(dh) {
+	case 0:
+		throw new js__$Boot_HaxeError("division by zero");
+		break;
+	case 1:
+		com_fundoware_engine_bigint_FunMultiwordArithmetic.copy(quotientOut,dividend,dividendLength);
+		if(remainderOut != null) com_fundoware_engine_bigint_FunMultiwordArithmetic.setZero(remainderOut,divisorLength);
+		return;
+	} else if(dh == 0) throw new js__$Boot_HaxeError("invalid argument");
+	if(dividendLength < 2) {
+		var _g = dividend[0];
+		switch(_g) {
+		case 0:
+			com_fundoware_engine_bigint_FunMultiwordArithmetic.setZero(quotientOut,quotientLength);
+			if(remainderOut != null) com_fundoware_engine_bigint_FunMultiwordArithmetic.setZero(remainderOut,divisorLength);
+			return;
+		}
+	}
+	if(dividendLength < divisorLength) {
+		if(remainderOut != null) {
+			com_fundoware_engine_bigint_FunMultiwordArithmetic.copy(remainderOut,dividend,dividendLength);
+			var _g1 = dividendLength;
+			while(_g1 < divisorLength) {
+				var i = _g1++;
+				remainderOut[i] = 0;
+			}
+		}
+		com_fundoware_engine_bigint_FunMultiwordArithmetic.setZero(quotientOut,quotientLength);
+		return;
+	}
+	var j;
+	var k;
+	var t;
+	var m = dividendLength << 1;
+	var un = divisorLength << 1;
+	var n = un;
+	if(com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(divisor,n - 1) == 0) --n;
+	if(n == 1) {
+		var v0 = divisor[0];
+		if(quotientOut != dividend) com_fundoware_engine_bigint_FunMultiwordArithmetic.setZero(quotientOut,quotientLength);
+		var uj;
+		k = 0;
+		j = m;
+		while(--j >= 0) {
+			uj = dividend[j >> 1] >> ((j & 1) << 4) & 65535;
+			t = com_fundoware_engine_math_FunInteger.u32divu16((k << 16) + uj,v0);
+			com_fundoware_engine_bigint_FunMultiwordArithmetic.setShort(quotientOut,j,t);
+			k = (k << 16) + uj - t * v0;
+		}
+		if(remainderOut != null) com_fundoware_engine_bigint_FunMultiwordArithmetic.setFromIntUnsigned(remainderOut,divisorLength,k);
+		return;
+	}
+	var s = com_fundoware_engine_math_FunInteger.nlz(com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(divisor,n - 1)) - 16;
+	if(s > 0) {
+		com_fundoware_engine_bigint_FunMultiwordArithmetic._lsl32x(work,0,divisor,divisorLength,s);
+		com_fundoware_engine_bigint_FunMultiwordArithmetic._lsl32x(work,divisorLength,dividend,dividendLength,s);
+	} else {
+		haxe_ds__$Vector_Vector_$Impl_$.blit(divisor,0,work,0,divisorLength);
+		haxe_ds__$Vector_Vector_$Impl_$.blit(dividend,0,work,divisorLength,dividendLength);
+		work[divisorLength + dividendLength] = 0;
+	}
+	com_fundoware_engine_bigint_FunMultiwordArithmetic.setZero(quotientOut,quotientLength);
+	var qhat;
+	var rhat;
+	var p;
+	var t1;
+	var vn = com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(work,n - 1);
+	j = m - n + 1;
+	while(--j >= 0) {
+		t1 = (com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(work,j + n + un) << 16) + com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(work,j + n + un - 1);
+		qhat = com_fundoware_engine_math_FunInteger.u32divu16(t1,vn);
+		rhat = t1 - qhat * vn;
+		while(qhat >= 65536 || com_fundoware_engine_math_FunInteger.u32gtu32(qhat * com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(work,n - 2),(rhat << 16) + com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(work,j + n + un - 2))) {
+			qhat -= 1;
+			rhat += vn;
+			if(rhat >= 65536) break;
+		}
+		k = 0;
+		var _g2 = 0;
+		while(_g2 < n) {
+			var i1 = _g2++;
+			p = qhat * (work[i1 >> 1] >> ((i1 & 1) << 4) & 65535);
+			t1 = com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(work,i1 + j + un) - k - (p & 65535);
+			com_fundoware_engine_bigint_FunMultiwordArithmetic.setShort(work,i1 + j + un,t1);
+			k = (p >>> 16) - (t1 >> 16);
+		}
+		t1 = com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(work,j + n + un) - k;
+		com_fundoware_engine_bigint_FunMultiwordArithmetic.setShort(work,j + n + un,t1);
+		if(t1 >= 0) com_fundoware_engine_bigint_FunMultiwordArithmetic.setShort(quotientOut,j,qhat); else {
+			com_fundoware_engine_bigint_FunMultiwordArithmetic.setShort(quotientOut,j,qhat - 1);
+			k = 0;
+			var _g3 = 0;
+			while(_g3 < n) {
+				var i2 = _g3++;
+				t1 = com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(work,i2 + j + un) + (work[i2 >> 1] >> ((i2 & 1) << 4) & 65535) + k;
+				com_fundoware_engine_bigint_FunMultiwordArithmetic.setShort(work,i2 + j + un,t1);
+				k = t1 >> 16;
+			}
+			t1 = com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort(work,j + n + un) + k;
+			com_fundoware_engine_bigint_FunMultiwordArithmetic.setShort(work,j + n + un,t1);
+		}
+	}
+	if(remainderOut != null) {
+		if(s > 0) com_fundoware_engine_bigint_FunMultiwordArithmetic._lsr32(remainderOut,work,divisorLength,divisorLength,s); else haxe_ds__$Vector_Vector_$Impl_$.blit(work,divisorLength,remainderOut,0,divisorLength);
+	}
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.arithmeticShiftRight = function(result,input,length,shift) {
+	if(length < 1 || result.length < length || input.length < length) throw new js__$Boot_HaxeError("invalid argument");
+	if(shift < 0) throw new js__$Boot_HaxeError("invalid argument"); else if(shift == 0) {
+		if(input != result) haxe_ds__$Vector_Vector_$Impl_$.blit(input,0,result,0,length);
+	} else if(shift < 32) com_fundoware_engine_bigint_FunMultiwordArithmetic._asr32(result,input,length,0,shift); else throw new js__$Boot_HaxeError("invalid argument");
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.logicalShiftRight = function(result,input,length,shift) {
+	if(length < 1 || result.length < length || input.length < length) throw new js__$Boot_HaxeError("invalid argument");
+	if(shift < 0) throw new js__$Boot_HaxeError("invalid argument"); else if(shift == 0) {
+		if(input != result) haxe_ds__$Vector_Vector_$Impl_$.blit(input,0,result,0,length);
+	} else if(shift < 32) com_fundoware_engine_bigint_FunMultiwordArithmetic._lsr32(result,input,length,0,shift); else throw new js__$Boot_HaxeError("invalid argument");
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.shiftLeft = function(result,input,length,shift) {
+	if(length < 1 || result.length < length || input.length < length) throw new js__$Boot_HaxeError("invalid argument");
+	if(shift < 0) throw new js__$Boot_HaxeError("invalid argument"); else if(shift == 0) {
+		if(input != result) haxe_ds__$Vector_Vector_$Impl_$.blit(input,0,result,0,length);
+	} else if(shift < 32) com_fundoware_engine_bigint_FunMultiwordArithmetic._lsl32(result,0,input,length,shift); else throw new js__$Boot_HaxeError("invalid argument");
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.compareSigned = function(a,b,length) {
+	if(a != b) {
+		var ah = a[length - 1];
+		var bh = b[length - 1];
+		if((ah ^ bh) < 0) return ah >> 30 | 1;
+		return com_fundoware_engine_bigint_FunMultiwordArithmetic.compareUnsigned(a,b,length);
+	}
+	return 0;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.compareUnsigned = function(a,b,length) {
+	if(a != b) {
+		var an;
+		var bn;
+		var d;
+		var x = -2147483648;
+		while(--length >= 0) {
+			an = a[length] + x;
+			bn = b[length] + x;
+			if(an > bn) return 1;
+			if(an < bn) return -1;
+		}
+	}
+	return 0;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.setZero = function(dest,length) {
+	if(dest.length < length) throw new js__$Boot_HaxeError("invalid argument");
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		dest[i] = 0;
+	}
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.setFromIntUnsigned = function(dest,length,value) {
+	if(dest.length < length) throw new js__$Boot_HaxeError("invalid argument");
+	dest[0] = value;
+	var _g = 1;
+	while(_g < length) {
+		var i = _g++;
+		dest[i] = 0;
+	}
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.setFromHexUnsigned = function(dest,length,value) {
+	if(value == null || dest == null) throw new js__$Boot_HaxeError("invalid argument");
+	if(dest.length < length) throw new js__$Boot_HaxeError("invalid argument");
+	var index = value.length;
+	if(index <= 0) throw new js__$Boot_HaxeError("invalid argument");
+	if(length < 1) return false;
+	var c;
+	var start = 0;
+	while(start < index) {
+		c = HxOverrides.cca(value,start);
+		if(c != 48 && c != 32) break;
+		++start;
+	}
+	var pos = 0;
+	var bit = 0;
+	var acc = 0;
+	while(index > start) {
+		var index1 = --index;
+		c = HxOverrides.cca(value,index1);
+		if(48 <= c && c <= 57) c -= 48; else if(65 <= c && c <= 70) c -= 55; else if(97 <= c && c <= 102) c -= 87; else if(c == 32) continue; else throw new js__$Boot_HaxeError("invalid argument");
+		acc |= c << bit;
+		bit += 4;
+		if(bit >= 32) {
+			if(pos >= length) return false;
+			var index2 = pos++;
+			dest[index2] = acc;
+			acc = 0;
+			bit = 0;
+		}
+	}
+	if(bit > 0) {
+		if(pos >= length) return false;
+		var index3 = pos++;
+		dest[index3] = acc;
+	}
+	var _g = pos;
+	while(_g < length) {
+		var c1 = _g++;
+		dest[c1] = 0;
+	}
+	return true;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.toHex = function(input,length) {
+	var sb_b = "";
+	while(--length >= 0) {
+		var v = input[length];
+		var _g = 0;
+		while(_g < 8) {
+			var j = _g++;
+			var c = v >> 28 & 15;
+			v <<= 4;
+			if(c < 10) c = c + 48; else c = c - 10 + 97;
+			sb_b += String.fromCharCode(c);
+		}
+	}
+	return sb_b;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned = function(value,length) {
+	var sb = new StringBuf();
+	var work;
+	var this1;
+	this1 = new Array(length);
+	work = this1;
+	if(value[length - 1] < 0) {
+		com_fundoware_engine_bigint_FunMultiwordArithmetic.negate(work,value,length);
+		sb.b += "-";
+	} else com_fundoware_engine_bigint_FunMultiwordArithmetic.copy(work,value,length);
+	return com_fundoware_engine_bigint_FunMultiwordArithmetic._toDecimal(sb,work,length);
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalUnsigned = function(value,length) {
+	var sb = new StringBuf();
+	var work;
+	var this1;
+	this1 = new Array(length);
+	work = this1;
+	com_fundoware_engine_bigint_FunMultiwordArithmetic.copy(work,value,length);
+	return com_fundoware_engine_bigint_FunMultiwordArithmetic._toDecimal(sb,work,length);
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.copy = function(dest,source,length) {
+	if(dest.length < length) throw new js__$Boot_HaxeError("invalid argument");
+	haxe_ds__$Vector_Vector_$Impl_$.blit(source,0,dest,0,length);
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.getBitSigned = function(value,length,index) {
+	var d = index >> 5;
+	if(d >= length) return value[length - 1] >>> 31;
+	return value[d] >> (index & 31) & 1;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic._lsl32 = function(output,outputOffset,input,inputSize,shift) {
+	var x = input[inputSize - 1];
+	var r = 32 - shift;
+	var y;
+	while(--inputSize > 0) {
+		y = input[inputSize - 1];
+		x = x << shift | y >>> r;
+		output[inputSize + outputOffset] = x;
+		x = y;
+	}
+	output[outputOffset] = x << shift;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic._lsl32x = function(output,outputOffset,input,inputSize,shift) {
+	var x = 0;
+	var r = 32 - shift;
+	var y;
+	while(inputSize > 0) {
+		y = input[inputSize - 1];
+		x = x << shift | y >>> r;
+		output[inputSize + outputOffset] = x;
+		x = y;
+		--inputSize;
+	}
+	output[outputOffset] = x << shift;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic._asr32 = function(result,input,length,shiftDigits,shiftBits) {
+	var r = 32 - shiftBits;
+	var i = 0;
+	while(i < length - shiftDigits - 1) {
+		result[i] = input[i + shiftDigits] >>> shiftBits | input[i + shiftDigits + 1] << r;
+		++i;
+	}
+	result[i] = input[i + shiftDigits] >> shiftBits;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic._lsr32 = function(output,input,inputSize,inputOffset,shift) {
+	var r = 32 - shift;
+	var i = 0;
+	while(i < inputSize - 1) {
+		output[i] = input[inputOffset + i] >>> shift | input[inputOffset + i + 1] << r;
+		++i;
+	}
+	output[i] = input[inputOffset + i] >>> shift;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic._toDecimal = function(sb,value,length) {
+	length = com_fundoware_engine_bigint_FunMultiwordArithmetic.getLengthUnsigned(value,length);
+	var digits;
+	var this1;
+	this1 = new Array(length * 10);
+	digits = this1;
+	var work;
+	var this2;
+	this2 = new Array(length + 1 + 1);
+	work = this2;
+	var pos = digits.length;
+	var r;
+	do {
+		r = com_fundoware_engine_bigint_FunMultiwordArithmetic.divideIntUnsigned(value,length,10,value,work);
+		length = com_fundoware_engine_bigint_FunMultiwordArithmetic.getLengthUnsigned(value,length);
+		var index = --pos;
+		digits[index] = r + 48;
+	} while(!com_fundoware_engine_bigint_FunMultiwordArithmetic.isZero(value,length));
+	var _g1 = pos;
+	var _g = digits.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		sb.b += String.fromCharCode(digits[i]);
+	}
+	return sb.b;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.getShort = function(v,n) {
+	return v[n >> 1] >> ((n & 1) << 4) & 65535;
+};
+com_fundoware_engine_bigint_FunMultiwordArithmetic.setShort = function(a,n,v) {
+	var s = (n & 1) << 4;
+	var t = a[n >> 1] & -65536 >>> s;
+	a[n >> 1] = t | (v & 65535) << s;
+};
+var com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$ = {};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.__name__ = ["com","fundoware","engine","bigint","_FunMutableBigInt","FunMutableBigInt_Impl_"];
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.sign = function(this1) {
+	return this1.m_data[this1.m_count - 1] >> 31;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.isZero = function(this1) {
+	return this1.m_count == 1 && this1.m_data[0] == 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.isNegative = function(this1) {
+	return this1.m_data[this1.m_count - 1] < 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.toString = function(this1) {
+	return com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(this1.m_data,this1.m_count);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.toHex = function(this1) {
+	return this1.toHex();
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.toBytes = function(this1) {
+	return this1.toBytes();
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.toInts = function(this1,output) {
+	return this1.toInts(output);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.setFromInt = function(this1,value) {
+	var a = this1;
+	a.setFromInt(value);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.setFromUnsignedInts = function(this1,value,length) {
+	if(length == null) length = 0;
+	var a = this1;
+	a.setFromUnsignedInts(value,length);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.setFromBigEndianBytesUnsigned = function(this1,value,offset,length) {
+	if(length == null) length = 0;
+	if(offset == null) offset = 0;
+	var a = this1;
+	a.setFromBigEndianBytesUnsigned(value,offset,length);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.setFromLittleEndianBytesUnsigned = function(this1,value,offset,length) {
+	if(length == null) length = 0;
+	if(offset == null) offset = 0;
+	var a = this1;
+	a.setFromLittleEndianBytesUnsigned(value,offset,length);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.clear = function(this1) {
+	var a = this1;
+	a.clear();
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.copyFrom = function(this1,other) {
+	var a = this1;
+	a.copyFrom(other);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.getBit = function(this1,index) {
+	return com_fundoware_engine_bigint_FunMultiwordArithmetic.getBitSigned(this1.m_data,this1.m_count,index);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.fromBigEndianBytesUnsigned = function(value) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	r.setFromBigEndianBytesUnsigned(value);
+	return r;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.fromLittleEndianBytesUnsigned = function(value) {
+	var r = new com_fundoware_engine_bigint_FunMutableBigInt_$();
+	r.setFromLittleEndianBytesUnsigned(value);
+	return r;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.negate_ = function(a) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.negate1(a);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.eqInt_ = function(a,b) {
+	return a.equalsInt(b);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.eq_ = function(a,b) {
+	return a.equals(b);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.eqMutable_ = function(a,b) {
+	return a.equals(b);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.ineqInt_ = function(a,b) {
+	return !a.equalsInt(b);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.ineq_ = function(a,b) {
+	return !a.equals(b);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.ineqMutable_ = function(a,b) {
+	return !a.equals(b);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.ltInt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(a,b) < 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.lt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) < 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.ltMutable_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) < 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.lteInt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(a,b) <= 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.lte_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) <= 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.lteMutable_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) <= 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.gtInt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(a,b) > 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.gt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) > 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.gtMutable_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) > 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.gteInt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(a,b) >= 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.gte_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) >= 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.gteMutable_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,b) >= 0;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.addAssignInt_ = function(a,b) {
+	com_fundoware_engine_bigint_FunBigIntArithmetic.addInt(a,a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.addAssign_ = function(a,b) {
+	com_fundoware_engine_bigint_FunBigIntArithmetic.add(a,a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.addAssignMutable_ = function(a,b) {
+	com_fundoware_engine_bigint_FunBigIntArithmetic.add(a,a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.addInt_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.addInt2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.add_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.add2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.addMutable_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.add2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.subAssignInt_ = function(a,b) {
+	com_fundoware_engine_bigint_FunBigIntArithmetic.subtractInt(a,a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.subAssign_ = function(a,b) {
+	com_fundoware_engine_bigint_FunBigIntArithmetic.subtract(a,a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.subAssignMutable_ = function(a,b) {
+	com_fundoware_engine_bigint_FunBigIntArithmetic.subtract(a,a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.subInt_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.subInt2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.sub_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.sub2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.subMutable_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.sub2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.mulAssignInt_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.multiplyAssignInt2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.mulAssign_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.multiplyAssign2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.mulAssignMutable_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.multiplyAssign2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.mulInt_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.multiplyInt2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.mul_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.mulMutable_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.divAssignInt_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.divideAssignInt2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.divAssign_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.divideAssign2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.divAssignMutable_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.divideAssign2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.divInt_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.div_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.divide2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.divMutable_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.divide2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.modAssignInt_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.modulusAssignInt2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.modAssign_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.modulusAssign2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.modAssignMutable_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.modulusAssign2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.modInt_ = function(a,b) {
+	return com_fundoware_engine_bigint_FunBigInt_$.modulusInt2(a,b);
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.mod_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.modulus2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.modMutable_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.modulus2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.andInt_ = function(a,b) {
+	return a.m_data[0] & b;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.arithmeticShiftLeftAssign_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.arithmeticShiftLeftAssign2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.asl_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.arithmeticShiftLeft2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.arithmeticShiftRightAssign_ = function(a,b) {
+	com_fundoware_engine_bigint_FunMutableBigInt_$.arithmeticShiftRightAssign2(a,b);
+	return a;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.asr_ = function(a,b) {
+	var a1 = com_fundoware_engine_bigint_FunBigInt_$.arithmeticShiftRight2(a,b);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.fromInt_ = function(a) {
+	var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.fromFunBigInt_ = function(a) {
+	var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(a);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.fromFunMutableBigInt_ = function(a) {
+	var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(a);
+	return a1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.toFunMutableBigInt_ = function(this1) {
+	return this1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$.toFunBigInt = function(this1) {
+	return this1;
+};
+com_fundoware_engine_bigint__$FunMutableBigInt_FunMutableBigInt_$Impl_$._new = function(a) {
+	return a;
+};
+var com_fundoware_engine_exception_FunExceptions = function() { };
+com_fundoware_engine_exception_FunExceptions.__name__ = ["com","fundoware","engine","exception","FunExceptions"];
+com_fundoware_engine_exception_FunExceptions.rethrow = function(e) {
+	throw new js__$Boot_HaxeError(e);
+};
+var com_fundoware_engine_math_FunInteger = function() { };
+com_fundoware_engine_math_FunInteger.__name__ = ["com","fundoware","engine","math","FunInteger"];
+com_fundoware_engine_math_FunInteger.min = function(a,b) {
+	if(a < b) return a; else return b;
+};
+com_fundoware_engine_math_FunInteger.max = function(a,b) {
+	if(a > b) return a; else return b;
+};
+com_fundoware_engine_math_FunInteger.rotateLeft = function(value,count) {
+	return value >>> 32 - count | value << count;
+};
+com_fundoware_engine_math_FunInteger.rotateRight = function(value,count) {
+	return value << 32 - count | value >>> count;
+};
+com_fundoware_engine_math_FunInteger.isPowerOf2 = function(x) {
+	return (x & x - 1) == 0;
+};
+com_fundoware_engine_math_FunInteger.nlz = function(x) {
+	var y;
+	var m;
+	var n;
+	y = -(x >>> 16);
+	m = y >> 16 & 16;
+	n = 16 - m;
+	x = x >>> m;
+	y = x - 256;
+	m = y >> 16 & 8;
+	n = n + m;
+	x = x << m;
+	y = x - 4096;
+	m = y >> 16 & 4;
+	n = n + m;
+	x = x << m;
+	y = x - 16384;
+	m = y >> 16 & 2;
+	n = n + m;
+	x = x << m;
+	y = x >> 14;
+	m = y & ~y >> 1;
+	return n + 2 - m;
+};
+com_fundoware_engine_math_FunInteger.clp2 = function(x) {
+	x = x - 1;
+	x = x | x >> 1;
+	x = x | x >> 2;
+	x = x | x >> 4;
+	x = x | x >> 8;
+	x = x | x >> 16;
+	return x + 1;
+};
+com_fundoware_engine_math_FunInteger.flp2 = function(x) {
+	x = x | x >> 1;
+	x = x | x >> 2;
+	x = x | x >> 4;
+	x = x | x >> 8;
+	x = x | x >> 16;
+	return x - (x >>> 1);
+};
+com_fundoware_engine_math_FunInteger.u32gtu32 = function(a,b) {
+	return (a ^ -2147483648) > (b ^ -2147483648);
+};
+com_fundoware_engine_math_FunInteger.u32geu32 = function(a,b) {
+	return (a ^ -2147483648) >= (b ^ -2147483648);
+};
+com_fundoware_engine_math_FunInteger.u32divu16 = function(dividend,divisor) {
+	var t = divisor >> 31;
+	var nprime = dividend & ~t;
+	var q = ((nprime >>> 1) / divisor | 0) << 1;
+	var r = dividend - q * divisor;
+	var c;
+	if((r ^ -2147483648) >= (divisor ^ -2147483648)) c = 1; else c = 0;
+	return q + c;
+};
+com_fundoware_engine_math_FunInteger.u32divu16r = function(dividend,divisor,result) {
+	var t = divisor >> 31;
+	var nprime = dividend & ~t;
+	var q = ((nprime >>> 1) / divisor | 0) << 1;
+	var r = dividend - q * divisor;
+	var c;
+	if((r ^ -2147483648) >= (divisor ^ -2147483648)) c = 1; else c = 0;
+	q += c;
+	result.quotient = q;
+	result.remainder = dividend - q * divisor;
+};
+com_fundoware_engine_math_FunInteger.u32divu32 = function(dividend,divisor,result) {
+	var a = com_fundoware_engine_math_FunInteger.unsignedIntToFloat(dividend);
+	var b = com_fundoware_engine_math_FunInteger.unsignedIntToFloat(divisor);
+	var q = Math.floor(a / b);
+	var q1 = q;
+	if(q1 >= 2147483648.0) q1 -= 4294967296.0;
+	result.quotient = q1 | 0;
+	result.remainder = a - q * b | 0;
+};
+com_fundoware_engine_math_FunInteger.unsignedIntToFloat = function(x) {
+	var y = x;
+	if(y < 0) y += 4294967296.0;
+	return y;
+};
+var com_fundoware_engine_math_DivisionResult = function() {
+};
+com_fundoware_engine_math_DivisionResult.__name__ = ["com","fundoware","engine","math","DivisionResult"];
+com_fundoware_engine_math_DivisionResult.prototype = {
+	quotient: null
+	,remainder: null
+	,__class__: com_fundoware_engine_math_DivisionResult
 };
 var dots_Detect = function() { };
 dots_Detect.__name__ = ["dots","Detect"];
@@ -2479,6 +17407,15 @@ haxe_ds_StringMap.prototype = {
 	}
 	,__class__: haxe_ds_StringMap
 };
+var haxe_ds__$Vector_Vector_$Impl_$ = {};
+haxe_ds__$Vector_Vector_$Impl_$.__name__ = ["haxe","ds","_Vector","Vector_Impl_"];
+haxe_ds__$Vector_Vector_$Impl_$.blit = function(src,srcPos,dest,destPos,len) {
+	var _g = 0;
+	while(_g < len) {
+		var i = _g++;
+		dest[destPos + i] = src[srcPos + i];
+	}
+};
 var haxe_io_Error = { __ename__ : ["haxe","io","Error"], __constructs__ : ["Blocked","Overflow","OutsideBounds","Custom"] };
 haxe_io_Error.Blocked = ["Blocked",0];
 haxe_io_Error.Blocked.toString = $estr;
@@ -2627,7 +17564,7 @@ hxClipper_DoublePoint.fromDoublePoint = function(dp) {
 	return dp.clone();
 };
 hxClipper_DoublePoint.fromIntPoint = function(ip) {
-	return new hxClipper_DoublePoint(ip.x,ip.y);
+	return new hxClipper_DoublePoint(hxClipper_InternalTools.toFloat(ip.x),hxClipper_InternalTools.toFloat(ip.y));
 };
 hxClipper_DoublePoint.prototype = {
 	x: null
@@ -2720,18 +17657,51 @@ hxClipper_PolyTree.prototype = $extend(hxClipper_PolyNode.prototype,{
 	}
 	,__class__: hxClipper_PolyTree
 });
-var hxClipper_IntPoint = function(x,y) {
-	if(y == null) y = 0;
-	if(x == null) x = 0;
+var hxClipper_IntPoint = function(x,y,z) {
+	this.z = (function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this));
+	this.y = (function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this));
+	this.x = (function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this));
 	this.x = x;
 	this.y = y;
+	this.z = z;
 };
 hxClipper_IntPoint.__name__ = ["hxClipper","IntPoint"];
-hxClipper_IntPoint.fromFloats = function(x,y) {
-	return new hxClipper_IntPoint(x | 0,y | 0);
+hxClipper_IntPoint.fromFloats = function(x,y,z) {
+	if(z == null) z = 0;
+	return new hxClipper_IntPoint((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(x | 0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(y | 0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(z | 0);
+		$r = a2;
+		return $r;
+	}(this)));
 };
 hxClipper_IntPoint.fromDoublePoint = function(dp) {
-	return hxClipper_IntPoint.fromFloats(dp.x,dp.y);
+	return hxClipper_IntPoint.fromFloats(dp.x,dp.y,0);
 };
 hxClipper_IntPoint.fromIntPoint = function(pt) {
 	return pt.clone();
@@ -2739,18 +17709,35 @@ hxClipper_IntPoint.fromIntPoint = function(pt) {
 hxClipper_IntPoint.prototype = {
 	x: null
 	,y: null
+	,z: null
 	,clone: function() {
-		return new hxClipper_IntPoint(this.x,this.y);
-	}
-	,toString: function() {
-		return "(x:" + this.x + ", y:" + this.y + ")";
+		return new hxClipper_IntPoint(this.x,this.y,this.z);
 	}
 	,copyFrom: function(ip) {
 		this.x = ip.x;
 		this.y = ip.y;
+		this.z = ip.z;
+	}
+	,toString: function() {
+		return "(x:" + (function($this) {
+			var $r;
+			var this1 = $this.x;
+			$r = com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(this1.m_data,this1.m_count);
+			return $r;
+		}(this)) + ", y:" + (function($this) {
+			var $r;
+			var this2 = $this.y;
+			$r = com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(this2.m_data,this2.m_count);
+			return $r;
+		}(this)) + ", z:" + (function($this) {
+			var $r;
+			var this3 = $this.z;
+			$r = com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(this3.m_data,this3.m_count);
+			return $r;
+		}(this)) + ")";
 	}
 	,equals: function(ip) {
-		return this.x == ip.x && this.y == ip.y;
+		return this.x.equals(ip.x) && this.y.equals(ip.y);
 	}
 	,__class__: hxClipper_IntPoint
 };
@@ -2855,10 +17842,70 @@ hxClipper__$Clipper_NodeType.NT_CLOSED = ["NT_CLOSED",2];
 hxClipper__$Clipper_NodeType.NT_CLOSED.toString = $estr;
 hxClipper__$Clipper_NodeType.NT_CLOSED.__enum__ = hxClipper__$Clipper_NodeType;
 var hxClipper__$Clipper_TEdge = function() {
-	this.delta = new hxClipper_IntPoint();
-	this.top = new hxClipper_IntPoint();
-	this.curr = new hxClipper_IntPoint();
-	this.bot = new hxClipper_IntPoint();
+	this.delta = new hxClipper_IntPoint((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a2;
+		return $r;
+	}(this)));
+	this.top = new hxClipper_IntPoint((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a2;
+		return $r;
+	}(this)));
+	this.curr = new hxClipper_IntPoint((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a2;
+		return $r;
+	}(this)));
+	this.bot = new hxClipper_IntPoint((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a2;
+		return $r;
+	}(this)));
 };
 hxClipper__$Clipper_TEdge.__name__ = ["hxClipper","_Clipper","TEdge"];
 hxClipper__$Clipper_TEdge.prototype = {
@@ -2886,7 +17933,22 @@ hxClipper__$Clipper_TEdge.prototype = {
 	,__class__: hxClipper__$Clipper_TEdge
 };
 var hxClipper_IntersectNode = function() {
-	this.pt = new hxClipper_IntPoint();
+	this.pt = new hxClipper_IntPoint((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a2;
+		return $r;
+	}(this)));
 };
 hxClipper_IntersectNode.__name__ = ["hxClipper","IntersectNode"];
 hxClipper_IntersectNode.prototype = {
@@ -2936,7 +17998,22 @@ hxClipper__$Clipper_OutRec.prototype = {
 	,__class__: hxClipper__$Clipper_OutRec
 };
 var hxClipper__$Clipper_OutPt = function() {
-	this.pt = new hxClipper_IntPoint();
+	this.pt = new hxClipper_IntPoint((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a2;
+		return $r;
+	}(this)));
 };
 hxClipper__$Clipper_OutPt.__name__ = ["hxClipper","_Clipper","OutPt"];
 hxClipper__$Clipper_OutPt.prototype = {
@@ -2947,7 +18024,22 @@ hxClipper__$Clipper_OutPt.prototype = {
 	,__class__: hxClipper__$Clipper_OutPt
 };
 var hxClipper__$Clipper_Join = function() {
-	this.offPt = new hxClipper_IntPoint();
+	this.offPt = new hxClipper_IntPoint((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a2;
+		return $r;
+	}(this)));
 };
 hxClipper__$Clipper_Join.__name__ = ["hxClipper","_Clipper","Join"];
 hxClipper__$Clipper_Join.prototype = {
@@ -2955,6 +18047,163 @@ hxClipper__$Clipper_Join.prototype = {
 	,outPt2: null
 	,offPt: null
 	,__class__: hxClipper__$Clipper_Join
+};
+var js_Boot = function() { };
+js_Boot.__name__ = ["js","Boot"];
+js_Boot.__unhtml = function(s) {
+	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+};
+js_Boot.__trace = function(v,i) {
+	var msg;
+	if(i != null) msg = i.fileName + ":" + i.lineNumber + ": "; else msg = "";
+	msg += js_Boot.__string_rec(v,"");
+	if(i != null && i.customParams != null) {
+		var _g = 0;
+		var _g1 = i.customParams;
+		while(_g < _g1.length) {
+			var v1 = _g1[_g];
+			++_g;
+			msg += "," + js_Boot.__string_rec(v1,"");
+		}
+	}
+	var d;
+	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js_Boot.__unhtml(msg) + "<br/>"; else if(typeof console != "undefined" && console.log != null) console.log(msg);
+};
+js_Boot.getClass = function(o) {
+	if((o instanceof Array) && o.__enum__ == null) return Array; else {
+		var cl = o.__class__;
+		if(cl != null) return cl;
+		var name = js_Boot.__nativeClassName(o);
+		if(name != null) return js_Boot.__resolveNativeClass(name);
+		return null;
+	}
+};
+js_Boot.__string_rec = function(o,s) {
+	if(o == null) return "null";
+	if(s.length >= 5) return "<...>";
+	var t = typeof(o);
+	if(t == "function" && (o.__name__ || o.__ename__)) t = "object";
+	switch(t) {
+	case "object":
+		if(o instanceof Array) {
+			if(o.__enum__) {
+				if(o.length == 2) return o[0];
+				var str2 = o[0] + "(";
+				s += "\t";
+				var _g1 = 2;
+				var _g = o.length;
+				while(_g1 < _g) {
+					var i1 = _g1++;
+					if(i1 != 2) str2 += "," + js_Boot.__string_rec(o[i1],s); else str2 += js_Boot.__string_rec(o[i1],s);
+				}
+				return str2 + ")";
+			}
+			var l = o.length;
+			var i;
+			var str1 = "[";
+			s += "\t";
+			var _g2 = 0;
+			while(_g2 < l) {
+				var i2 = _g2++;
+				str1 += (i2 > 0?",":"") + js_Boot.__string_rec(o[i2],s);
+			}
+			str1 += "]";
+			return str1;
+		}
+		var tostr;
+		try {
+			tostr = o.toString;
+		} catch( e ) {
+			haxe_CallStack.lastException = e;
+			if (e instanceof js__$Boot_HaxeError) e = e.val;
+			return "???";
+		}
+		if(tostr != null && tostr != Object.toString && typeof(tostr) == "function") {
+			var s2 = o.toString();
+			if(s2 != "[object Object]") return s2;
+		}
+		var k = null;
+		var str = "{\n";
+		s += "\t";
+		var hasp = o.hasOwnProperty != null;
+		for( var k in o ) {
+		if(hasp && !o.hasOwnProperty(k)) {
+			continue;
+		}
+		if(k == "prototype" || k == "__class__" || k == "__super__" || k == "__interfaces__" || k == "__properties__") {
+			continue;
+		}
+		if(str.length != 2) str += ", \n";
+		str += s + k + " : " + js_Boot.__string_rec(o[k],s);
+		}
+		s = s.substring(1);
+		str += "\n" + s + "}";
+		return str;
+	case "function":
+		return "<function>";
+	case "string":
+		return o;
+	default:
+		return String(o);
+	}
+};
+js_Boot.__interfLoop = function(cc,cl) {
+	if(cc == null) return false;
+	if(cc == cl) return true;
+	var intf = cc.__interfaces__;
+	if(intf != null) {
+		var _g1 = 0;
+		var _g = intf.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var i1 = intf[i];
+			if(i1 == cl || js_Boot.__interfLoop(i1,cl)) return true;
+		}
+	}
+	return js_Boot.__interfLoop(cc.__super__,cl);
+};
+js_Boot.__instanceof = function(o,cl) {
+	if(cl == null) return false;
+	switch(cl) {
+	case Int:
+		return (o|0) === o;
+	case Float:
+		return typeof(o) == "number";
+	case Bool:
+		return typeof(o) == "boolean";
+	case String:
+		return typeof(o) == "string";
+	case Array:
+		return (o instanceof Array) && o.__enum__ == null;
+	case Dynamic:
+		return true;
+	default:
+		if(o != null) {
+			if(typeof(cl) == "function") {
+				if(o instanceof cl) return true;
+				if(js_Boot.__interfLoop(js_Boot.getClass(o),cl)) return true;
+			} else if(typeof(cl) == "object" && js_Boot.__isNativeObj(cl)) {
+				if(o instanceof cl) return true;
+			}
+		} else return false;
+		if(cl == Class && o.__name__ != null) return true;
+		if(cl == Enum && o.__ename__ != null) return true;
+		return o.__enum__ == cl;
+	}
+};
+js_Boot.__cast = function(o,t) {
+	if(js_Boot.__instanceof(o,t)) return o; else throw new js__$Boot_HaxeError("Cannot cast " + Std.string(o) + " to " + Std.string(t));
+};
+js_Boot.__nativeClassName = function(o) {
+	var name = js_Boot.__toStr.call(o).slice(8,-1);
+	if(name == "Object" || name == "Function" || name == "Math" || name == "JSON") return null;
+	return name;
+};
+js_Boot.__isNativeObj = function(o) {
+	return js_Boot.__nativeClassName(o) != null;
+};
+js_Boot.__resolveNativeClass = function(name) {
+	if(typeof window != "undefined") return window[name]; else return global[name];
 };
 var hxClipper_ClipperBase = function() {
 	this.mEdges = [];
@@ -2968,23 +18217,165 @@ hxClipper_ClipperBase.nearZero = function(val) {
 	return val > -1e-020 && val < 1.0E-20;
 };
 hxClipper_ClipperBase.isHorizontal = function(e) {
-	return e.delta.y == 0;
+	return e.delta.y.equalsInt(0);
 };
 hxClipper_ClipperBase.slopesEqual = function(e1,e2,useFullRange) {
-	return e1.delta.y * e2.delta.x == e1.delta.x * e2.delta.y;
+	if(useFullRange) {
+		var a;
+		var a1 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(e1.delta.y,e2.delta.x);
+		a = a1;
+		var b;
+		var a2 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(e1.delta.x,e2.delta.y);
+		b = a2;
+		return a.equals(b);
+	} else {
+		var a3;
+		var a4 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(e1.delta.y,e2.delta.x);
+		a3 = a4;
+		var b1;
+		var a5 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(e1.delta.x,e2.delta.y);
+		b1 = a5;
+		return a3.equals(b1);
+	}
 };
 hxClipper_ClipperBase.slopesEqual3 = function(pt1,pt2,pt3,useFullRange) {
-	return (pt1.y - pt2.y) * (pt2.x - pt3.x) - (pt1.x - pt2.x) * (pt2.y - pt3.y) == 0;
+	if(useFullRange) {
+		var a;
+		var a1;
+		var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.y,pt2.y);
+		a1 = a2;
+		var b1;
+		var a3 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt2.x,pt3.x);
+		b1 = a3;
+		var a4 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a1,b1);
+		a = a4;
+		var b;
+		var a5;
+		var a6 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.x,pt2.x);
+		a5 = a6;
+		var b2;
+		var a7 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt2.y,pt3.y);
+		b2 = a7;
+		var a8 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a5,b2);
+		b = a8;
+		return a.equals(b);
+	} else {
+		var a9;
+		var a10;
+		var a11;
+		var a12 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.y,pt2.y);
+		a11 = a12;
+		var b4;
+		var a13 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt2.x,pt3.x);
+		b4 = a13;
+		var a14 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a11,b4);
+		a10 = a14;
+		var b3;
+		var a15;
+		var a16 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.x,pt2.x);
+		a15 = a16;
+		var b5;
+		var a17 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt2.y,pt3.y);
+		b5 = a17;
+		var a18 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a15,b5);
+		b3 = a18;
+		var a19 = com_fundoware_engine_bigint_FunBigInt_$.sub2(a10,b3);
+		a9 = a19;
+		return a9.equalsInt(0);
+	}
 };
 hxClipper_ClipperBase.slopesEqual4 = function(pt1,pt2,pt3,pt4,useFullRange) {
-	return (pt1.y - pt2.y) * (pt3.x - pt4.x) - (pt1.x - pt2.x) * (pt3.y - pt4.y) == 0;
+	if(useFullRange) {
+		var a;
+		var a1;
+		var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.y,pt2.y);
+		a1 = a2;
+		var b1;
+		var a3 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt3.x,pt4.x);
+		b1 = a3;
+		var a4 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a1,b1);
+		a = a4;
+		var b;
+		var a5;
+		var a6 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.x,pt2.x);
+		a5 = a6;
+		var b2;
+		var a7 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt3.y,pt4.y);
+		b2 = a7;
+		var a8 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a5,b2);
+		b = a8;
+		return a.equals(b);
+	} else {
+		var a9;
+		var a10;
+		var a11;
+		var a12 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.y,pt2.y);
+		a11 = a12;
+		var b4;
+		var a13 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt3.x,pt4.x);
+		b4 = a13;
+		var a14 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a11,b4);
+		a10 = a14;
+		var b3;
+		var a15;
+		var a16 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.x,pt2.x);
+		a15 = a16;
+		var b5;
+		var a17 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt3.y,pt4.y);
+		b5 = a17;
+		var a18 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a15,b5);
+		b3 = a18;
+		var a19 = com_fundoware_engine_bigint_FunBigInt_$.sub2(a10,b3);
+		a9 = a19;
+		return a9.equalsInt(0);
+	}
 };
 hxClipper_ClipperBase.getBounds = function(paths) {
 	var i = 0;
 	var cnt = paths.length;
 	while(i < cnt && paths[i].length == 0) i++;
-	if(i == cnt) return new hxClipper_IntRect(0,0,0,0);
-	var result = new hxClipper_IntRect(0,0,0,0);
+	if(i == cnt) return new hxClipper_IntRect((function($this) {
+		var $r;
+		var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a4;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a5;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a6;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a7;
+		return $r;
+	}(this)));
+	var result = new hxClipper_IntRect((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a2;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a3;
+		return $r;
+	}(this)));
 	result.left = paths[i][0].x;
 	result.right = result.left;
 	result.top = paths[i][0].y;
@@ -2994,8 +18385,8 @@ hxClipper_ClipperBase.getBounds = function(paths) {
 		var _g = paths[i].length;
 		while(_g1 < _g) {
 			var j = _g1++;
-			if(paths[i][j].x < result.left) result.left = paths[i][j].x; else if(paths[i][j].x > result.right) result.right = paths[i][j].x;
-			if(paths[i][j].y < result.top) result.top = paths[i][j].y; else if(paths[i][j].y > result.bottom) result.bottom = paths[i][j].y;
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(paths[i][j].x,result.left) < 0) result.left = paths[i][j].x; else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(paths[i][j].x,result.right) > 0) result.right = paths[i][j].x;
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(paths[i][j].y,result.top) < 0) result.top = paths[i][j].y; else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(paths[i][j].y,result.bottom) > 0) result.bottom = paths[i][j].y;
 		}
 		i++;
 	}
@@ -3017,7 +18408,59 @@ hxClipper_ClipperBase.prototype = {
 		return false;
 	}
 	,pointOnLineSegment: function(pt,linePt1,linePt2,useFullRange) {
-		return pt.x == linePt1.x && pt.y == linePt1.y || pt.x == linePt2.x && pt.y == linePt2.y || pt.x > linePt1.x == pt.x < linePt2.x && pt.y > linePt1.y == pt.y < linePt2.y && (pt.x - linePt1.x) * (linePt2.y - linePt1.y) == (linePt2.x - linePt1.x) * (pt.y - linePt1.y);
+		if(useFullRange) return pt.x.equals(linePt1.x) && pt.y.equals(linePt1.y) || pt.x.equals(linePt2.x) && pt.y.equals(linePt2.y) || com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.x,linePt1.x) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.x,linePt2.x) < 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.y,linePt1.y) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.y,linePt2.y) < 0 && (function($this) {
+			var $r;
+			var a;
+			{
+				var a1;
+				var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt.x,linePt1.x);
+				a1 = a2;
+				var b1;
+				var a3 = com_fundoware_engine_bigint_FunBigInt_$.sub2(linePt2.y,linePt1.y);
+				b1 = a3;
+				var a4 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a1,b1);
+				a = a4;
+			}
+			var b;
+			{
+				var a5;
+				var a6 = com_fundoware_engine_bigint_FunBigInt_$.sub2(linePt2.x,linePt1.x);
+				a5 = a6;
+				var b2;
+				var a7 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt.y,linePt1.y);
+				b2 = a7;
+				var a8 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a5,b2);
+				b = a8;
+			}
+			$r = a.equals(b);
+			return $r;
+		}(this)); else return pt.x.equals(linePt1.x) && pt.y.equals(linePt1.y) || pt.x.equals(linePt2.x) && pt.y.equals(linePt2.y) || com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.x,linePt1.x) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.x,linePt2.x) < 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.y,linePt1.y) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.y,linePt2.y) < 0 && (function($this) {
+			var $r;
+			var a9;
+			{
+				var a10;
+				var a11 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt.x,linePt1.x);
+				a10 = a11;
+				var b4;
+				var a12 = com_fundoware_engine_bigint_FunBigInt_$.sub2(linePt2.y,linePt1.y);
+				b4 = a12;
+				var a13 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a10,b4);
+				a9 = a13;
+			}
+			var b3;
+			{
+				var a14;
+				var a15 = com_fundoware_engine_bigint_FunBigInt_$.sub2(linePt2.x,linePt1.x);
+				a14 = a15;
+				var b5;
+				var a16 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt.y,linePt1.y);
+				b5 = a16;
+				var a17 = com_fundoware_engine_bigint_FunBigInt_$.multiply2(a14,b5);
+				b3 = a17;
+			}
+			$r = a9.equals(b3);
+			return $r;
+		}(this));
 	}
 	,pointOnPolygon: function(pt,pp,useFullRange) {
 		var pp2 = pp;
@@ -3056,8 +18499,44 @@ hxClipper_ClipperBase.prototype = {
 	}
 	,rangeTest: function(pt,useFullRange) {
 		if(useFullRange) {
-			if(pt.x > 32767 || pt.y > 32767 || -pt.x > 32767 || -pt.y > 32767) throw new js__$Boot_HaxeError(new hxClipper_ClipperException("Coordinate outside allowed range"));
-		} else if(pt.x > 32767 || pt.y > 32767 || -pt.x > 32767 || -pt.y > 32767) {
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.x,hxClipper_ClipperBase.HI_RANGE) > 0 || com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.y,hxClipper_ClipperBase.HI_RANGE) > 0 || (function($this) {
+				var $r;
+				var a;
+				{
+					var a1 = com_fundoware_engine_bigint_FunBigInt_$.negate1(pt.x);
+					a = a1;
+				}
+				$r = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a,hxClipper_ClipperBase.HI_RANGE) > 0;
+				return $r;
+			}(this)) || (function($this) {
+				var $r;
+				var a2;
+				{
+					var a3 = com_fundoware_engine_bigint_FunBigInt_$.negate1(pt.y);
+					a2 = a3;
+				}
+				$r = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a2,hxClipper_ClipperBase.HI_RANGE) > 0;
+				return $r;
+			}(this))) throw new js__$Boot_HaxeError(new hxClipper_ClipperException("Coordinate outside allowed range"));
+		} else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.x,hxClipper_ClipperBase.LO_RANGE) > 0 || com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt.y,hxClipper_ClipperBase.LO_RANGE) > 0 || (function($this) {
+			var $r;
+			var a4;
+			{
+				var a5 = com_fundoware_engine_bigint_FunBigInt_$.negate1(pt.x);
+				a4 = a5;
+			}
+			$r = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a4,hxClipper_ClipperBase.LO_RANGE) > 0;
+			return $r;
+		}(this)) || (function($this) {
+			var $r;
+			var a6;
+			{
+				var a7 = com_fundoware_engine_bigint_FunBigInt_$.negate1(pt.y);
+				a6 = a7;
+			}
+			$r = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a6,hxClipper_ClipperBase.LO_RANGE) > 0;
+			return $r;
+		}(this))) {
 			useFullRange = true;
 			this.rangeTest(pt,useFullRange);
 		}
@@ -3070,7 +18549,7 @@ hxClipper_ClipperBase.prototype = {
 		e.outIdx = -1;
 	}
 	,initEdge2: function(e,polyType) {
-		if(e.curr.y >= e.next.curr.y) {
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(e.curr.y,e.next.curr.y) >= 0) {
 			e.bot.copyFrom(e.curr);
 			e.top.copyFrom(e.next.curr);
 		} else {
@@ -3088,8 +18567,8 @@ hxClipper_ClipperBase.prototype = {
 			while(e.prev.dx == -3.4E+38) e = e.prev;
 			e2 = e;
 			while(e.dx == -3.4E+38) e = e.next;
-			if(e.top.y == e.prev.bot.y) continue;
-			if(e2.prev.bot.x < e.bot.x) e = e2;
+			if(e.top.y.equals(e.prev.bot.y)) continue;
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(e2.prev.bot.x,e.bot.x) < 0) e = e2;
 			break;
 		}
 		return e;
@@ -3101,10 +18580,10 @@ hxClipper_ClipperBase.prototype = {
 		if(result.outIdx == -2) {
 			e = result;
 			if(leftBoundIsForward) {
-				while(e.top.y == e.next.bot.y) e = e.next;
+				while(e.top.y.equals(e.next.bot.y)) e = e.next;
 				while(e != result && e.dx == -3.4E+38) e = e.prev;
 			} else {
-				while(e.top.y == e.prev.bot.y) e = e.prev;
+				while(e.top.y.equals(e.prev.bot.y)) e = e.prev;
 				while(e != result && e.dx == -3.4E+38) e = e.next;
 			}
 			if(e == result) {
@@ -3125,37 +18604,37 @@ hxClipper_ClipperBase.prototype = {
 		if(e.dx == -3.4E+38) {
 			if(leftBoundIsForward) eStart = e.prev; else eStart = e.next;
 			if(eStart.dx == -3.4E+38) {
-				if(eStart.bot.x != e.bot.x && eStart.top.x != e.bot.x) this.reverseHorizontal(e);
-			} else if(eStart.bot.x != e.bot.x) this.reverseHorizontal(e);
+				if(!eStart.bot.x.equals(e.bot.x) && !eStart.top.x.equals(e.bot.x)) this.reverseHorizontal(e);
+			} else if(!eStart.bot.x.equals(e.bot.x)) this.reverseHorizontal(e);
 		}
 		eStart = e;
 		if(leftBoundIsForward) {
-			while(result.top.y == result.next.bot.y && result.next.outIdx != -2) result = result.next;
+			while(result.top.y.equals(result.next.bot.y) && result.next.outIdx != -2) result = result.next;
 			if(result.dx == -3.4E+38 && result.next.outIdx != -2) {
 				horz = result;
 				while(horz.prev.dx == -3.4E+38) horz = horz.prev;
-				if(horz.prev.top.x > result.next.top.x) result = horz.prev;
+				if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(horz.prev.top.x,result.next.top.x) > 0) result = horz.prev;
 			}
 			while(e != result) {
 				e.nextInLML = e.next;
-				if(e.dx == -3.4E+38 && e != eStart && e.bot.x != e.prev.top.x) this.reverseHorizontal(e);
+				if(e.dx == -3.4E+38 && e != eStart && !e.bot.x.equals(e.prev.top.x)) this.reverseHorizontal(e);
 				e = e.next;
 			}
-			if(e.dx == -3.4E+38 && e != eStart && e.bot.x != e.prev.top.x) this.reverseHorizontal(e);
+			if(e.dx == -3.4E+38 && e != eStart && !e.bot.x.equals(e.prev.top.x)) this.reverseHorizontal(e);
 			result = result.next;
 		} else {
-			while(result.top.y == result.prev.bot.y && result.prev.outIdx != -2) result = result.prev;
+			while(result.top.y.equals(result.prev.bot.y) && result.prev.outIdx != -2) result = result.prev;
 			if(result.dx == -3.4E+38 && result.prev.outIdx != -2) {
 				horz = result;
 				while(horz.next.dx == -3.4E+38) horz = horz.next;
-				if(horz.next.top.x == result.prev.top.x || horz.next.top.x > result.prev.top.x) result = horz.next;
+				if(horz.next.top.x.equals(result.prev.top.x) || com_fundoware_engine_bigint_FunBigIntArithmetic.compare(horz.next.top.x,result.prev.top.x) > 0) result = horz.next;
 			}
 			while(e != result) {
 				e.nextInLML = e.prev;
-				if(e.dx == -3.4E+38 && e != eStart && e.bot.x != e.next.top.x) this.reverseHorizontal(e);
+				if(e.dx == -3.4E+38 && e != eStart && !e.bot.x.equals(e.next.top.x)) this.reverseHorizontal(e);
 				e = e.prev;
 			}
-			if(e.dx == -3.4E+38 && e != eStart && e.bot.x != e.next.top.x) this.reverseHorizontal(e);
+			if(e.dx == -3.4E+38 && e != eStart && !e.bot.x.equals(e.next.top.x)) this.reverseHorizontal(e);
 			result = result.prev;
 		}
 		return result;
@@ -3215,7 +18694,7 @@ hxClipper_ClipperBase.prototype = {
 		do {
 			this.initEdge2(e,polyType);
 			e = e.next;
-			if(isFlat && e.curr.y != eStart.curr.y) isFlat = false;
+			if(isFlat && !e.curr.y.equals(eStart.curr.y)) isFlat = false;
 		} while(e != eStart);
 		if(isFlat) {
 			if(closed) return false;
@@ -3228,7 +18707,7 @@ hxClipper_ClipperBase.prototype = {
 			locMin.rightBound.side = hxClipper__$Clipper_EdgeSide.ES_RIGHT;
 			locMin.rightBound.windDelta = 0;
 			while(true) {
-				if(e.bot.x != e.prev.top.x) this.reverseHorizontal(e);
+				if(!e.bot.x.equals(e.prev.top.x)) this.reverseHorizontal(e);
 				if(e.next.outIdx == -2) break;
 				e.nextInLML = e.next;
 				e = e.next;
@@ -3281,7 +18760,7 @@ hxClipper_ClipperBase.prototype = {
 		return result;
 	}
 	,pt2IsBetweenPt1AndPt3: function(pt1,pt2,pt3) {
-		if(pt1.equals(pt3) || pt1.equals(pt2) || pt3.equals(pt2)) return false; else if(pt1.x != pt3.x) return pt2.x > pt1.x == pt2.x < pt3.x; else return pt2.y > pt1.y == pt2.y < pt3.y;
+		if(pt1.equals(pt3) || pt1.equals(pt2) || pt3.equals(pt2)) return false; else if(!pt1.x.equals(pt3.x)) return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt2.x,pt1.x) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt2.x,pt3.x) < 0; else return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt2.y,pt1.y) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt2.y,pt3.y) < 0;
 	}
 	,removeEdge: function(e) {
 		e.prev.next = e.next;
@@ -3291,20 +18770,32 @@ hxClipper_ClipperBase.prototype = {
 		return result;
 	}
 	,setDx: function(e) {
-		e.delta.x = e.top.x - e.bot.x;
-		e.delta.y = e.top.y - e.bot.y;
-		if(e.delta.y == 0) e.dx = -3.4E+38; else {
-			var deltaX = e.delta.x;
-			e.dx = deltaX / e.delta.y;
+		{
+			var this1;
+			var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(e.top.x,e.bot.x);
+			this1 = a;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+			e.delta.x = a1;
+		}
+		{
+			var this2;
+			var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(e.top.y,e.bot.y);
+			this2 = a2;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+			e.delta.y = a3;
+		}
+		if(e.delta.y.equalsInt(0)) e.dx = -3.4E+38; else {
+			var deltaX = hxClipper_InternalTools.toFloat(e.delta.x);
+			e.dx = deltaX / hxClipper_InternalTools.toFloat(e.delta.y);
 		}
 	}
 	,insertLocalMinima: function(newLm) {
-		if(this.mMinimaList == null) this.mMinimaList = newLm; else if(newLm.y >= this.mMinimaList.y) {
+		if(this.mMinimaList == null) this.mMinimaList = newLm; else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(newLm.y,this.mMinimaList.y) >= 0) {
 			newLm.next = this.mMinimaList;
 			this.mMinimaList = newLm;
 		} else {
 			var tmpLm = this.mMinimaList;
-			while(tmpLm.next != null && newLm.y < tmpLm.next.y) tmpLm = tmpLm.next;
+			while(tmpLm.next != null && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(newLm.y,tmpLm.next.y) < 0) tmpLm = tmpLm.next;
 			newLm.next = tmpLm.next;
 			tmpLm.next = newLm;
 		}
@@ -3317,6 +18808,9 @@ hxClipper_ClipperBase.prototype = {
 		var tmp = e.top.x;
 		e.top.x = e.bot.x;
 		e.bot.x = tmp;
+		var tmp1 = e.top.z;
+		e.top.z = e.bot.z;
+		e.bot.z = tmp1;
 	}
 	,reset: function() {
 		this.mCurrentLM = this.mMinimaList;
@@ -3342,6 +18836,7 @@ hxClipper_ClipperBase.prototype = {
 };
 var hxClipper_Clipper = function(initOptions) {
 	if(initOptions == null) initOptions = 0;
+	this.zFillFunction = null;
 	hxClipper_ClipperBase.call(this);
 	this.mScanbeam = null;
 	this.mMaxima = null;
@@ -3357,11 +18852,19 @@ var hxClipper_Clipper = function(initOptions) {
 	this.reverseSolution = (1 & initOptions) != 0;
 	this.strictlySimple = (2 & initOptions) != 0;
 	this.preserveCollinear = (4 & initOptions) != 0;
+	this.zFillFunction = null;
 };
 hxClipper_Clipper.__name__ = ["hxClipper","Clipper"];
 hxClipper_Clipper.compare = function(node1,node2) {
-	var i = node2.pt.y - node1.pt.y;
-	if(i > 0) return 1; else if(i < 0) return -1; else return 0;
+	var i;
+	{
+		var this1;
+		var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(node2.pt.y,node1.pt.y);
+		this1 = a;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+		i = a1;
+	}
+	if(com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(i,0) > 0) return 1; else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(i,0) < 0) return -1; else return 0;
 };
 hxClipper_Clipper.swapSides = function(edge1,edge2) {
 	var side = edge1.side;
@@ -3374,14 +18877,59 @@ hxClipper_Clipper.swapPolyIndexes = function(edge1,edge2) {
 	edge2.outIdx = outIdx;
 };
 hxClipper_Clipper.intersectNodeSort = function(node1,node2) {
-	return node2.pt.y - node1.pt.y | 0;
+	return Std["int"](hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this1;
+		{
+			var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(node2.pt.y,node1.pt.y);
+			this1 = a;
+		}
+		$r = (function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+			$r = a1;
+			return $r;
+		}($this));
+		return $r;
+	}(this))));
 };
 hxClipper_Clipper.round = function(value) {
-	if(value < 0) return value - 0.5 | 0; else return value + 0.5 | 0;
+	if(value < 0) {
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(value - 0.5 | 0);
+		return a;
+	} else {
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(value + 0.5 | 0);
+		return a1;
+	}
 };
 hxClipper_Clipper.topX = function(edge,currentY) {
-	if(currentY == edge.top.y) return edge.top.x;
-	return edge.bot.x + hxClipper_Clipper.round(edge.dx * (currentY - edge.bot.y));
+	if(currentY.equals(edge.top.y)) return edge.top.x;
+	{
+		var this1;
+		var b;
+		{
+			var this3 = hxClipper_Clipper.round(edge.dx * hxClipper_InternalTools.toFloat((function($this) {
+				var $r;
+				var this2;
+				{
+					var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(currentY,edge.bot.y);
+					this2 = a;
+				}
+				$r = (function($this) {
+					var $r;
+					var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+					$r = a1;
+					return $r;
+				}($this));
+				return $r;
+			}(this))));
+			b = this3;
+		}
+		var a2 = com_fundoware_engine_bigint_FunBigInt_$.add2(edge.bot.x,b);
+		this1 = a2;
+		var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+		return a3;
+	}
 };
 hxClipper_Clipper.reversePaths = function(polys) {
 	var _g = 0;
@@ -3399,28 +18947,155 @@ hxClipper_Clipper.pointInPolygon = function(pt,path) {
 	var cnt = path.length;
 	if(cnt < 3) return 0;
 	var ip = path[0].clone();
-	var ipNext = new hxClipper_IntPoint();
+	var ipNext = new hxClipper_IntPoint((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a2;
+		return $r;
+	}(this)));
 	var _g1 = 1;
 	var _g = cnt + 1;
 	while(_g1 < _g) {
 		var i = _g1++;
 		ipNext.copyFrom(i == cnt?path[0]:path[i]);
-		if(ipNext.y == pt.y) {
-			if(ipNext.x == pt.x || ip.y == pt.y && ipNext.x > pt.x == ip.x < pt.x) return -1;
+		if(ipNext.y.equals(pt.y)) {
+			if(ipNext.x.equals(pt.x) || ip.y.equals(pt.y) && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ipNext.x,pt.x) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ip.x,pt.x) < 0) return -1;
 		}
-		if(ip.y < pt.y != ipNext.y < pt.y) {
-			if(ip.x >= pt.x) {
-				if(ipNext.x > pt.x) result = 1 - result; else {
-					var dx = ip.x - pt.x;
-					var dy = ip.y - pt.y;
-					var d = dx * (ipNext.y - pt.y) - (ipNext.x - pt.x) * dy;
-					if(d == 0) return -1; else if(d > 0 == ipNext.y > ip.y) result = 1 - result;
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ip.y,pt.y) < 0 != com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ipNext.y,pt.y) < 0) {
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ip.x,pt.x) >= 0) {
+				if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ipNext.x,pt.x) > 0) result = 1 - result; else {
+					var dx = hxClipper_InternalTools.toFloat((function($this) {
+						var $r;
+						var this1;
+						{
+							var a3 = com_fundoware_engine_bigint_FunBigInt_$.sub2(ip.x,pt.x);
+							this1 = a3;
+						}
+						$r = (function($this) {
+							var $r;
+							var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+							$r = a4;
+							return $r;
+						}($this));
+						return $r;
+					}(this)));
+					var dy = hxClipper_InternalTools.toFloat((function($this) {
+						var $r;
+						var this2;
+						{
+							var a5 = com_fundoware_engine_bigint_FunBigInt_$.sub2(ip.y,pt.y);
+							this2 = a5;
+						}
+						$r = (function($this) {
+							var $r;
+							var a6 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+							$r = a6;
+							return $r;
+						}($this));
+						return $r;
+					}(this)));
+					var d = dx * hxClipper_InternalTools.toFloat((function($this) {
+						var $r;
+						var this3;
+						{
+							var a7 = com_fundoware_engine_bigint_FunBigInt_$.sub2(ipNext.y,pt.y);
+							this3 = a7;
+						}
+						$r = (function($this) {
+							var $r;
+							var a8 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this3);
+							$r = a8;
+							return $r;
+						}($this));
+						return $r;
+					}(this))) - hxClipper_InternalTools.toFloat((function($this) {
+						var $r;
+						var this4;
+						{
+							var a9 = com_fundoware_engine_bigint_FunBigInt_$.sub2(ipNext.x,pt.x);
+							this4 = a9;
+						}
+						$r = (function($this) {
+							var $r;
+							var a10 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this4);
+							$r = a10;
+							return $r;
+						}($this));
+						return $r;
+					}(this))) * dy;
+					if(d == 0) return -1; else if(d > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ipNext.y,ip.y) > 0) result = 1 - result;
 				}
-			} else if(ipNext.x > pt.x) {
-				var dx1 = ip.x - pt.x;
-				var dy1 = ip.y - pt.y;
-				var d1 = dx1 * (ipNext.y - pt.y) - (ipNext.x - pt.x) * dy1;
-				if(d1 == 0) return -1; else if(d1 > 0 == ipNext.y > ip.y) result = 1 - result;
+			} else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ipNext.x,pt.x) > 0) {
+				var dx1 = hxClipper_InternalTools.toFloat((function($this) {
+					var $r;
+					var this5;
+					{
+						var a11 = com_fundoware_engine_bigint_FunBigInt_$.sub2(ip.x,pt.x);
+						this5 = a11;
+					}
+					$r = (function($this) {
+						var $r;
+						var a12 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this5);
+						$r = a12;
+						return $r;
+					}($this));
+					return $r;
+				}(this)));
+				var dy1 = hxClipper_InternalTools.toFloat((function($this) {
+					var $r;
+					var this6;
+					{
+						var a13 = com_fundoware_engine_bigint_FunBigInt_$.sub2(ip.y,pt.y);
+						this6 = a13;
+					}
+					$r = (function($this) {
+						var $r;
+						var a14 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this6);
+						$r = a14;
+						return $r;
+					}($this));
+					return $r;
+				}(this)));
+				var d1 = dx1 * hxClipper_InternalTools.toFloat((function($this) {
+					var $r;
+					var this7;
+					{
+						var a15 = com_fundoware_engine_bigint_FunBigInt_$.sub2(ipNext.y,pt.y);
+						this7 = a15;
+					}
+					$r = (function($this) {
+						var $r;
+						var a16 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this7);
+						$r = a16;
+						return $r;
+					}($this));
+					return $r;
+				}(this))) - hxClipper_InternalTools.toFloat((function($this) {
+					var $r;
+					var this8;
+					{
+						var a17 = com_fundoware_engine_bigint_FunBigInt_$.sub2(ipNext.x,pt.x);
+						this8 = a17;
+					}
+					$r = (function($this) {
+						var $r;
+						var a18 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this8);
+						$r = a18;
+						return $r;
+					}($this));
+					return $r;
+				}(this))) * dy1;
+				if(d1 == 0) return -1; else if(d1 > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ipNext.y,ip.y) > 0) result = 1 - result;
 			}
 		}
 		ip.copyFrom(ipNext);
@@ -3438,24 +19113,136 @@ hxClipper_Clipper.pointInOutPt = function(pt,op) {
 		op = op.next;
 		var poly1x = op.pt.x;
 		var poly1y = op.pt.y;
-		if(poly1y == pty) {
-			if(poly1x == ptx || poly0y == pty && poly1x > ptx == poly0x < ptx) return -1;
+		if(poly1y.equals(pty)) {
+			if(poly1x.equals(ptx) || poly0y.equals(pty) && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(poly1x,ptx) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(poly0x,ptx) < 0) return -1;
 		}
-		if(poly0y < pty != poly1y < pty) {
-			if(poly0x >= ptx) {
-				if(poly1x > ptx) result = 1 - result; else {
-					var dx = poly0x - ptx;
-					var dy = poly0y - pty;
-					var d = dx * (poly1y - pty) - (poly1x - ptx) * dy;
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(poly0y,pty) < 0 != com_fundoware_engine_bigint_FunBigIntArithmetic.compare(poly1y,pty) < 0) {
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(poly0x,ptx) >= 0) {
+				if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(poly1x,ptx) > 0) result = 1 - result; else {
+					var dx = hxClipper_InternalTools.toFloat((function($this) {
+						var $r;
+						var this1;
+						{
+							var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(poly0x,ptx);
+							this1 = a;
+						}
+						$r = (function($this) {
+							var $r;
+							var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+							$r = a1;
+							return $r;
+						}($this));
+						return $r;
+					}(this)));
+					var dy = hxClipper_InternalTools.toFloat((function($this) {
+						var $r;
+						var this2;
+						{
+							var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(poly0y,pty);
+							this2 = a2;
+						}
+						$r = (function($this) {
+							var $r;
+							var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+							$r = a3;
+							return $r;
+						}($this));
+						return $r;
+					}(this)));
+					var d = dx * hxClipper_InternalTools.toFloat((function($this) {
+						var $r;
+						var this3;
+						{
+							var a4 = com_fundoware_engine_bigint_FunBigInt_$.sub2(poly1y,pty);
+							this3 = a4;
+						}
+						$r = (function($this) {
+							var $r;
+							var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this3);
+							$r = a5;
+							return $r;
+						}($this));
+						return $r;
+					}(this))) - hxClipper_InternalTools.toFloat((function($this) {
+						var $r;
+						var this4;
+						{
+							var a6 = com_fundoware_engine_bigint_FunBigInt_$.sub2(poly1x,ptx);
+							this4 = a6;
+						}
+						$r = (function($this) {
+							var $r;
+							var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this4);
+							$r = a7;
+							return $r;
+						}($this));
+						return $r;
+					}(this))) * dy;
 					if(d == 0) return -1;
-					if(d > 0 == poly1y > poly0y) result = 1 - result;
+					if(d > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(poly1y,poly0y) > 0) result = 1 - result;
 				}
-			} else if(poly1x > ptx) {
-				var dx1 = poly0x - ptx;
-				var dy1 = poly0y - pty;
-				var d1 = dx1 * (poly1y - pty) - (poly1x - ptx) * dy1;
+			} else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(poly1x,ptx) > 0) {
+				var dx1 = hxClipper_InternalTools.toFloat((function($this) {
+					var $r;
+					var this5;
+					{
+						var a8 = com_fundoware_engine_bigint_FunBigInt_$.sub2(poly0x,ptx);
+						this5 = a8;
+					}
+					$r = (function($this) {
+						var $r;
+						var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this5);
+						$r = a9;
+						return $r;
+					}($this));
+					return $r;
+				}(this)));
+				var dy1 = hxClipper_InternalTools.toFloat((function($this) {
+					var $r;
+					var this6;
+					{
+						var a10 = com_fundoware_engine_bigint_FunBigInt_$.sub2(poly0y,pty);
+						this6 = a10;
+					}
+					$r = (function($this) {
+						var $r;
+						var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this6);
+						$r = a11;
+						return $r;
+					}($this));
+					return $r;
+				}(this)));
+				var d1 = dx1 * hxClipper_InternalTools.toFloat((function($this) {
+					var $r;
+					var this7;
+					{
+						var a12 = com_fundoware_engine_bigint_FunBigInt_$.sub2(poly1y,pty);
+						this7 = a12;
+					}
+					$r = (function($this) {
+						var $r;
+						var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this7);
+						$r = a13;
+						return $r;
+					}($this));
+					return $r;
+				}(this))) - hxClipper_InternalTools.toFloat((function($this) {
+					var $r;
+					var this8;
+					{
+						var a14 = com_fundoware_engine_bigint_FunBigInt_$.sub2(poly1x,ptx);
+						this8 = a14;
+					}
+					$r = (function($this) {
+						var $r;
+						var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this8);
+						$r = a15;
+						return $r;
+					}($this));
+					return $r;
+				}(this))) * dy1;
 				if(d1 == 0) return -1;
-				if(d1 > 0 == poly1y > poly0y) result = 1 - result;
+				if(d1 > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(poly1y,poly0y) > 0) result = 1 - result;
 			}
 		}
 		poly0x = poly1x;
@@ -3484,8 +19271,36 @@ hxClipper_Clipper.area = function(poly) {
 	var _g = 0;
 	while(_g < cnt) {
 		var i = _g++;
-		var dx = poly[j].x + poly[i].x;
-		var dy = poly[j].y - poly[i].y;
+		var dx = hxClipper_InternalTools.toFloat((function($this) {
+			var $r;
+			var this1;
+			{
+				var a1 = com_fundoware_engine_bigint_FunBigInt_$.add2(poly[j].x,poly[i].x);
+				this1 = a1;
+			}
+			$r = (function($this) {
+				var $r;
+				var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+				$r = a2;
+				return $r;
+			}($this));
+			return $r;
+		}(this)));
+		var dy = hxClipper_InternalTools.toFloat((function($this) {
+			var $r;
+			var this2;
+			{
+				var a3 = com_fundoware_engine_bigint_FunBigInt_$.sub2(poly[j].y,poly[i].y);
+				this2 = a3;
+			}
+			$r = (function($this) {
+				var $r;
+				var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+				$r = a4;
+				return $r;
+			}($this));
+			return $r;
+		}(this)));
 		a += dx * dy;
 		j = i;
 	}
@@ -3510,25 +19325,137 @@ hxClipper_Clipper.simplifyPolygons = function(polys,fillType) {
 	return result;
 };
 hxClipper_Clipper.distanceSqrd = function(pt1,pt2) {
-	var dx = pt1.x - pt2.x;
-	var dy = pt1.y - pt2.y;
+	var dx = hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this1;
+		{
+			var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.x,pt2.x);
+			this1 = a;
+		}
+		$r = (function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+			$r = a1;
+			return $r;
+		}($this));
+		return $r;
+	}(this)));
+	var dy = hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this2;
+		{
+			var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.y,pt2.y);
+			this2 = a2;
+		}
+		$r = (function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+			$r = a3;
+			return $r;
+		}($this));
+		return $r;
+	}(this)));
 	return dx * dx + dy * dy;
 };
 hxClipper_Clipper.distanceFromLineSqrd = function(pt,ln1,ln2) {
-	var A = ln1.y - ln2.y;
-	var B = ln2.x - ln1.x;
-	var C = A * ln1.x + B * ln1.y;
-	C = A * pt.x + B * pt.y - C;
+	var A = hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this1;
+		{
+			var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(ln1.y,ln2.y);
+			this1 = a;
+		}
+		$r = (function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+			$r = a1;
+			return $r;
+		}($this));
+		return $r;
+	}(this)));
+	var B = hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this2;
+		{
+			var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(ln2.x,ln1.x);
+			this2 = a2;
+		}
+		$r = (function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+			$r = a3;
+			return $r;
+		}($this));
+		return $r;
+	}(this)));
+	var C = A * hxClipper_InternalTools.toFloat(ln1.x) + B * hxClipper_InternalTools.toFloat(ln1.y);
+	C = A * hxClipper_InternalTools.toFloat(pt.x) + B * hxClipper_InternalTools.toFloat(pt.y) - C;
 	return C * C / (A * A + B * B);
 };
 hxClipper_Clipper.slopesNearCollinear = function(pt1,pt2,pt3,distSqrd) {
-	if(Math.abs(pt1.x - pt2.x) > Math.abs(pt1.y - pt2.y)) {
-		if(pt1.x > pt2.x == pt1.x < pt3.x) return hxClipper_Clipper.distanceFromLineSqrd(pt1,pt2,pt3) < distSqrd; else if(pt2.x > pt1.x == pt2.x < pt3.x) return hxClipper_Clipper.distanceFromLineSqrd(pt2,pt1,pt3) < distSqrd; else return hxClipper_Clipper.distanceFromLineSqrd(pt3,pt1,pt2) < distSqrd;
-	} else if(pt1.y > pt2.y == pt1.y < pt3.y) return hxClipper_Clipper.distanceFromLineSqrd(pt1,pt2,pt3) < distSqrd; else if(pt2.y > pt1.y == pt2.y < pt3.y) return hxClipper_Clipper.distanceFromLineSqrd(pt2,pt1,pt3) < distSqrd; else return hxClipper_Clipper.distanceFromLineSqrd(pt3,pt1,pt2) < distSqrd;
+	if(Math.abs(hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this1;
+		{
+			var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.x,pt2.x);
+			this1 = a;
+		}
+		$r = (function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+			$r = a1;
+			return $r;
+		}($this));
+		return $r;
+	}(this)))) > Math.abs(hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this2;
+		{
+			var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.y,pt2.y);
+			this2 = a2;
+		}
+		$r = (function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+			$r = a3;
+			return $r;
+		}($this));
+		return $r;
+	}(this))))) {
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt1.x,pt2.x) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt1.x,pt3.x) < 0) return hxClipper_Clipper.distanceFromLineSqrd(pt1,pt2,pt3) < distSqrd; else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt2.x,pt1.x) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt2.x,pt3.x) < 0) return hxClipper_Clipper.distanceFromLineSqrd(pt2,pt1,pt3) < distSqrd; else return hxClipper_Clipper.distanceFromLineSqrd(pt3,pt1,pt2) < distSqrd;
+	} else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt1.y,pt2.y) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt1.y,pt3.y) < 0) return hxClipper_Clipper.distanceFromLineSqrd(pt1,pt2,pt3) < distSqrd; else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt2.y,pt1.y) > 0 == com_fundoware_engine_bigint_FunBigIntArithmetic.compare(pt2.y,pt3.y) < 0) return hxClipper_Clipper.distanceFromLineSqrd(pt2,pt1,pt3) < distSqrd; else return hxClipper_Clipper.distanceFromLineSqrd(pt3,pt1,pt2) < distSqrd;
 };
 hxClipper_Clipper.pointsAreClose = function(pt1,pt2,distSqrd) {
-	var dx = pt1.x - pt2.x;
-	var dy = pt1.y - pt2.y;
+	var dx = hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this1;
+		{
+			var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.x,pt2.x);
+			this1 = a;
+		}
+		$r = (function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+			$r = a1;
+			return $r;
+		}($this));
+		return $r;
+	}(this)));
+	var dy = hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this2;
+		{
+			var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt1.y,pt2.y);
+			this2 = a2;
+		}
+		$r = (function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+			$r = a3;
+			return $r;
+		}($this));
+		return $r;
+	}(this)));
 	return dx * dx + dy * dy <= distSqrd;
 };
 hxClipper_Clipper.excludeOp = function(op) {
@@ -3611,7 +19538,35 @@ hxClipper_Clipper.minkowski = function(pattern,path,isSum,isClosed) {
 			while(_g1 < pattern.length) {
 				var ip = pattern[_g1];
 				++_g1;
-				p.push(new hxClipper_IntPoint(path[i].x + ip.x,path[i].y + ip.y));
+				p.push(new hxClipper_IntPoint((function($this) {
+					var $r;
+					var this1;
+					{
+						var a = com_fundoware_engine_bigint_FunBigInt_$.add2(path[i].x,ip.x);
+						this1 = a;
+					}
+					$r = (function($this) {
+						var $r;
+						var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+						$r = a1;
+						return $r;
+					}($this));
+					return $r;
+				}(this)),(function($this) {
+					var $r;
+					var this2;
+					{
+						var a2 = com_fundoware_engine_bigint_FunBigInt_$.add2(path[i].y,ip.y);
+						this2 = a2;
+					}
+					$r = (function($this) {
+						var $r;
+						var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+						$r = a3;
+						return $r;
+					}($this));
+					return $r;
+				}(this))));
 			}
 			result.push(p);
 		}
@@ -3624,7 +19579,35 @@ hxClipper_Clipper.minkowski = function(pattern,path,isSum,isClosed) {
 			while(_g11 < pattern.length) {
 				var ip1 = pattern[_g11];
 				++_g11;
-				p1.push(new hxClipper_IntPoint(path[i1].x - ip1.x,path[i1].y - ip1.y));
+				p1.push(new hxClipper_IntPoint((function($this) {
+					var $r;
+					var this3;
+					{
+						var a4 = com_fundoware_engine_bigint_FunBigInt_$.sub2(path[i1].x,ip1.x);
+						this3 = a4;
+					}
+					$r = (function($this) {
+						var $r;
+						var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this3);
+						$r = a5;
+						return $r;
+					}($this));
+					return $r;
+				}(this)),(function($this) {
+					var $r;
+					var this4;
+					{
+						var a6 = com_fundoware_engine_bigint_FunBigInt_$.sub2(path[i1].y,ip1.y);
+						this4 = a6;
+					}
+					$r = (function($this) {
+						var $r;
+						var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this4);
+						$r = a7;
+						return $r;
+					}($this));
+					return $r;
+				}(this))));
 			}
 			result.push(p1);
 		}
@@ -3661,7 +19644,35 @@ hxClipper_Clipper.translatePath = function(path,delta) {
 	var _g = path.length;
 	while(_g1 < _g) {
 		var i = _g1++;
-		outPath.push(new hxClipper_IntPoint(path[i].x + delta.x,path[i].y + delta.y));
+		outPath.push(new hxClipper_IntPoint((function($this) {
+			var $r;
+			var this1;
+			{
+				var a = com_fundoware_engine_bigint_FunBigInt_$.add2(path[i].x,delta.x);
+				this1 = a;
+			}
+			$r = (function($this) {
+				var $r;
+				var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+				$r = a1;
+				return $r;
+			}($this));
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var this2;
+			{
+				var a2 = com_fundoware_engine_bigint_FunBigInt_$.add2(path[i].y,delta.y);
+				this2 = a2;
+			}
+			$r = (function($this) {
+				var $r;
+				var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+				$r = a3;
+				return $r;
+			}($this));
+			return $r;
+		}(this))));
 	}
 	return outPath;
 };
@@ -3744,20 +19755,21 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 	,mJoins: null
 	,mGhostJoins: null
 	,mUsingPolyTree: null
+	,zFillFunction: null
 	,insertScanbeam: function(y) {
 		if(this.mScanbeam == null) {
 			this.mScanbeam = new hxClipper__$Clipper_Scanbeam();
 			this.mScanbeam.next = null;
 			this.mScanbeam.y = y;
-		} else if(y > this.mScanbeam.y) {
+		} else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(y,this.mScanbeam.y) > 0) {
 			var newSb = new hxClipper__$Clipper_Scanbeam();
 			newSb.y = y;
 			newSb.next = this.mScanbeam;
 			this.mScanbeam = newSb;
 		} else {
 			var sb2 = this.mScanbeam;
-			while(sb2.next != null && y <= sb2.next.y) sb2 = sb2.next;
-			if(y == sb2.y) return;
+			while(sb2.next != null && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(y,sb2.next.y) <= 0) sb2 = sb2.next;
+			if(y.equals(sb2.y)) return;
 			var newSb1 = new hxClipper__$Clipper_Scanbeam();
 			newSb1.y = y;
 			newSb1.next = sb2.next;
@@ -3771,14 +19783,14 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 			this.mMaxima = newMax;
 			this.mMaxima.next = null;
 			this.mMaxima.prev = null;
-		} else if(x < this.mMaxima.x) {
+		} else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(x,this.mMaxima.x) < 0) {
 			newMax.next = this.mMaxima;
 			newMax.prev = null;
 			this.mMaxima = newMax;
 		} else {
 			var m = this.mMaxima;
-			while(m.next != null && x >= m.next.x) m = m.next;
-			if(x == m.x) return;
+			while(m.next != null && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(x,m.next.x) >= 0) m = m.next;
+			if(x.equals(m.x)) return;
 			newMax.next = m.next;
 			newMax.prev = m;
 			if(m.next != null) m.next.prev = newMax;
@@ -3907,8 +19919,11 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		j.offPt.copyFrom(offPt);
 		this.mGhostJoins.push(j);
 	}
+	,setZ: function(pt,e1,e2) {
+		if(this.zFillFunction == null || !pt.z.equalsInt(0)) return; else if(pt.equals(e1.bot)) pt.z = e1.bot.z; else if(pt.equals(e1.top)) pt.z = e1.top.z; else if(pt.equals(e2.bot)) pt.z = e2.bot.z; else if(pt.equals(e2.top)) pt.z = e2.top.z; else this.zFillFunction(e1.bot,e1.top,e2.bot,e2.top,pt);
+	}
 	,insertLocalMinimaIntoAEL: function(botY) {
-		while(this.mCurrentLM != null && this.mCurrentLM.y == botY) {
+		while(this.mCurrentLM != null && this.mCurrentLM.y.equals(botY)) {
 			var lb = this.mCurrentLM.leftBound;
 			var rb = this.mCurrentLM.rightBound;
 			this.popLocalMinima();
@@ -3944,7 +19959,7 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 					if(this.horzSegmentsOverlap(j.outPt1.pt.x,j.offPt.x,rb.bot.x,rb.top.x)) this.addJoin(j.outPt1,op1,j.offPt);
 				}
 			}
-			if(lb.outIdx >= 0 && lb.prevInAEL != null && lb.prevInAEL.curr.x == lb.bot.x && lb.prevInAEL.outIdx >= 0 && hxClipper_ClipperBase.slopesEqual(lb.prevInAEL,lb,this.mUseFullRange) && lb.windDelta != 0 && lb.prevInAEL.windDelta != 0) {
+			if(lb.outIdx >= 0 && lb.prevInAEL != null && lb.prevInAEL.curr.x.equals(lb.bot.x) && lb.prevInAEL.outIdx >= 0 && hxClipper_ClipperBase.slopesEqual(lb.prevInAEL,lb,this.mUseFullRange) && lb.windDelta != 0 && lb.prevInAEL.windDelta != 0) {
 				var op2 = this.addOutPt(lb.prevInAEL,lb.bot);
 				this.addJoin(op1,op2,lb.top);
 			}
@@ -3981,9 +19996,23 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		}
 	}
 	,e2InsertsBeforeE1: function(e1,e2) {
-		if(e2.curr.x == e1.curr.x) {
-			if(e2.top.y > e1.top.y) return e2.top.x < hxClipper_Clipper.topX(e1,e2.top.y); else return e1.top.x > hxClipper_Clipper.topX(e2,e1.top.y);
-		} else return e2.curr.x < e1.curr.x;
+		if(e2.curr.x.equals(e1.curr.x)) {
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(e2.top.y,e1.top.y) > 0) {
+				var b;
+				{
+					var this1 = hxClipper_Clipper.topX(e1,e2.top.y);
+					b = this1;
+				}
+				return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(e2.top.x,b) < 0;
+			} else {
+				var b1;
+				{
+					var this2 = hxClipper_Clipper.topX(e2,e1.top.y);
+					b1 = this2;
+				}
+				return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(e1.top.x,b1) > 0;
+			}
+		} else return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(e2.curr.x,e1.curr.x) < 0;
 	}
 	,isEvenOddFillType: function(edge) {
 		if(edge.polyType == hxClipper_PolyType.PT_SUBJECT) return this.mSubjFillType == hxClipper_PolyFillType.PFT_EVEN_ODD; else return this.mClipFillType == hxClipper_PolyFillType.PFT_EVEN_ODD;
@@ -4223,7 +20252,17 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 			e = e2;
 			if(e.prevInAEL == e1) prevE = e1.prevInAEL; else prevE = e.prevInAEL;
 		}
-		if(prevE != null && prevE.outIdx >= 0 && hxClipper_Clipper.topX(prevE,pt.y) == hxClipper_Clipper.topX(e,pt.y) && hxClipper_ClipperBase.slopesEqual(e,prevE,this.mUseFullRange) && e.windDelta != 0 && prevE.windDelta != 0) {
+		if(prevE != null && prevE.outIdx >= 0 && (function($this) {
+			var $r;
+			var a = hxClipper_Clipper.topX(prevE,pt.y);
+			var b;
+			{
+				var this1 = hxClipper_Clipper.topX(e,pt.y);
+				b = this1;
+			}
+			$r = a.equals(b);
+			return $r;
+		}(this)) && hxClipper_ClipperBase.slopesEqual(e,prevE,this.mUseFullRange) && e.windDelta != 0 && prevE.windDelta != 0) {
 			var outPt = this.addOutPt(prevE,pt);
 			this.addJoin(result,outPt,e.top);
 		}
@@ -4281,17 +20320,17 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		pt2.copyFrom(tmp);
 	}
 	,horzSegmentsOverlap: function(seg1a,seg1b,seg2a,seg2b) {
-		if(seg1a > seg1b) {
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(seg1a,seg1b) > 0) {
 			var tmp = seg1a;
 			seg1a = seg1b;
 			seg1b = tmp;
 		}
-		if(seg2a > seg2b) {
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(seg2a,seg2b) > 0) {
 			var tmp1 = seg2a;
 			seg2a = seg2b;
 			seg2b = tmp1;
 		}
-		return seg1a < seg2b && seg2a < seg1b;
+		return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(seg1a,seg2b) < 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(seg2a,seg1b) < 0;
 	}
 	,setHoleState: function(e,outRec) {
 		var isHole = false;
@@ -4306,9 +20345,37 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		if(isHole) outRec.isHole = true;
 	}
 	,getDx: function(pt1,pt2) {
-		if(pt1.y == pt2.y) return -3.4E+38; else {
-			var dx = pt2.x - pt1.x;
-			var dy = pt2.y - pt1.y;
+		if(pt1.y.equals(pt2.y)) return -3.4E+38; else {
+			var dx = hxClipper_InternalTools.toFloat((function($this) {
+				var $r;
+				var this1;
+				{
+					var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt2.x,pt1.x);
+					this1 = a;
+				}
+				$r = (function($this) {
+					var $r;
+					var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+					$r = a1;
+					return $r;
+				}($this));
+				return $r;
+			}(this)));
+			var dy = hxClipper_InternalTools.toFloat((function($this) {
+				var $r;
+				var this2;
+				{
+					var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt2.y,pt1.y);
+					this2 = a2;
+				}
+				$r = (function($this) {
+					var $r;
+					var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+					$r = a3;
+					return $r;
+				}($this));
+				return $r;
+			}(this)));
 			return dx / dy;
 		}
 	}
@@ -4331,11 +20398,11 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		var dups = null;
 		var p = pp.next;
 		while(p != pp) {
-			if(p.pt.y > pp.pt.y) {
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(p.pt.y,pp.pt.y) > 0) {
 				pp = p;
 				dups = null;
-			} else if(p.pt.y == pp.pt.y && p.pt.x <= pp.pt.x) {
-				if(p.pt.x < pp.pt.x) {
+			} else if(p.pt.y.equals(pp.pt.y) && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(p.pt.x,pp.pt.x) <= 0) {
+				if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(p.pt.x,pp.pt.x) < 0) {
 					dups = null;
 					pp = p;
 				} else if(p.next != pp && p.prev != pp) dups = p;
@@ -4354,7 +20421,7 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		if(outRec2.bottomPt == null) outRec2.bottomPt = this.getBottomPt(outRec2.pts);
 		var bPt1 = outRec1.bottomPt;
 		var bPt2 = outRec2.bottomPt;
-		if(bPt1.pt.y > bPt2.pt.y) return outRec1; else if(bPt1.pt.y < bPt2.pt.y) return outRec2; else if(bPt1.pt.x < bPt2.pt.x) return outRec1; else if(bPt1.pt.x > bPt2.pt.x) return outRec2; else if(bPt1.next == bPt1) return outRec2; else if(bPt2.next == bPt2) return outRec1; else if(this.firstIsBottomPt(bPt1,bPt2)) return outRec1; else return outRec2;
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(bPt1.pt.y,bPt2.pt.y) > 0) return outRec1; else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(bPt1.pt.y,bPt2.pt.y) < 0) return outRec2; else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(bPt1.pt.x,bPt2.pt.x) < 0) return outRec1; else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(bPt1.pt.x,bPt2.pt.x) > 0) return outRec2; else if(bPt1.next == bPt1) return outRec2; else if(bPt2.next == bPt2) return outRec1; else if(this.firstIsBottomPt(bPt1,bPt2)) return outRec1; else return outRec2;
 	}
 	,param1RightOfParam2: function(outRec1,outRec2) {
 		do {
@@ -4447,6 +20514,7 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 	,intersectEdges: function(e1,e2,pt) {
 		var e1Contributing = e1.outIdx >= 0;
 		var e2Contributing = e2.outIdx >= 0;
+		this.setZ(pt,e1,e2);
 		if(e1.windDelta == 0 || e2.windDelta == 0) {
 			if(e1.windDelta == 0 && e2.windDelta == 0) return; else if(e1.polyType == e2.polyType && e1.windDelta != e2.windDelta && this.mClipType == hxClipper_ClipType.CT_UNION) {
 				if(e1.windDelta == 0) {
@@ -4546,35 +20614,55 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 			var e2Wc2;
 			switch(e1FillType2[1]) {
 			case 2:
-				e1Wc2 = e1.windCnt2;
+				{
+					var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(e1.windCnt2);
+					e1Wc2 = a;
+				}
 				break;
 			case 3:
-				e1Wc2 = -e1.windCnt2;
+				{
+					var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-e1.windCnt2);
+					e1Wc2 = a1;
+				}
 				break;
 			default:
-				e1Wc2 = Std["int"](Math.abs(e1.windCnt2));
+				{
+					var a2 = Std["int"](Math.abs(e1.windCnt2));
+					var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a2);
+					e1Wc2 = a3;
+				}
 			}
 			switch(e2FillType2[1]) {
 			case 2:
-				e2Wc2 = e2.windCnt2;
+				{
+					var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(e2.windCnt2);
+					e2Wc2 = a4;
+				}
 				break;
 			case 3:
-				e2Wc2 = -e2.windCnt2;
+				{
+					var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-e2.windCnt2);
+					e2Wc2 = a5;
+				}
 				break;
 			default:
-				e2Wc2 = Std["int"](Math.abs(e2.windCnt2));
+				{
+					var a6 = Std["int"](Math.abs(e2.windCnt2));
+					var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a6);
+					e2Wc2 = a7;
+				}
 			}
 			if(e1.polyType != e2.polyType) this.addLocalMinPoly(e1,e2,pt); else if(e1Wc == 1 && e2Wc == 1) {
 				var _g = this.mClipType;
 				switch(_g[1]) {
 				case 0:
-					if(e1Wc2 > 0 && e2Wc2 > 0) this.addLocalMinPoly(e1,e2,pt);
+					if(com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(e1Wc2,0) > 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(e2Wc2,0) > 0) this.addLocalMinPoly(e1,e2,pt);
 					break;
 				case 1:
-					if(e1Wc2 <= 0 && e2Wc2 <= 0) this.addLocalMinPoly(e1,e2,pt);
+					if(com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(e1Wc2,0) <= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(e2Wc2,0) <= 0) this.addLocalMinPoly(e1,e2,pt);
 					break;
 				case 2:
-					if(e1.polyType == hxClipper_PolyType.PT_CLIP && e1Wc2 > 0 && e2Wc2 > 0 || e1.polyType == hxClipper_PolyType.PT_SUBJECT && e1Wc2 <= 0 && e2Wc2 <= 0) this.addLocalMinPoly(e1,e2,pt);
+					if(e1.polyType == hxClipper_PolyType.PT_CLIP && com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(e1Wc2,0) > 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(e2Wc2,0) > 0 || e1.polyType == hxClipper_PolyType.PT_SUBJECT && com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(e1Wc2,0) <= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(e2Wc2,0) <= 0) this.addLocalMinPoly(e1,e2,pt);
 					break;
 				case 3:
 					this.addLocalMinPoly(e1,e2,pt);
@@ -4628,7 +20716,7 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		}
 	}
 	,getHorzDirection: function(horzEdge,outParams) {
-		if(horzEdge.bot.x < horzEdge.top.x) {
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(horzEdge.bot.x,horzEdge.top.x) < 0) {
 			outParams.left = horzEdge.bot.x;
 			outParams.right = horzEdge.top.x;
 			outParams.dir = hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT;
@@ -4640,8 +20728,16 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 	}
 	,processHorizontal: function(horzEdge) {
 		var dir = null;
-		var horzLeft = 0;
-		var horzRight = 0;
+		var horzLeft;
+		{
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			horzLeft = a;
+		}
+		var horzRight;
+		{
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+			horzRight = a1;
+		}
 		var isOpen = horzEdge.outIdx >= 0 && this.mPolyOuts[horzEdge.outIdx].isOpen;
 		var outParams = { dir : dir, left : horzLeft, right : horzRight};
 		this.getHorzDirection(horzEdge,outParams);
@@ -4655,11 +20751,11 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		var currMax = this.mMaxima;
 		if(currMax != null) {
 			if(dir == hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT) {
-				while(currMax != null && currMax.x <= horzEdge.bot.x) currMax = currMax.next;
-				if(currMax != null && currMax.x >= eLastHorz.top.x) currMax = null;
+				while(currMax != null && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(currMax.x,horzEdge.bot.x) <= 0) currMax = currMax.next;
+				if(currMax != null && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(currMax.x,eLastHorz.top.x) >= 0) currMax = null;
 			} else {
-				while(currMax.next != null && currMax.next.x < horzEdge.bot.x) currMax = currMax.next;
-				if(currMax.x <= eLastHorz.top.x) currMax = null;
+				while(currMax.next != null && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(currMax.next.x,horzEdge.bot.x) < 0) currMax = currMax.next;
+				if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(currMax.x,eLastHorz.top.x) <= 0) currMax = null;
 			}
 		}
 		var op1 = null;
@@ -4668,16 +20764,16 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 			var e = this.getNextInAEL(horzEdge,dir);
 			while(e != null) {
 				if(currMax != null) {
-					if(dir == hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT) while(currMax != null && currMax.x < e.curr.x) {
+					if(dir == hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT) while(currMax != null && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(currMax.x,e.curr.x) < 0) {
 						if(horzEdge.outIdx >= 0 && !isOpen) this.addOutPt(horzEdge,new hxClipper_IntPoint(currMax.x,horzEdge.bot.y));
 						currMax = currMax.next;
-					} else while(currMax != null && currMax.x > e.curr.x) {
+					} else while(currMax != null && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(currMax.x,e.curr.x) > 0) {
 						if(horzEdge.outIdx >= 0 && !isOpen) this.addOutPt(horzEdge,new hxClipper_IntPoint(currMax.x,horzEdge.bot.y));
 						currMax = currMax.prev;
 					}
 				}
-				if(dir == hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT && e.curr.x > horzRight || dir == hxClipper__$Clipper_Direction.D_RIGHT_TO_LEFT && e.curr.x < horzLeft) break;
-				if(e.curr.x == horzEdge.top.x && horzEdge.nextInLML != null && e.dx < horzEdge.nextInLML.dx) break;
+				if(dir == hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(e.curr.x,horzRight) > 0 || dir == hxClipper__$Clipper_Direction.D_RIGHT_TO_LEFT && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(e.curr.x,horzLeft) < 0) break;
+				if(e.curr.x.equals(horzEdge.top.x) && horzEdge.nextInLML != null && e.dx < horzEdge.nextInLML.dx) break;
 				if(horzEdge.outIdx >= 0 && !isOpen) {
 					op1 = this.addOutPt(horzEdge,e.curr);
 					var eNextHorz = this.mSortedEdges;
@@ -4734,10 +20830,10 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 				if(horzEdge.windDelta == 0) return;
 				var ePrev = horzEdge.prevInAEL;
 				var eNext1 = horzEdge.nextInAEL;
-				if(ePrev != null && ePrev.curr.x == horzEdge.bot.x && ePrev.curr.y == horzEdge.bot.y && ePrev.windDelta != 0 && (ePrev.outIdx >= 0 && ePrev.curr.y > ePrev.top.y && hxClipper_ClipperBase.slopesEqual(horzEdge,ePrev,this.mUseFullRange))) {
+				if(ePrev != null && ePrev.curr.x.equals(horzEdge.bot.x) && ePrev.curr.y.equals(horzEdge.bot.y) && ePrev.windDelta != 0 && (ePrev.outIdx >= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ePrev.curr.y,ePrev.top.y) > 0 && hxClipper_ClipperBase.slopesEqual(horzEdge,ePrev,this.mUseFullRange))) {
 					var op22 = this.addOutPt(ePrev,horzEdge.bot);
 					this.addJoin(op11,op22,horzEdge.top);
-				} else if(eNext1 != null && eNext1.curr.x == horzEdge.bot.x && eNext1.curr.y == horzEdge.bot.y && eNext1.windDelta != 0 && eNext1.outIdx >= 0 && eNext1.curr.y > eNext1.top.y && hxClipper_ClipperBase.slopesEqual(horzEdge,eNext1,this.mUseFullRange)) {
+				} else if(eNext1 != null && eNext1.curr.x.equals(horzEdge.bot.x) && eNext1.curr.y.equals(horzEdge.bot.y) && eNext1.windDelta != 0 && eNext1.outIdx >= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(eNext1.curr.y,eNext1.top.y) > 0 && hxClipper_ClipperBase.slopesEqual(horzEdge,eNext1,this.mUseFullRange)) {
 					var op23 = this.addOutPt(eNext1,horzEdge.bot);
 					this.addJoin(op11,op23,horzEdge.top);
 				}
@@ -4754,10 +20850,28 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		return e != null && e.prev.nextInLML != e && e.next.nextInLML != e;
 	}
 	,isMaxima: function(e,y) {
-		return e != null && e.top.y == y && e.nextInLML == null;
+		return e != null && (function($this) {
+			var $r;
+			var b;
+			{
+				var this1 = hxClipper_InternalTools.toBigInt(y);
+				b = this1;
+			}
+			$r = e.top.y.equals(b);
+			return $r;
+		}(this)) && e.nextInLML == null;
 	}
 	,isIntermediate: function(e,y) {
-		return e.top.y == y && e.nextInLML != null;
+		return (function($this) {
+			var $r;
+			var b;
+			{
+				var this1 = hxClipper_InternalTools.toBigInt(y);
+				b = this1;
+			}
+			$r = e.top.y.equals(b);
+			return $r;
+		}(this)) && e.nextInLML != null;
 	}
 	,getMaximaPair: function(e) {
 		var result = null;
@@ -4797,8 +20911,23 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 			e = this.mSortedEdges;
 			while(e.nextInSEL != null) {
 				var eNext = e.nextInSEL;
-				var pt = new hxClipper_IntPoint();
-				if(e.curr.x > eNext.curr.x) {
+				var pt = new hxClipper_IntPoint((function($this) {
+					var $r;
+					var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+					$r = a;
+					return $r;
+				}(this)),(function($this) {
+					var $r;
+					var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+					$r = a1;
+					return $r;
+				}(this)),(function($this) {
+					var $r;
+					var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+					$r = a2;
+					return $r;
+				}(this)));
+				if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(e.curr.x,eNext.curr.x) > 0) {
 					this.intersectPoint(e,eNext,pt);
 					var newNode = new hxClipper_IntersectNode();
 					newNode.edge1 = e;
@@ -4854,30 +20983,30 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 			ip.x = hxClipper_Clipper.topX(edge1,ip.y);
 			return;
 		}
-		if(edge1.delta.x == 0) {
+		if(edge1.delta.x.equalsInt(0)) {
 			ip.x = edge1.bot.x;
 			if(hxClipper_ClipperBase.isHorizontal(edge2)) ip.y = edge2.bot.y; else {
-				b2 = edge2.bot.y - edge2.bot.x / edge2.dx;
-				ip.y = hxClipper_Clipper.round(ip.x / edge2.dx + b2);
+				b2 = hxClipper_InternalTools.toFloat(edge2.bot.y) - hxClipper_InternalTools.toFloat(edge2.bot.x) / edge2.dx;
+				ip.y = hxClipper_Clipper.round(hxClipper_InternalTools.toFloat(ip.x) / edge2.dx + b2);
 			}
-		} else if(edge2.delta.x == 0) {
+		} else if(edge2.delta.x.equalsInt(0)) {
 			ip.x = edge2.bot.x;
 			if(hxClipper_ClipperBase.isHorizontal(edge1)) ip.y = edge1.bot.y; else {
-				b1 = edge1.bot.y - edge1.bot.x / edge1.dx;
-				ip.y = hxClipper_Clipper.round(ip.x / edge1.dx + b1);
+				b1 = hxClipper_InternalTools.toFloat(edge1.bot.y) - hxClipper_InternalTools.toFloat(edge1.bot.x) / edge1.dx;
+				ip.y = hxClipper_Clipper.round(hxClipper_InternalTools.toFloat(ip.x) / edge1.dx + b1);
 			}
 		} else {
-			b1 = edge1.bot.x - edge1.bot.y * edge1.dx;
-			b2 = edge2.bot.x - edge2.bot.y * edge2.dx;
+			b1 = hxClipper_InternalTools.toFloat(edge1.bot.x) - hxClipper_InternalTools.toFloat(edge1.bot.y) * edge1.dx;
+			b2 = hxClipper_InternalTools.toFloat(edge2.bot.x) - hxClipper_InternalTools.toFloat(edge2.bot.y) * edge2.dx;
 			var q = (b2 - b1) / (edge1.dx - edge2.dx);
 			ip.y = hxClipper_Clipper.round(q);
 			if(Math.abs(edge1.dx) < Math.abs(edge2.dx)) ip.x = hxClipper_Clipper.round(edge1.dx * q + b1); else ip.x = hxClipper_Clipper.round(edge2.dx * q + b2);
 		}
-		if(ip.y < edge1.top.y || ip.y < edge2.top.y) {
-			if(edge1.top.y > edge2.top.y) ip.y = edge1.top.y; else ip.y = edge2.top.y;
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ip.y,edge1.top.y) < 0 || com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ip.y,edge2.top.y) < 0) {
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(edge1.top.y,edge2.top.y) > 0) ip.y = edge1.top.y; else ip.y = edge2.top.y;
 			if(Math.abs(edge1.dx) < Math.abs(edge2.dx)) ip.x = hxClipper_Clipper.topX(edge1,ip.y); else ip.x = hxClipper_Clipper.topX(edge2,ip.y);
 		}
-		if(ip.y > edge1.curr.y) {
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ip.y,edge1.curr.y) > 0) {
 			ip.y = edge1.curr.y;
 			if(Math.abs(edge1.dx) > Math.abs(edge2.dx)) ip.x = hxClipper_Clipper.topX(edge2,ip.y); else ip.x = hxClipper_Clipper.topX(edge1,ip.y);
 		}
@@ -4885,7 +21014,7 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 	,processEdgesAtTopOfScanbeam: function(topY) {
 		var e = this.mActiveEdges;
 		while(e != null) {
-			var isMaximaEdge = this.isMaxima(e,topY);
+			var isMaximaEdge = this.isMaxima(e,Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(topY.m_data,topY.m_count)));
 			if(isMaximaEdge) {
 				var eMaxPair = this.getMaximaPair(e);
 				isMaximaEdge = eMaxPair == null || !hxClipper_ClipperBase.isHorizontal(eMaxPair);
@@ -4896,7 +21025,7 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 				this.doMaxima(e);
 				if(ePrev == null) e = this.mActiveEdges; else e = ePrev.nextInAEL;
 			} else {
-				if(this.isIntermediate(e,topY) && hxClipper_ClipperBase.isHorizontal(e.nextInLML)) {
+				if(this.isIntermediate(e,Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(topY.m_data,topY.m_count))) && hxClipper_ClipperBase.isHorizontal(e.nextInLML)) {
 					e = this.updateEdgeIntoAEL(e);
 					if(e.outIdx >= 0) this.addOutPt(e,e.bot);
 					this.addEdgeToSEL(e);
@@ -4906,8 +21035,9 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 				}
 				if(this.strictlySimple) {
 					var ePrev1 = e.prevInAEL;
-					if(e.outIdx >= 0 && e.windDelta != 0 && ePrev1 != null && ePrev1.outIdx >= 0 && ePrev1.curr.x == e.curr.x && ePrev1.windDelta != 0) {
+					if(e.outIdx >= 0 && e.windDelta != 0 && ePrev1 != null && ePrev1.outIdx >= 0 && ePrev1.curr.x.equals(e.curr.x) && ePrev1.windDelta != 0) {
 						var ip = e.curr.clone();
+						this.setZ(ip,ePrev1,e);
 						var op = this.addOutPt(ePrev1,ip);
 						var op2 = this.addOutPt(e,ip);
 						this.addJoin(op,op2,ip);
@@ -4920,16 +21050,16 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		this.mMaxima = null;
 		e = this.mActiveEdges;
 		while(e != null) {
-			if(this.isIntermediate(e,topY)) {
+			if(this.isIntermediate(e,Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(topY.m_data,topY.m_count)))) {
 				var op1 = null;
 				if(e.outIdx >= 0) op1 = this.addOutPt(e,e.top);
 				e = this.updateEdgeIntoAEL(e);
 				var ePrev2 = e.prevInAEL;
 				var eNext = e.nextInAEL;
-				if(ePrev2 != null && ePrev2.curr.x == e.bot.x && ePrev2.curr.y == e.bot.y && op1 != null && ePrev2.outIdx >= 0 && ePrev2.curr.y > ePrev2.top.y && hxClipper_ClipperBase.slopesEqual(e,ePrev2,this.mUseFullRange) && e.windDelta != 0 && ePrev2.windDelta != 0) {
+				if(ePrev2 != null && ePrev2.curr.x.equals(e.bot.x) && ePrev2.curr.y.equals(e.bot.y) && op1 != null && ePrev2.outIdx >= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(ePrev2.curr.y,ePrev2.top.y) > 0 && hxClipper_ClipperBase.slopesEqual(e,ePrev2,this.mUseFullRange) && e.windDelta != 0 && ePrev2.windDelta != 0) {
 					var op21 = this.addOutPt(ePrev2,e.bot);
 					this.addJoin(op1,op21,e.top);
-				} else if(eNext != null && eNext.curr.x == e.bot.x && eNext.curr.y == e.bot.y && op1 != null && eNext.outIdx >= 0 && eNext.curr.y > eNext.top.y && hxClipper_ClipperBase.slopesEqual(e,eNext,this.mUseFullRange) && e.windDelta != 0 && eNext.windDelta != 0) {
+				} else if(eNext != null && eNext.curr.x.equals(e.bot.x) && eNext.curr.y.equals(e.bot.y) && op1 != null && eNext.outIdx >= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(eNext.curr.y,eNext.top.y) > 0 && hxClipper_ClipperBase.slopesEqual(e,eNext,this.mUseFullRange) && e.windDelta != 0 && eNext.windDelta != 0) {
 					var op22 = this.addOutPt(eNext,e.bot);
 					this.addJoin(op1,op22,e.top);
 				}
@@ -5088,32 +21218,64 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		return result;
 	}
 	,getOverlap: function(a1,a2,b1,b2,outParams) {
-		if(a1 < a2) {
-			if(b1 < b2) {
-				outParams.left = Std["int"](Math.max(a1,b1));
-				outParams.right = Std["int"](Math.min(a2,b2));
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(a1,a2) < 0) {
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(b1,b2) < 0) {
+				{
+					var a = Std["int"](Math.max(Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(a1.m_data,a1.m_count)),Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(b1.m_data,b1.m_count))));
+					var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a);
+					outParams.left = a3;
+				}
+				{
+					var a4 = Std["int"](Math.min(Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(a2.m_data,a2.m_count)),Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(b2.m_data,b2.m_count))));
+					var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a4);
+					outParams.right = a5;
+				}
 			} else {
-				outParams.left = Std["int"](Math.max(a1,b2));
-				outParams.right = Std["int"](Math.min(a2,b1));
+				{
+					var a6 = Std["int"](Math.max(Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(a1.m_data,a1.m_count)),Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(b2.m_data,b2.m_count))));
+					var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a6);
+					outParams.left = a7;
+				}
+				{
+					var a8 = Std["int"](Math.min(Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(a2.m_data,a2.m_count)),Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(b1.m_data,b1.m_count))));
+					var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a8);
+					outParams.right = a9;
+				}
 			}
-		} else if(b1 < b2) {
-			outParams.left = Std["int"](Math.max(a2,b1));
-			outParams.right = Std["int"](Math.min(a1,b2));
+		} else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(b1,b2) < 0) {
+			{
+				var a10 = Std["int"](Math.max(Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(a2.m_data,a2.m_count)),Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(b1.m_data,b1.m_count))));
+				var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a10);
+				outParams.left = a11;
+			}
+			{
+				var a12 = Std["int"](Math.min(Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(a1.m_data,a1.m_count)),Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(b2.m_data,b2.m_count))));
+				var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a12);
+				outParams.right = a13;
+			}
 		} else {
-			outParams.left = Std["int"](Math.max(a2,b2));
-			outParams.right = Std["int"](Math.min(a1,b1));
+			{
+				var a14 = Std["int"](Math.max(Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(a2.m_data,a2.m_count)),Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(b2.m_data,b2.m_count))));
+				var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a14);
+				outParams.left = a15;
+			}
+			{
+				var a16 = Std["int"](Math.min(Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(a1.m_data,a1.m_count)),Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(b1.m_data,b1.m_count))));
+				var a17 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a16);
+				outParams.right = a17;
+			}
 		}
-		return outParams.left < outParams.right;
+		return com_fundoware_engine_bigint_FunBigIntArithmetic.compare(outParams.left,outParams.right) < 0;
 	}
 	,joinHorz: function(op1,op1b,op2,op2b,pt,discardLeft) {
 		var dir1;
-		if(op1.pt.x > op1b.pt.x) dir1 = hxClipper__$Clipper_Direction.D_RIGHT_TO_LEFT; else dir1 = hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT;
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1.pt.x,op1b.pt.x) > 0) dir1 = hxClipper__$Clipper_Direction.D_RIGHT_TO_LEFT; else dir1 = hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT;
 		var dir2;
-		if(op2.pt.x > op2b.pt.x) dir2 = hxClipper__$Clipper_Direction.D_RIGHT_TO_LEFT; else dir2 = hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT;
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2.pt.x,op2b.pt.x) > 0) dir2 = hxClipper__$Clipper_Direction.D_RIGHT_TO_LEFT; else dir2 = hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT;
 		if(dir1 == dir2) return false;
 		if(dir1 == hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT) {
-			while(op1.next.pt.x <= pt.x && op1.next.pt.x >= op1.pt.x && op1.next.pt.y == pt.y) op1 = op1.next;
-			if(discardLeft && op1.pt.x != pt.x) op1 = op1.next;
+			while(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1.next.pt.x,pt.x) <= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1.next.pt.x,op1.pt.x) >= 0 && op1.next.pt.y.equals(pt.y)) op1 = op1.next;
+			if(discardLeft && !op1.pt.x.equals(pt.x)) op1 = op1.next;
 			op1b = this.dupOutPt(op1,!discardLeft);
 			if(!op1b.pt.equals(pt)) {
 				op1 = op1b;
@@ -5121,8 +21283,8 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 				op1b = this.dupOutPt(op1,!discardLeft);
 			}
 		} else {
-			while(op1.next.pt.x >= pt.x && op1.next.pt.x <= op1.pt.x && op1.next.pt.y == pt.y) op1 = op1.next;
-			if(!discardLeft && op1.pt.x != pt.x) op1 = op1.next;
+			while(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1.next.pt.x,pt.x) >= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1.next.pt.x,op1.pt.x) <= 0 && op1.next.pt.y.equals(pt.y)) op1 = op1.next;
+			if(!discardLeft && !op1.pt.x.equals(pt.x)) op1 = op1.next;
 			op1b = this.dupOutPt(op1,discardLeft);
 			if(!op1b.pt.equals(pt)) {
 				op1 = op1b;
@@ -5131,8 +21293,8 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 			}
 		}
 		if(dir2 == hxClipper__$Clipper_Direction.D_LEFT_TO_RIGHT) {
-			while(op2.next.pt.x <= pt.x && op2.next.pt.x >= op2.pt.x && op2.next.pt.y == pt.y) op2 = op2.next;
-			if(discardLeft && op2.pt.x != pt.x) op2 = op2.next;
+			while(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2.next.pt.x,pt.x) <= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2.next.pt.x,op2.pt.x) >= 0 && op2.next.pt.y.equals(pt.y)) op2 = op2.next;
+			if(discardLeft && !op2.pt.x.equals(pt.x)) op2 = op2.next;
 			op2b = this.dupOutPt(op2,!discardLeft);
 			if(!op2b.pt.equals(pt)) {
 				op2 = op2b;
@@ -5140,8 +21302,8 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 				op2b = this.dupOutPt(op2,!discardLeft);
 			}
 		} else {
-			while(op2.next.pt.x >= pt.x && op2.next.pt.x <= op2.pt.x && op2.next.pt.y == pt.y) op2 = op2.next;
-			if(!discardLeft && op2.pt.x != pt.x) op2 = op2.next;
+			while(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2.next.pt.x,pt.x) >= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2.next.pt.x,op2.pt.x) <= 0 && op2.next.pt.y.equals(pt.y)) op2 = op2.next;
+			if(!discardLeft && !op2.pt.x.equals(pt.x)) op2 = op2.next;
 			op2b = this.dupOutPt(op2,discardLeft);
 			if(!op2b.pt.equals(pt)) {
 				op2 = op2b;
@@ -5167,15 +21329,15 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		var op1b;
 		var op2 = j.outPt2;
 		var op2b;
-		var isHorizontal = j.outPt1.pt.y == j.offPt.y;
+		var isHorizontal = j.outPt1.pt.y.equals(j.offPt.y);
 		if(isHorizontal && j.offPt.equals(j.outPt1.pt) && j.offPt.equals(j.outPt2.pt)) {
 			if(outRec1 != outRec2) return false;
 			op1b = j.outPt1.next;
 			while(op1b != op1 && op1b.pt.equals(j.offPt)) op1b = op1b.next;
-			var reverse1 = op1b.pt.y > j.offPt.y;
+			var reverse1 = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1b.pt.y,j.offPt.y) > 0;
 			op2b = j.outPt2.next;
 			while(op2b != op2 && op2b.pt.equals(j.offPt)) op2b = op2b.next;
-			var reverse2 = op2b.pt.y > j.offPt.y;
+			var reverse2 = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2b.pt.y,j.offPt.y) > 0;
 			if(reverse1 == reverse2) return false;
 			if(reverse1) {
 				op1b = this.dupOutPt(op1,false);
@@ -5200,33 +21362,56 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 			}
 		} else if(isHorizontal) {
 			op1b = op1;
-			while(op1.prev.pt.y == op1.pt.y && op1.prev != op1b && op1.prev != op2) op1 = op1.prev;
-			while(op1b.next.pt.y == op1b.pt.y && op1b.next != op1 && op1b.next != op2) op1b = op1b.next;
+			while(op1.prev.pt.y.equals(op1.pt.y) && op1.prev != op1b && op1.prev != op2) op1 = op1.prev;
+			while(op1b.next.pt.y.equals(op1b.pt.y) && op1b.next != op1 && op1b.next != op2) op1b = op1b.next;
 			if(op1b.next == op1 || op1b.next == op2) return false;
 			op2b = op2;
-			while(op2.prev.pt.y == op2.pt.y && op2.prev != op2b && op2.prev != op1b) op2 = op2.prev;
-			while(op2b.next.pt.y == op2b.pt.y && op2b.next != op2 && op2b.next != op1) op2b = op2b.next;
+			while(op2.prev.pt.y.equals(op2.pt.y) && op2.prev != op2b && op2.prev != op1b) op2 = op2.prev;
+			while(op2b.next.pt.y.equals(op2b.pt.y) && op2b.next != op2 && op2b.next != op1) op2b = op2b.next;
 			if(op2b.next == op2 || op2b.next == op1) return false;
-			var left = 0;
-			var right = 0;
+			var left;
+			{
+				var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+				left = a3;
+			}
+			var right;
+			{
+				var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+				right = a4;
+			}
 			var outParams = { left : left, right : right};
 			if(!this.getOverlap(op1.pt.x,op1b.pt.x,op2.pt.x,op2b.pt.x,outParams)) return false;
 			left = outParams.left;
 			right = outParams.right;
-			var pt = new hxClipper_IntPoint();
+			var pt = new hxClipper_IntPoint((function($this) {
+				var $r;
+				var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+				$r = a;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+				$r = a1;
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+				$r = a2;
+				return $r;
+			}(this)));
 			var discardLeftSide;
-			if(op1.pt.x >= left && op1.pt.x <= right) {
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1.pt.x,left) >= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1.pt.x,right) <= 0) {
 				pt.copyFrom(op1.pt);
-				discardLeftSide = op1.pt.x > op1b.pt.x;
-			} else if(op2.pt.x >= left && op2.pt.x <= right) {
+				discardLeftSide = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1.pt.x,op1b.pt.x) > 0;
+			} else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2.pt.x,left) >= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2.pt.x,right) <= 0) {
 				pt.copyFrom(op2.pt);
-				discardLeftSide = op2.pt.x > op2b.pt.x;
-			} else if(op1b.pt.x >= left && op1b.pt.x <= right) {
+				discardLeftSide = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2.pt.x,op2b.pt.x) > 0;
+			} else if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1b.pt.x,left) >= 0 && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1b.pt.x,right) <= 0) {
 				pt.copyFrom(op1b.pt);
-				discardLeftSide = op1b.pt.x > op1.pt.x;
+				discardLeftSide = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1b.pt.x,op1.pt.x) > 0;
 			} else {
 				pt.copyFrom(op2b.pt);
-				discardLeftSide = op2b.pt.x > op2.pt.x;
+				discardLeftSide = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2b.pt.x,op2.pt.x) > 0;
 			}
 			j.outPt1 = op1;
 			j.outPt2 = op2;
@@ -5234,19 +21419,19 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		} else {
 			op1b = op1.next;
 			while(op1b.pt.equals(op1.pt) && op1b != op1) op1b = op1b.next;
-			var reverse11 = op1b.pt.y > op1.pt.y || !hxClipper_ClipperBase.slopesEqual3(op1.pt,op1b.pt,j.offPt,this.mUseFullRange);
+			var reverse11 = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1b.pt.y,op1.pt.y) > 0 || !hxClipper_ClipperBase.slopesEqual3(op1.pt,op1b.pt,j.offPt,this.mUseFullRange);
 			if(reverse11) {
 				op1b = op1.prev;
 				while(op1b.pt.equals(op1.pt) && op1b != op1) op1b = op1b.prev;
-				if(op1b.pt.y > op1.pt.y || !hxClipper_ClipperBase.slopesEqual3(op1.pt,op1b.pt,j.offPt,this.mUseFullRange)) return false;
+				if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op1b.pt.y,op1.pt.y) > 0 || !hxClipper_ClipperBase.slopesEqual3(op1.pt,op1b.pt,j.offPt,this.mUseFullRange)) return false;
 			}
 			op2b = op2.next;
 			while(op2b.pt.equals(op2.pt) && op2b != op2) op2b = op2b.next;
-			var reverse21 = op2b.pt.y > op2.pt.y || !hxClipper_ClipperBase.slopesEqual3(op2.pt,op2b.pt,j.offPt,this.mUseFullRange);
+			var reverse21 = com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2b.pt.y,op2.pt.y) > 0 || !hxClipper_ClipperBase.slopesEqual3(op2.pt,op2b.pt,j.offPt,this.mUseFullRange);
 			if(reverse21) {
 				op2b = op2.prev;
 				while(op2b.pt.equals(op2.pt) && op2b != op2) op2b = op2b.prev;
-				if(op2b.pt.y > op2.pt.y || !hxClipper_ClipperBase.slopesEqual3(op2.pt,op2b.pt,j.offPt,this.mUseFullRange)) return false;
+				if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(op2b.pt.y,op2.pt.y) > 0 || !hxClipper_ClipperBase.slopesEqual3(op2.pt,op2b.pt,j.offPt,this.mUseFullRange)) return false;
 			}
 			if(op1b == op1 || op2b == op2 || op1b == op2b || outRec1 == outRec2 && reverse11 == reverse21) return false;
 			if(reverse11) {
@@ -5406,8 +21591,36 @@ hxClipper_Clipper.prototype = $extend(hxClipper_ClipperBase.prototype,{
 		if(op == null) return 0;
 		var a = 0;
 		do {
-			var dx = op.prev.pt.x + op.pt.x;
-			var dy = op.prev.pt.y - op.pt.y;
+			var dx = hxClipper_InternalTools.toFloat((function($this) {
+				var $r;
+				var this1;
+				{
+					var a1 = com_fundoware_engine_bigint_FunBigInt_$.add2(op.prev.pt.x,op.pt.x);
+					this1 = a1;
+				}
+				$r = (function($this) {
+					var $r;
+					var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+					$r = a2;
+					return $r;
+				}($this));
+				return $r;
+			}(this)));
+			var dy = hxClipper_InternalTools.toFloat((function($this) {
+				var $r;
+				var this2;
+				{
+					var a3 = com_fundoware_engine_bigint_FunBigInt_$.sub2(op.prev.pt.y,op.pt.y);
+					this2 = a3;
+				}
+				$r = (function($this) {
+					var $r;
+					var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+					$r = a4;
+					return $r;
+				}($this));
+				return $r;
+			}(this)));
 			a += dx * dy;
 			op = op.next;
 		} while(op != outRec.pts);
@@ -5419,19 +21632,65 @@ var hxClipper_ClipperOffset = function(miterLimit,arcTolerance) {
 	if(arcTolerance == null) arcTolerance = 0.25;
 	if(miterLimit == null) miterLimit = 2.0;
 	this.mPolyNodes = new hxClipper_PolyNode();
-	this.mLowest = new hxClipper_IntPoint();
+	this.mLowest = new hxClipper_IntPoint((function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a1;
+		return $r;
+	}(this)),(function($this) {
+		var $r;
+		var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(0);
+		$r = a2;
+		return $r;
+	}(this)));
 	this.mNormals = [];
 	this.miterLimit = miterLimit;
 	this.arcTolerance = arcTolerance;
-	this.mLowest.x = -1;
+	{
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-1);
+		this.mLowest.x = a;
+	}
 };
 hxClipper_ClipperOffset.__name__ = ["hxClipper","ClipperOffset"];
 hxClipper_ClipperOffset.round = function(value) {
 	return hxClipper_Clipper.round(value);
 };
 hxClipper_ClipperOffset.getUnitNormal = function(pt1,pt2) {
-	var dx = pt2.x - pt1.x;
-	var dy = pt2.y - pt1.y;
+	var dx = hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this1;
+		{
+			var a = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt2.x,pt1.x);
+			this1 = a;
+		}
+		$r = (function($this) {
+			var $r;
+			var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+			$r = a1;
+			return $r;
+		}($this));
+		return $r;
+	}(this)));
+	var dy = hxClipper_InternalTools.toFloat((function($this) {
+		var $r;
+		var this2;
+		{
+			var a2 = com_fundoware_engine_bigint_FunBigInt_$.sub2(pt2.y,pt1.y);
+			this2 = a2;
+		}
+		$r = (function($this) {
+			var $r;
+			var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+			$r = a3;
+			return $r;
+		}($this));
+		return $r;
+	}(this)));
 	if(dx == 0 && dy == 0) return new hxClipper_DoublePoint();
 	var f = 1.0 / Math.sqrt(dx * dx + dy * dy);
 	dx *= f;
@@ -5455,7 +21714,10 @@ hxClipper_ClipperOffset.prototype = {
 	,miterLimit: null
 	,clear: function() {
 		hxClipper_InternalTools.clear(this.mPolyNodes.get_children());
-		this.mLowest.x = -1;
+		{
+			var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(-1);
+			this.mLowest.x = a;
+		}
 	}
 	,addPath: function(path,joinType,endType) {
 		var highI = path.length - 1;
@@ -5474,15 +21736,45 @@ hxClipper_ClipperOffset.prototype = {
 			if(!newNode.mPolygon[j].equals(path[i])) {
 				j++;
 				newNode.mPolygon.push(path[i]);
-				if(path[i].y > newNode.mPolygon[k].y || path[i].y == newNode.mPolygon[k].y && path[i].x < newNode.mPolygon[k].x) k = j;
+				if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(path[i].y,newNode.mPolygon[k].y) > 0 || path[i].y.equals(newNode.mPolygon[k].y) && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(path[i].x,newNode.mPolygon[k].x) < 0) k = j;
 			}
 		}
 		if(endType == hxClipper_EndType.ET_CLOSED_POLYGON && j < 2) return;
 		this.mPolyNodes.addChild(newNode);
 		if(endType != hxClipper_EndType.ET_CLOSED_POLYGON) return;
-		if(this.mLowest.x < 0) this.mLowest = new hxClipper_IntPoint(this.mPolyNodes.get_numChildren() - 1,k); else {
-			var ip = this.mPolyNodes.get_children()[this.mLowest.x | 0].mPolygon[this.mLowest.y | 0].clone();
-			if(newNode.mPolygon[k].y > ip.y || newNode.mPolygon[k].y == ip.y && newNode.mPolygon[k].x < ip.x) this.mLowest = new hxClipper_IntPoint(this.mPolyNodes.get_numChildren() - 1,k);
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(this.mLowest.x,0) < 0) this.mLowest = new hxClipper_IntPoint((function($this) {
+			var $r;
+			var a = $this.mPolyNodes.get_numChildren() - 1;
+			$r = (function($this) {
+				var $r;
+				var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a);
+				$r = a1;
+				return $r;
+			}($this));
+			return $r;
+		}(this)),(function($this) {
+			var $r;
+			var a2 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(k);
+			$r = a2;
+			return $r;
+		}(this))); else {
+			var ip = this.mPolyNodes.get_children()[Std["int"](hxClipper_InternalTools.toFloat(this.mLowest.x))].mPolygon[Std["int"](hxClipper_InternalTools.toFloat(this.mLowest.y))].clone();
+			if(com_fundoware_engine_bigint_FunBigIntArithmetic.compare(newNode.mPolygon[k].y,ip.y) > 0 || newNode.mPolygon[k].y.equals(ip.y) && com_fundoware_engine_bigint_FunBigIntArithmetic.compare(newNode.mPolygon[k].x,ip.x) < 0) this.mLowest = new hxClipper_IntPoint((function($this) {
+				var $r;
+				var a3 = $this.mPolyNodes.get_numChildren() - 1;
+				$r = (function($this) {
+					var $r;
+					var a4 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(a3);
+					$r = a4;
+					return $r;
+				}($this));
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(k);
+				$r = a5;
+				return $r;
+			}(this)));
 		}
 	}
 	,addPaths: function(paths,joinType,endType) {
@@ -5494,7 +21786,7 @@ hxClipper_ClipperOffset.prototype = {
 		}
 	}
 	,fixOrientations: function() {
-		if(this.mLowest.x >= 0 && !hxClipper_Clipper.orientation(this.mPolyNodes.get_children()[this.mLowest.x | 0].mPolygon)) {
+		if(com_fundoware_engine_bigint_FunBigIntArithmetic.compareInt(this.mLowest.x,0) >= 0 && !hxClipper_Clipper.orientation(this.mPolyNodes.get_children()[Std["int"](hxClipper_InternalTools.toFloat(this.mLowest.x))].mPolygon)) {
 			var _g1 = 0;
 			var _g = this.mPolyNodes.get_numChildren();
 			while(_g1 < _g) {
@@ -5548,7 +21840,7 @@ hxClipper_ClipperOffset.prototype = {
 					var y1 = 0.0;
 					var j = 1;
 					while(j <= steps) {
-						this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[0].x + x * delta),hxClipper_ClipperOffset.round(this.mSrcPoly[0].y + y1 * delta)));
+						this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[0].x) + x * delta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[0].y) + y1 * delta)));
 						var x2 = x;
 						x = x * this.mCos - this.mSin * y1;
 						y1 = x2 * this.mSin + y1 * this.mCos;
@@ -5560,7 +21852,7 @@ hxClipper_ClipperOffset.prototype = {
 					var _g21 = 0;
 					while(_g21 < 4) {
 						var j1 = _g21++;
-						this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[0].x + x1 * delta),hxClipper_ClipperOffset.round(this.mSrcPoly[0].y + y2 * delta)));
+						this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[0].x) + x1 * delta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[0].y) + y2 * delta)));
 						if(x1 < 0) x1 = 1; else if(y2 < 0) y2 = 1; else x1 = -1;
 					}
 				}
@@ -5617,9 +21909,9 @@ hxClipper_ClipperOffset.prototype = {
 				var pt1;
 				if(node1.mEndtype == hxClipper_EndType.ET_OPEN_BUTT) {
 					var j6 = len - 1;
-					pt1 = new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[j6].x + this.mNormals[j6].x * delta),hxClipper_ClipperOffset.round(this.mSrcPoly[j6].y + this.mNormals[j6].y * delta));
+					pt1 = new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j6].x) + this.mNormals[j6].x * delta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j6].y) + this.mNormals[j6].y * delta));
 					this.mDestPoly.push(pt1);
-					pt1 = new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[j6].x - this.mNormals[j6].x * delta),hxClipper_ClipperOffset.round(this.mSrcPoly[j6].y - this.mNormals[j6].y * delta));
+					pt1 = new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j6].x) - this.mNormals[j6].x * delta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j6].y) - this.mNormals[j6].y * delta));
 					this.mDestPoly.push(pt1);
 				} else {
 					var j7 = len - 1;
@@ -5641,9 +21933,9 @@ hxClipper_ClipperOffset.prototype = {
 					nj1--;
 				}
 				if(node1.mEndtype == hxClipper_EndType.ET_OPEN_BUTT) {
-					pt1 = new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[0].x - this.mNormals[0].x * delta),hxClipper_ClipperOffset.round(this.mSrcPoly[0].y - this.mNormals[0].y * delta));
+					pt1 = new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[0].x) - this.mNormals[0].x * delta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[0].y) - this.mNormals[0].y * delta));
 					this.mDestPoly.push(pt1);
-					pt1 = new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[0].x + this.mNormals[0].x * delta),hxClipper_ClipperOffset.round(this.mSrcPoly[0].y + this.mNormals[0].y * delta));
+					pt1 = new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[0].x) + this.mNormals[0].x * delta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[0].y) + this.mNormals[0].y * delta));
 					this.mDestPoly.push(pt1);
 				} else {
 					k2 = 1;
@@ -5666,10 +21958,122 @@ hxClipper_ClipperOffset.prototype = {
 		if(delta > 0) clpr.executePaths(hxClipper_ClipType.CT_UNION,solution,hxClipper_PolyFillType.PFT_POSITIVE,hxClipper_PolyFillType.PFT_POSITIVE); else {
 			var r = hxClipper_ClipperBase.getBounds(this.mDestPolys);
 			var outer = [];
-			outer.push(new hxClipper_IntPoint(r.left - 10,r.bottom + 10));
-			outer.push(new hxClipper_IntPoint(r.right + 10,r.bottom + 10));
-			outer.push(new hxClipper_IntPoint(r.right + 10,r.top - 10));
-			outer.push(new hxClipper_IntPoint(r.left - 10,r.top - 10));
+			outer.push(new hxClipper_IntPoint((function($this) {
+				var $r;
+				var this1;
+				{
+					var a = com_fundoware_engine_bigint_FunBigInt_$.subInt2(r.left,10);
+					this1 = a;
+				}
+				$r = (function($this) {
+					var $r;
+					var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+					$r = a1;
+					return $r;
+				}($this));
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var this2;
+				{
+					var a2 = com_fundoware_engine_bigint_FunBigInt_$.addInt2(r.bottom,10);
+					this2 = a2;
+				}
+				$r = (function($this) {
+					var $r;
+					var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+					$r = a3;
+					return $r;
+				}($this));
+				return $r;
+			}(this))));
+			outer.push(new hxClipper_IntPoint((function($this) {
+				var $r;
+				var this3;
+				{
+					var a4 = com_fundoware_engine_bigint_FunBigInt_$.addInt2(r.right,10);
+					this3 = a4;
+				}
+				$r = (function($this) {
+					var $r;
+					var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this3);
+					$r = a5;
+					return $r;
+				}($this));
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var this4;
+				{
+					var a6 = com_fundoware_engine_bigint_FunBigInt_$.addInt2(r.bottom,10);
+					this4 = a6;
+				}
+				$r = (function($this) {
+					var $r;
+					var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this4);
+					$r = a7;
+					return $r;
+				}($this));
+				return $r;
+			}(this))));
+			outer.push(new hxClipper_IntPoint((function($this) {
+				var $r;
+				var this5;
+				{
+					var a8 = com_fundoware_engine_bigint_FunBigInt_$.addInt2(r.right,10);
+					this5 = a8;
+				}
+				$r = (function($this) {
+					var $r;
+					var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this5);
+					$r = a9;
+					return $r;
+				}($this));
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var this6;
+				{
+					var a10 = com_fundoware_engine_bigint_FunBigInt_$.subInt2(r.top,10);
+					this6 = a10;
+				}
+				$r = (function($this) {
+					var $r;
+					var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this6);
+					$r = a11;
+					return $r;
+				}($this));
+				return $r;
+			}(this))));
+			outer.push(new hxClipper_IntPoint((function($this) {
+				var $r;
+				var this7;
+				{
+					var a12 = com_fundoware_engine_bigint_FunBigInt_$.subInt2(r.left,10);
+					this7 = a12;
+				}
+				$r = (function($this) {
+					var $r;
+					var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this7);
+					$r = a13;
+					return $r;
+				}($this));
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var this8;
+				{
+					var a14 = com_fundoware_engine_bigint_FunBigInt_$.subInt2(r.top,10);
+					this8 = a14;
+				}
+				$r = (function($this) {
+					var $r;
+					var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this8);
+					$r = a15;
+					return $r;
+				}($this));
+				return $r;
+			}(this))));
 			clpr.addPath(outer,hxClipper_PolyType.PT_SUBJECT,true);
 			clpr.reverseSolution = true;
 			clpr.executePaths(hxClipper_ClipType.CT_UNION,solution,hxClipper_PolyFillType.PFT_NEGATIVE,hxClipper_PolyFillType.PFT_NEGATIVE);
@@ -5685,10 +22089,122 @@ hxClipper_ClipperOffset.prototype = {
 		if(delta > 0) clpr.executePolyTree(hxClipper_ClipType.CT_UNION,solution,hxClipper_PolyFillType.PFT_POSITIVE,hxClipper_PolyFillType.PFT_POSITIVE); else {
 			var r = hxClipper_ClipperBase.getBounds(this.mDestPolys);
 			var outer = [];
-			outer.push(new hxClipper_IntPoint(r.left - 10,r.bottom + 10));
-			outer.push(new hxClipper_IntPoint(r.right + 10,r.bottom + 10));
-			outer.push(new hxClipper_IntPoint(r.right + 10,r.top - 10));
-			outer.push(new hxClipper_IntPoint(r.left - 10,r.top - 10));
+			outer.push(new hxClipper_IntPoint((function($this) {
+				var $r;
+				var this1;
+				{
+					var a = com_fundoware_engine_bigint_FunBigInt_$.subInt2(r.left,10);
+					this1 = a;
+				}
+				$r = (function($this) {
+					var $r;
+					var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+					$r = a1;
+					return $r;
+				}($this));
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var this2;
+				{
+					var a2 = com_fundoware_engine_bigint_FunBigInt_$.addInt2(r.bottom,10);
+					this2 = a2;
+				}
+				$r = (function($this) {
+					var $r;
+					var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
+					$r = a3;
+					return $r;
+				}($this));
+				return $r;
+			}(this))));
+			outer.push(new hxClipper_IntPoint((function($this) {
+				var $r;
+				var this3;
+				{
+					var a4 = com_fundoware_engine_bigint_FunBigInt_$.addInt2(r.right,10);
+					this3 = a4;
+				}
+				$r = (function($this) {
+					var $r;
+					var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this3);
+					$r = a5;
+					return $r;
+				}($this));
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var this4;
+				{
+					var a6 = com_fundoware_engine_bigint_FunBigInt_$.addInt2(r.bottom,10);
+					this4 = a6;
+				}
+				$r = (function($this) {
+					var $r;
+					var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this4);
+					$r = a7;
+					return $r;
+				}($this));
+				return $r;
+			}(this))));
+			outer.push(new hxClipper_IntPoint((function($this) {
+				var $r;
+				var this5;
+				{
+					var a8 = com_fundoware_engine_bigint_FunBigInt_$.addInt2(r.right,10);
+					this5 = a8;
+				}
+				$r = (function($this) {
+					var $r;
+					var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this5);
+					$r = a9;
+					return $r;
+				}($this));
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var this6;
+				{
+					var a10 = com_fundoware_engine_bigint_FunBigInt_$.subInt2(r.top,10);
+					this6 = a10;
+				}
+				$r = (function($this) {
+					var $r;
+					var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this6);
+					$r = a11;
+					return $r;
+				}($this));
+				return $r;
+			}(this))));
+			outer.push(new hxClipper_IntPoint((function($this) {
+				var $r;
+				var this7;
+				{
+					var a12 = com_fundoware_engine_bigint_FunBigInt_$.subInt2(r.left,10);
+					this7 = a12;
+				}
+				$r = (function($this) {
+					var $r;
+					var a13 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this7);
+					$r = a13;
+					return $r;
+				}($this));
+				return $r;
+			}(this)),(function($this) {
+				var $r;
+				var this8;
+				{
+					var a14 = com_fundoware_engine_bigint_FunBigInt_$.subInt2(r.top,10);
+					this8 = a14;
+				}
+				$r = (function($this) {
+					var $r;
+					var a15 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this8);
+					$r = a15;
+					return $r;
+				}($this));
+				return $r;
+			}(this))));
 			clpr.addPath(outer,hxClipper_PolyType.PT_SUBJECT,true);
 			clpr.reverseSolution = true;
 			clpr.executePolyTree(hxClipper_ClipType.CT_UNION,solution,hxClipper_PolyFillType.PFT_NEGATIVE,hxClipper_PolyFillType.PFT_NEGATIVE);
@@ -5710,14 +22226,14 @@ hxClipper_ClipperOffset.prototype = {
 		if(Math.abs(this.mSinA * this.mDelta) < 1.0) {
 			var cosA = this.mNormals[k].x * this.mNormals[j].x + this.mNormals[j].y * this.mNormals[k].y;
 			if(cosA > 0) {
-				this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[j].x + this.mNormals[k].x * this.mDelta),hxClipper_ClipperOffset.round(this.mSrcPoly[j].y + this.mNormals[k].y * this.mDelta)));
+				this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].x) + this.mNormals[k].x * this.mDelta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].y) + this.mNormals[k].y * this.mDelta)));
 				return k;
 			}
 		} else if(this.mSinA > 1.0) this.mSinA = 1.0; else if(this.mSinA < -1.0) this.mSinA = -1.0;
 		if(this.mSinA * this.mDelta < 0) {
-			this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[j].x + this.mNormals[k].x * this.mDelta),hxClipper_ClipperOffset.round(this.mSrcPoly[j].y + this.mNormals[k].y * this.mDelta)));
+			this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].x) + this.mNormals[k].x * this.mDelta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].y) + this.mNormals[k].y * this.mDelta)));
 			this.mDestPoly.push(this.mSrcPoly[j]);
-			this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[j].x + this.mNormals[j].x * this.mDelta),hxClipper_ClipperOffset.round(this.mSrcPoly[j].y + this.mNormals[j].y * this.mDelta)));
+			this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].x) + this.mNormals[j].x * this.mDelta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].y) + this.mNormals[j].y * this.mDelta)));
 		} else switch(joinType[1]) {
 		case 2:
 			var r = 1 + (this.mNormals[j].x * this.mNormals[k].x + this.mNormals[j].y * this.mNormals[k].y);
@@ -5735,28 +22251,28 @@ hxClipper_ClipperOffset.prototype = {
 	}
 	,doSquare: function(j,k) {
 		var dx = Math.tan(Math.atan2(this.mSinA,this.mNormals[k].x * this.mNormals[j].x + this.mNormals[k].y * this.mNormals[j].y) / 4);
-		this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[j].x + this.mDelta * (this.mNormals[k].x - this.mNormals[k].y * dx)),hxClipper_ClipperOffset.round(this.mSrcPoly[j].y + this.mDelta * (this.mNormals[k].y + this.mNormals[k].x * dx))));
-		this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[j].x + this.mDelta * (this.mNormals[j].x + this.mNormals[j].y * dx)),hxClipper_ClipperOffset.round(this.mSrcPoly[j].y + this.mDelta * (this.mNormals[j].y - this.mNormals[j].x * dx))));
+		this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].x) + this.mDelta * (this.mNormals[k].x - this.mNormals[k].y * dx)),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].y) + this.mDelta * (this.mNormals[k].y + this.mNormals[k].x * dx))));
+		this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].x) + this.mDelta * (this.mNormals[j].x + this.mNormals[j].y * dx)),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].y) + this.mDelta * (this.mNormals[j].y - this.mNormals[j].x * dx))));
 	}
 	,doMiter: function(j,k,r) {
 		var q = this.mDelta / r;
-		this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[j].x + (this.mNormals[k].x + this.mNormals[j].x) * q),hxClipper_ClipperOffset.round(this.mSrcPoly[j].y + (this.mNormals[k].y + this.mNormals[j].y) * q)));
+		this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].x) + (this.mNormals[k].x + this.mNormals[j].x) * q),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].y) + (this.mNormals[k].y + this.mNormals[j].y) * q)));
 	}
 	,doRound: function(j,k) {
 		var a = Math.atan2(this.mSinA,this.mNormals[k].x * this.mNormals[j].x + this.mNormals[k].y * this.mNormals[j].y);
-		var steps = Std["int"](Math.max(Std["int"](hxClipper_ClipperOffset.round(this.mStepsPerRad * Math.abs(a))),1));
+		var steps = Std["int"](Math.max(Std["int"](hxClipper_InternalTools.toFloat(hxClipper_ClipperOffset.round(this.mStepsPerRad * Math.abs(a)))),1));
 		var x = this.mNormals[k].x;
 		var y = this.mNormals[k].y;
 		var x2;
 		var _g = 0;
 		while(_g < steps) {
 			var i = _g++;
-			this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[j].x + x * this.mDelta),hxClipper_ClipperOffset.round(this.mSrcPoly[j].y + y * this.mDelta)));
+			this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].x) + x * this.mDelta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].y) + y * this.mDelta)));
 			x2 = x;
 			x = x * this.mCos - this.mSin * y;
 			y = x2 * this.mSin + y * this.mCos;
 		}
-		this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(this.mSrcPoly[j].x + this.mNormals[j].x * this.mDelta),hxClipper_ClipperOffset.round(this.mSrcPoly[j].y + this.mNormals[j].y * this.mDelta)));
+		this.mDestPoly.push(new hxClipper_IntPoint(hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].x) + this.mNormals[j].x * this.mDelta),hxClipper_ClipperOffset.round(hxClipper_InternalTools.toFloat(this.mSrcPoly[j].y) + this.mNormals[j].y * this.mDelta)));
 	}
 	,__class__: hxClipper_ClipperOffset
 };
@@ -5779,6 +22295,16 @@ hxClipper_InternalTools.clear = function(array) {
 hxClipper_InternalTools.xor = function(a,b) {
 	return a && !b || b && !a;
 };
+hxClipper_InternalTools.toFloat = function(bi) {
+	return Std.parseFloat(com_fundoware_engine_bigint_FunMultiwordArithmetic.toDecimalSigned(bi.m_data,bi.m_count));
+};
+hxClipper_InternalTools.toBigInt = function(f) {
+	{
+		var this1 = com_fundoware_engine_bigint_FunBigIntTools.parseValueUnsigned(Std.string(Math.round(f)));
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+		return a;
+	}
+};
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
 	this.val = val;
@@ -5791,160 +22317,6 @@ js__$Boot_HaxeError.prototype = $extend(Error.prototype,{
 	val: null
 	,__class__: js__$Boot_HaxeError
 });
-var js_Boot = function() { };
-js_Boot.__name__ = ["js","Boot"];
-js_Boot.__unhtml = function(s) {
-	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
-};
-js_Boot.__trace = function(v,i) {
-	var msg;
-	if(i != null) msg = i.fileName + ":" + i.lineNumber + ": "; else msg = "";
-	msg += js_Boot.__string_rec(v,"");
-	if(i != null && i.customParams != null) {
-		var _g = 0;
-		var _g1 = i.customParams;
-		while(_g < _g1.length) {
-			var v1 = _g1[_g];
-			++_g;
-			msg += "," + js_Boot.__string_rec(v1,"");
-		}
-	}
-	var d;
-	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js_Boot.__unhtml(msg) + "<br/>"; else if(typeof console != "undefined" && console.log != null) console.log(msg);
-};
-js_Boot.getClass = function(o) {
-	if((o instanceof Array) && o.__enum__ == null) return Array; else {
-		var cl = o.__class__;
-		if(cl != null) return cl;
-		var name = js_Boot.__nativeClassName(o);
-		if(name != null) return js_Boot.__resolveNativeClass(name);
-		return null;
-	}
-};
-js_Boot.__string_rec = function(o,s) {
-	if(o == null) return "null";
-	if(s.length >= 5) return "<...>";
-	var t = typeof(o);
-	if(t == "function" && (o.__name__ || o.__ename__)) t = "object";
-	switch(t) {
-	case "object":
-		if(o instanceof Array) {
-			if(o.__enum__) {
-				if(o.length == 2) return o[0];
-				var str2 = o[0] + "(";
-				s += "\t";
-				var _g1 = 2;
-				var _g = o.length;
-				while(_g1 < _g) {
-					var i1 = _g1++;
-					if(i1 != 2) str2 += "," + js_Boot.__string_rec(o[i1],s); else str2 += js_Boot.__string_rec(o[i1],s);
-				}
-				return str2 + ")";
-			}
-			var l = o.length;
-			var i;
-			var str1 = "[";
-			s += "\t";
-			var _g2 = 0;
-			while(_g2 < l) {
-				var i2 = _g2++;
-				str1 += (i2 > 0?",":"") + js_Boot.__string_rec(o[i2],s);
-			}
-			str1 += "]";
-			return str1;
-		}
-		var tostr;
-		try {
-			tostr = o.toString;
-		} catch( e ) {
-			haxe_CallStack.lastException = e;
-			if (e instanceof js__$Boot_HaxeError) e = e.val;
-			return "???";
-		}
-		if(tostr != null && tostr != Object.toString && typeof(tostr) == "function") {
-			var s2 = o.toString();
-			if(s2 != "[object Object]") return s2;
-		}
-		var k = null;
-		var str = "{\n";
-		s += "\t";
-		var hasp = o.hasOwnProperty != null;
-		for( var k in o ) {
-		if(hasp && !o.hasOwnProperty(k)) {
-			continue;
-		}
-		if(k == "prototype" || k == "__class__" || k == "__super__" || k == "__interfaces__" || k == "__properties__") {
-			continue;
-		}
-		if(str.length != 2) str += ", \n";
-		str += s + k + " : " + js_Boot.__string_rec(o[k],s);
-		}
-		s = s.substring(1);
-		str += "\n" + s + "}";
-		return str;
-	case "function":
-		return "<function>";
-	case "string":
-		return o;
-	default:
-		return String(o);
-	}
-};
-js_Boot.__interfLoop = function(cc,cl) {
-	if(cc == null) return false;
-	if(cc == cl) return true;
-	var intf = cc.__interfaces__;
-	if(intf != null) {
-		var _g1 = 0;
-		var _g = intf.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var i1 = intf[i];
-			if(i1 == cl || js_Boot.__interfLoop(i1,cl)) return true;
-		}
-	}
-	return js_Boot.__interfLoop(cc.__super__,cl);
-};
-js_Boot.__instanceof = function(o,cl) {
-	if(cl == null) return false;
-	switch(cl) {
-	case Int:
-		return (o|0) === o;
-	case Float:
-		return typeof(o) == "number";
-	case Bool:
-		return typeof(o) == "boolean";
-	case String:
-		return typeof(o) == "string";
-	case Array:
-		return (o instanceof Array) && o.__enum__ == null;
-	case Dynamic:
-		return true;
-	default:
-		if(o != null) {
-			if(typeof(cl) == "function") {
-				if(o instanceof cl) return true;
-				if(js_Boot.__interfLoop(js_Boot.getClass(o),cl)) return true;
-			} else if(typeof(cl) == "object" && js_Boot.__isNativeObj(cl)) {
-				if(o instanceof cl) return true;
-			}
-		} else return false;
-		if(cl == Class && o.__name__ != null) return true;
-		if(cl == Enum && o.__ename__ != null) return true;
-		return o.__enum__ == cl;
-	}
-};
-js_Boot.__nativeClassName = function(o) {
-	var name = js_Boot.__toStr.call(o).slice(8,-1);
-	if(name == "Object" || name == "Function" || name == "Math" || name == "JSON") return null;
-	return name;
-};
-js_Boot.__isNativeObj = function(o) {
-	return js_Boot.__nativeClassName(o) != null;
-};
-js_Boot.__resolveNativeClass = function(name) {
-	if(typeof window != "undefined") return window[name]; else return global[name];
-};
 var js_html_compat_ArrayBuffer = function(a) {
 	if((a instanceof Array) && a.__enum__ == null) {
 		this.a = a;
@@ -6334,19 +22706,6 @@ sui_Sui.prototype = {
 		if(defaultValue == null) defaultValue = false;
 		return this.control(label,sui_Sui.createBool(defaultValue,options),callback);
 	}
-	,choice: function(label,createControl,list) {
-		var select = sui_Sui.createText(list[0].value,{ listonly : true, list : list});
-		var container = { el : dots_Html.parseNodes("<div class=\"sui-choice\">\r\n<header class=\"sui-choice-header\"></header>\r\n<div class=\"sui-choice-options\"></div>\r\n</div>")[0]};
-		var header = dots_Query.first(".sui-choice-header",container.el);
-		var options = dots_Query.first(".sui-choice-options",container.el);
-		header.appendChild(select.el);
-		select.streams.value.subscribe(function(value) {
-			var container1 = createControl(value);
-			options.innerHTML = "";
-			if(null == container1) null; else options.appendChild(container1.el);
-		});
-		this.grid.add(null == label?sui_components_CellContent.Single(container):sui_components_CellContent.HorizontalPair(new sui_controls_LabelControl(label),container));
-	}
 	,color: function(label,defaultValue,options,callback) {
 		if(defaultValue == null) defaultValue = "#AA0000";
 		return this.control(label,sui_Sui.createColor(defaultValue,options),callback);
@@ -6380,7 +22739,7 @@ sui_Sui.prototype = {
 			var collapse = thx_stream_EmitterBools.negate(thx_stream_dom_Dom.streamEvent(header.el,"click",false).map(function(_) {
 				return collapsed = !collapsed;
 			}));
-			collapse.subscribe(thx_core_Functions1.join(thx_stream_dom_Dom.subscribeToggleVisibility(sui1.grid.el),thx_stream_dom_Dom.subscribeSwapClass(trigger,"sui-icon-collapse","sui-icon-expand")));
+			collapse.subscribe(thx_Functions1.join(thx_stream_dom_Dom.subscribeToggleVisibility(sui1.grid.el),thx_stream_dom_Dom.subscribeSwapClass(trigger,"sui-icon-collapse","sui-icon-expand")));
 		} else trigger.style.display = "none";
 		sui1.grid.el.classList.add("sui-grid-inner");
 		this.grid.add(sui_components_CellContent.VerticalPair(header,sui1.grid));
@@ -6630,14 +22989,14 @@ sui_controls_ArrayControl.prototype = {
 		this.values.enabled.set(true);
 	}
 	,focus: function() {
-		if(this.elements.length > 0) thx_core_Arrays.last(this.elements).control.focus();
+		if(this.elements.length > 0) thx_Arrays.last(this.elements).control.focus();
 	}
 	,blur: function() {
 		var el = window.document.activeElement;
 		(function(_) {
 			if(null == _) null; else el.blur();
 			return;
-		})(thx_core_Arrays.first(this.elements.filter(function(_1) {
+		})(thx_Arrays.first(this.elements.filter(function(_1) {
 			return _1.control.el == el;
 		})));
 	}
@@ -6694,10 +23053,10 @@ sui_controls_SingleInputControl.prototype = {
 	,streams: null
 	,values: null
 	,setInput: function(v) {
-		throw new thx_core_error_AbstractMethod({ fileName : "SingleInputControl.hx", lineNumber : 64, className : "sui.controls.SingleInputControl", methodName : "setInput"});
+		throw new thx_error_AbstractMethod({ fileName : "SingleInputControl.hx", lineNumber : 64, className : "sui.controls.SingleInputControl", methodName : "setInput"});
 	}
 	,getInput: function() {
-		throw new thx_core_error_AbstractMethod({ fileName : "SingleInputControl.hx", lineNumber : 67, className : "sui.controls.SingleInputControl", methodName : "getInput"});
+		throw new thx_error_AbstractMethod({ fileName : "SingleInputControl.hx", lineNumber : 67, className : "sui.controls.SingleInputControl", methodName : "getInput"});
 	}
 	,set: function(v) {
 		this.setInput(v);
@@ -6788,7 +23147,7 @@ sui_controls_BaseDateControl.prototype = $extend(sui_controls_SingleInputControl
 		this.input.value = this.dateToString(v);
 	}
 	,getInput: function() {
-		if(thx_core_Strings.isEmpty(this.input.value)) return null; else return sui_controls_BaseDateControl.fromRFC(this.input.value);
+		if(thx_Strings.isEmpty(this.input.value)) return null; else return sui_controls_BaseDateControl.fromRFC(this.input.value);
 	}
 	,__class__: sui_controls_BaseDateControl
 });
@@ -6886,16 +23245,16 @@ sui_controls_DoubleInputControl.prototype = {
 		this.setInput2(v);
 	}
 	,setInput1: function(v) {
-		throw new thx_core_error_AbstractMethod({ fileName : "DoubleInputControl.hx", lineNumber : 89, className : "sui.controls.DoubleInputControl", methodName : "setInput1"});
+		throw new thx_error_AbstractMethod({ fileName : "DoubleInputControl.hx", lineNumber : 89, className : "sui.controls.DoubleInputControl", methodName : "setInput1"});
 	}
 	,setInput2: function(v) {
-		throw new thx_core_error_AbstractMethod({ fileName : "DoubleInputControl.hx", lineNumber : 92, className : "sui.controls.DoubleInputControl", methodName : "setInput2"});
+		throw new thx_error_AbstractMethod({ fileName : "DoubleInputControl.hx", lineNumber : 92, className : "sui.controls.DoubleInputControl", methodName : "setInput2"});
 	}
 	,getInput1: function() {
-		throw new thx_core_error_AbstractMethod({ fileName : "DoubleInputControl.hx", lineNumber : 95, className : "sui.controls.DoubleInputControl", methodName : "getInput1"});
+		throw new thx_error_AbstractMethod({ fileName : "DoubleInputControl.hx", lineNumber : 95, className : "sui.controls.DoubleInputControl", methodName : "getInput1"});
 	}
 	,getInput2: function() {
-		throw new thx_core_error_AbstractMethod({ fileName : "DoubleInputControl.hx", lineNumber : 98, className : "sui.controls.DoubleInputControl", methodName : "getInput2"});
+		throw new thx_error_AbstractMethod({ fileName : "DoubleInputControl.hx", lineNumber : 98, className : "sui.controls.DoubleInputControl", methodName : "getInput2"});
 	}
 	,set: function(v) {
 		this.setInputs(v);
@@ -7231,10 +23590,10 @@ sui_controls_FloatRangeControl.__name__ = ["sui","controls","FloatRangeControl"]
 sui_controls_FloatRangeControl.__super__ = sui_controls_NumberRangeControl;
 sui_controls_FloatRangeControl.prototype = $extend(sui_controls_NumberRangeControl.prototype,{
 	getInput1: function() {
-		if(thx_core_Floats.canParse(this.input1.value)) return thx_core_Floats.parse(this.input1.value); else return null;
+		if(thx_Floats.canParse(this.input1.value)) return thx_Floats.parse(this.input1.value); else return null;
 	}
 	,getInput2: function() {
-		if(thx_core_Floats.canParse(this.input2.value)) return thx_core_Floats.parse(this.input2.value); else return null;
+		if(thx_Floats.canParse(this.input2.value)) return thx_Floats.parse(this.input2.value); else return null;
 	}
 	,__class__: sui_controls_FloatRangeControl
 });
@@ -7266,10 +23625,10 @@ sui_controls_IntRangeControl.__name__ = ["sui","controls","IntRangeControl"];
 sui_controls_IntRangeControl.__super__ = sui_controls_NumberRangeControl;
 sui_controls_IntRangeControl.prototype = $extend(sui_controls_NumberRangeControl.prototype,{
 	getInput1: function() {
-		if(thx_core_Ints.canParse(this.input1.value)) return thx_core_Ints.parse(this.input1.value); else return null;
+		if(thx_Ints.canParse(this.input1.value)) return thx_Ints.parse(this.input1.value); else return null;
 	}
 	,getInput2: function() {
-		if(thx_core_Ints.canParse(this.input2.value)) return thx_core_Ints.parse(this.input2.value); else return null;
+		if(thx_Ints.canParse(this.input2.value)) return thx_Ints.parse(this.input2.value); else return null;
 	}
 	,__class__: sui_controls_IntRangeControl
 });
@@ -7411,7 +23770,7 @@ sui_controls_MapControl.prototype = {
 	}
 	,setValue: function(v) {
 		var _g = this;
-		thx_core_Iterators.map(v.keys(),function(_) {
+		thx_Iterators.map(v.keys(),function(_) {
 			_g.addControl(_,v.get(_));
 			return;
 		});
@@ -7454,14 +23813,14 @@ sui_controls_MapControl.prototype = {
 		this.values.enabled.set(true);
 	}
 	,focus: function() {
-		if(this.elements.length > 0) thx_core_Arrays.last(this.elements).controlValue.focus();
+		if(this.elements.length > 0) thx_Arrays.last(this.elements).controlValue.focus();
 	}
 	,blur: function() {
 		var el = window.document.activeElement;
 		(function(_) {
 			if(null == _) null; else el.blur();
 			return;
-		})(thx_core_Arrays.first(this.elements.filter(function(_1) {
+		})(thx_Arrays.first(this.elements.filter(function(_1) {
 			return _1.controlKey.el == el || _1.controlValue.el == el;
 		})));
 	}
@@ -7607,10 +23966,10 @@ var sui_controls_TriggerControl = function(label,options) {
 	var _g = this;
 	var template = "<div class=\"sui-control sui-control-single sui-type-trigger\"><button>" + label + "</button></div>";
 	if(null == options) options = { };
-	this.defaultValue = thx_core_Nil.nil;
+	this.defaultValue = thx_Nil.nil;
 	this.el = dots_Html.parseNodes(template)[0];
 	this.button = dots_Query.first("button",this.el);
-	this.values = new sui_controls_ControlValues(thx_core_Nil.nil);
+	this.values = new sui_controls_ControlValues(thx_Nil.nil);
 	var emitter = thx_stream_dom_Dom.streamEvent(this.button,"click",false).toNil();
 	this.streams = new sui_controls_ControlStreams(emitter,this.values.focused,this.values.enabled);
 	this.values.enabled.subscribe(function(v) {
@@ -7641,7 +24000,7 @@ sui_controls_TriggerControl.prototype = {
 		this.button.click();
 	}
 	,get: function() {
-		return thx_core_Nil.nil;
+		return thx_Nil.nil;
 	}
 	,isEnabled: function() {
 		return this.values.enabled.get();
@@ -7678,12 +24037,12 @@ sui_controls_UrlControl.prototype = $extend(sui_controls_BaseTextControl.prototy
 });
 var sui_macro_Embed = function() { };
 sui_macro_Embed.__name__ = ["sui","macro","Embed"];
-var thx_core_Arrays = function() { };
-thx_core_Arrays.__name__ = ["thx","core","Arrays"];
-thx_core_Arrays.after = function(array,element) {
+var thx_Arrays = function() { };
+thx_Arrays.__name__ = ["thx","Arrays"];
+thx_Arrays.after = function(array,element) {
 	return array.slice(HxOverrides.indexOf(array,element,0) + 1);
 };
-thx_core_Arrays.all = function(arr,predicate) {
+thx_Arrays.all = function(arr,predicate) {
 	var _g = 0;
 	while(_g < arr.length) {
 		var item = arr[_g];
@@ -7692,7 +24051,7 @@ thx_core_Arrays.all = function(arr,predicate) {
 	}
 	return true;
 };
-thx_core_Arrays.any = function(arr,predicate) {
+thx_Arrays.any = function(arr,predicate) {
 	var _g = 0;
 	while(_g < arr.length) {
 		var item = arr[_g];
@@ -7701,20 +24060,20 @@ thx_core_Arrays.any = function(arr,predicate) {
 	}
 	return false;
 };
-thx_core_Arrays.at = function(arr,indexes) {
+thx_Arrays.at = function(arr,indexes) {
 	return indexes.map(function(i) {
 		return arr[i];
 	});
 };
-thx_core_Arrays.before = function(array,element) {
+thx_Arrays.before = function(array,element) {
 	return array.slice(0,HxOverrides.indexOf(array,element,0));
 };
-thx_core_Arrays.compact = function(arr) {
+thx_Arrays.compact = function(arr) {
 	return arr.filter(function(v) {
 		return null != v;
 	});
 };
-thx_core_Arrays.contains = function(array,element,eq) {
+thx_Arrays.contains = function(array,element,eq) {
 	if(null == eq) return HxOverrides.indexOf(array,element,0) >= 0; else {
 		var _g1 = 0;
 		var _g = array.length;
@@ -7725,7 +24084,15 @@ thx_core_Arrays.contains = function(array,element,eq) {
 		return false;
 	}
 };
-thx_core_Arrays.cross = function(a,b) {
+thx_Arrays.containsAny = function(array,elements,eq) {
+	var $it0 = $iterator(elements)();
+	while( $it0.hasNext() ) {
+		var el = $it0.next();
+		if(thx_Arrays.contains(array,el,eq)) return true;
+	}
+	return false;
+};
+thx_Arrays.cross = function(a,b) {
 	var r = [];
 	var _g = 0;
 	while(_g < a.length) {
@@ -7740,7 +24107,7 @@ thx_core_Arrays.cross = function(a,b) {
 	}
 	return r;
 };
-thx_core_Arrays.crossMulti = function(array) {
+thx_Arrays.crossMulti = function(array) {
 	var acopy = array.slice();
 	var result = acopy.shift().map(function(v) {
 		return [v];
@@ -7765,17 +24132,24 @@ thx_core_Arrays.crossMulti = function(array) {
 	}
 	return result;
 };
-thx_core_Arrays.distinct = function(array) {
+thx_Arrays.distinct = function(array,predicate) {
 	var result = [];
+	if(array.length <= 1) return array;
+	if(null == predicate) predicate = thx_Functions.equality;
 	var _g = 0;
 	while(_g < array.length) {
-		var v = array[_g];
+		var v = [array[_g]];
 		++_g;
-		if(!thx_core_Arrays.contains(result,v)) result.push(v);
+		var keep = !thx_Arrays.any(result,(function(v) {
+			return function(r) {
+				return predicate(r,v[0]);
+			};
+		})(v));
+		if(keep) result.push(v[0]);
 	}
 	return result;
 };
-thx_core_Arrays.eachPair = function(array,callback) {
+thx_Arrays.eachPair = function(array,callback) {
 	var _g1 = 0;
 	var _g = array.length;
 	while(_g1 < _g) {
@@ -7788,9 +24162,9 @@ thx_core_Arrays.eachPair = function(array,callback) {
 		}
 	}
 };
-thx_core_Arrays.equals = function(a,b,equality) {
+thx_Arrays.equals = function(a,b,equality) {
 	if(a == null || b == null || a.length != b.length) return false;
-	if(null == equality) equality = thx_core_Functions.equality;
+	if(null == equality) equality = thx_Functions.equality;
 	var _g1 = 0;
 	var _g = a.length;
 	while(_g1 < _g) {
@@ -7799,7 +24173,7 @@ thx_core_Arrays.equals = function(a,b,equality) {
 	}
 	return true;
 };
-thx_core_Arrays.extract = function(a,predicate) {
+thx_Arrays.extract = function(a,predicate) {
 	var _g1 = 0;
 	var _g = a.length;
 	while(_g1 < _g) {
@@ -7808,7 +24182,7 @@ thx_core_Arrays.extract = function(a,predicate) {
 	}
 	return null;
 };
-thx_core_Arrays.find = function(array,predicate) {
+thx_Arrays.find = function(array,predicate) {
 	var _g = 0;
 	while(_g < array.length) {
 		var item = array[_g];
@@ -7817,7 +24191,7 @@ thx_core_Arrays.find = function(array,predicate) {
 	}
 	return null;
 };
-thx_core_Arrays.findLast = function(array,predicate) {
+thx_Arrays.findLast = function(array,predicate) {
 	var len = array.length;
 	var j;
 	var _g = 0;
@@ -7828,34 +24202,45 @@ thx_core_Arrays.findLast = function(array,predicate) {
 	}
 	return null;
 };
-thx_core_Arrays.first = function(array) {
+thx_Arrays.first = function(array) {
 	return array[0];
 };
-thx_core_Arrays.flatMap = function(array,callback) {
-	return thx_core_Arrays.flatten(array.map(callback));
+thx_Arrays.flatMap = function(array,callback) {
+	return thx_Arrays.flatten(array.map(callback));
 };
-thx_core_Arrays.flatten = function(array) {
+thx_Arrays.flatten = function(array) {
 	return Array.prototype.concat.apply([],array);
 };
-thx_core_Arrays.from = function(array,element) {
+thx_Arrays.from = function(array,element) {
 	return array.slice(HxOverrides.indexOf(array,element,0));
 };
-thx_core_Arrays.head = function(array) {
+thx_Arrays.groupByAppend = function(arr,resolver,map) {
+	arr.map(function(v) {
+		var key = resolver(v);
+		var arr1 = map.get(key);
+		if(null == arr1) {
+			arr1 = [v];
+			map.set(key,arr1);
+		} else arr1.push(v);
+	});
+	return map;
+};
+thx_Arrays.head = function(array) {
 	return array[0];
 };
-thx_core_Arrays.ifEmpty = function(value,alt) {
+thx_Arrays.ifEmpty = function(value,alt) {
 	if(null != value && 0 != value.length) return value; else return alt;
 };
-thx_core_Arrays.initial = function(array) {
+thx_Arrays.initial = function(array) {
 	return array.slice(0,array.length - 1);
 };
-thx_core_Arrays.isEmpty = function(array) {
+thx_Arrays.isEmpty = function(array) {
 	return array.length == 0;
 };
-thx_core_Arrays.last = function(array) {
+thx_Arrays.last = function(array) {
 	return array[array.length - 1];
 };
-thx_core_Arrays.mapi = function(array,callback) {
+thx_Arrays.mapi = function(array,callback) {
 	var r = [];
 	var _g1 = 0;
 	var _g = array.length;
@@ -7865,55 +24250,55 @@ thx_core_Arrays.mapi = function(array,callback) {
 	}
 	return r;
 };
-thx_core_Arrays.mapRight = function(array,callback) {
+thx_Arrays.mapRight = function(array,callback) {
 	var i = array.length;
 	var result = [];
 	while(--i >= 0) result.push(callback(array[i]));
 	return result;
 };
-thx_core_Arrays.order = function(array,sort) {
+thx_Arrays.order = function(array,sort) {
 	var n = array.slice();
 	n.sort(sort);
 	return n;
 };
-thx_core_Arrays.pull = function(array,toRemove,equality) {
+thx_Arrays.pull = function(array,toRemove,equality) {
 	var _g = 0;
 	while(_g < toRemove.length) {
 		var item = toRemove[_g];
 		++_g;
-		thx_core_Arrays.removeAll(array,item,equality);
+		thx_Arrays.removeAll(array,item,equality);
 	}
 };
-thx_core_Arrays.pushIf = function(array,condition,value) {
+thx_Arrays.pushIf = function(array,condition,value) {
 	if(condition) array.push(value);
 	return array;
 };
-thx_core_Arrays.reduce = function(array,callback,initial) {
+thx_Arrays.reduce = function(array,callback,initial) {
 	return array.reduce(callback,initial);
 };
-thx_core_Arrays.resize = function(array,length,fill) {
+thx_Arrays.resize = function(array,length,fill) {
 	while(array.length < length) array.push(fill);
 	array.splice(length,array.length - length);
 	return array;
 };
-thx_core_Arrays.reducei = function(array,callback,initial) {
+thx_Arrays.reducei = function(array,callback,initial) {
 	return array.reduce(callback,initial);
 };
-thx_core_Arrays.reduceRight = function(array,callback,initial) {
+thx_Arrays.reduceRight = function(array,callback,initial) {
 	var i = array.length;
 	while(--i >= 0) initial = callback(initial,array[i]);
 	return initial;
 };
-thx_core_Arrays.removeAll = function(array,element,equality) {
-	if(null == equality) equality = thx_core_Functions.equality;
+thx_Arrays.removeAll = function(array,element,equality) {
+	if(null == equality) equality = thx_Functions.equality;
 	var i = array.length;
 	while(--i >= 0) if(equality(array[i],element)) array.splice(i,1);
 };
-thx_core_Arrays.rest = function(array) {
+thx_Arrays.rest = function(array) {
 	return array.slice(1);
 };
-thx_core_Arrays.sample = function(array,n) {
-	n = thx_core_Ints.min(n,array.length);
+thx_Arrays.sample = function(array,n) {
+	n = thx_Ints.min(n,array.length);
 	var copy = array.slice();
 	var result = [];
 	var _g = 0;
@@ -7923,11 +24308,11 @@ thx_core_Arrays.sample = function(array,n) {
 	}
 	return result;
 };
-thx_core_Arrays.sampleOne = function(array) {
+thx_Arrays.sampleOne = function(array) {
 	return array[Std.random(array.length)];
 };
-thx_core_Arrays.shuffle = function(a) {
-	var t = thx_core_Ints.range(a.length);
+thx_Arrays.shuffle = function(a) {
+	var t = thx_Ints.range(a.length);
 	var array = [];
 	while(t.length > 0) {
 		var pos = Std.random(t.length);
@@ -7937,13 +24322,28 @@ thx_core_Arrays.shuffle = function(a) {
 	}
 	return array;
 };
-thx_core_Arrays.take = function(arr,n) {
+thx_Arrays.split = function(array,parts) {
+	var len = Math.ceil(array.length / parts);
+	return thx_Arrays.splitBy(array,len);
+};
+thx_Arrays.splitBy = function(array,len) {
+	var res = [];
+	len = thx_Ints.min(len,array.length);
+	var _g1 = 0;
+	var _g = Math.ceil(array.length / len);
+	while(_g1 < _g) {
+		var p = _g1++;
+		res.push(array.slice(p * len,(p + 1) * len));
+	}
+	return res;
+};
+thx_Arrays.take = function(arr,n) {
 	return arr.slice(0,n);
 };
-thx_core_Arrays.takeLast = function(arr,n) {
+thx_Arrays.takeLast = function(arr,n) {
 	return arr.slice(arr.length - n);
 };
-thx_core_Arrays.rotate = function(arr) {
+thx_Arrays.rotate = function(arr) {
 	var result = [];
 	var _g1 = 0;
 	var _g = arr[0].length;
@@ -7960,8 +24360,8 @@ thx_core_Arrays.rotate = function(arr) {
 	}
 	return result;
 };
-thx_core_Arrays.zip = function(array1,array2) {
-	var length = thx_core_Ints.min(array1.length,array2.length);
+thx_Arrays.zip = function(array1,array2) {
+	var length = thx_Ints.min(array1.length,array2.length);
 	var array = [];
 	var _g = 0;
 	while(_g < length) {
@@ -7970,8 +24370,8 @@ thx_core_Arrays.zip = function(array1,array2) {
 	}
 	return array;
 };
-thx_core_Arrays.zip3 = function(array1,array2,array3) {
-	var length = thx_core_ArrayInts.min([array1.length,array2.length,array3.length]);
+thx_Arrays.zip3 = function(array1,array2,array3) {
+	var length = thx_ArrayInts.min([array1.length,array2.length,array3.length]);
 	var array = [];
 	var _g = 0;
 	while(_g < length) {
@@ -7980,8 +24380,8 @@ thx_core_Arrays.zip3 = function(array1,array2,array3) {
 	}
 	return array;
 };
-thx_core_Arrays.zip4 = function(array1,array2,array3,array4) {
-	var length = thx_core_ArrayInts.min([array1.length,array2.length,array3.length,array4.length]);
+thx_Arrays.zip4 = function(array1,array2,array3,array4) {
+	var length = thx_ArrayInts.min([array1.length,array2.length,array3.length,array4.length]);
 	var array = [];
 	var _g = 0;
 	while(_g < length) {
@@ -7990,8 +24390,8 @@ thx_core_Arrays.zip4 = function(array1,array2,array3,array4) {
 	}
 	return array;
 };
-thx_core_Arrays.zip5 = function(array1,array2,array3,array4,array5) {
-	var length = thx_core_ArrayInts.min([array1.length,array2.length,array3.length,array4.length,array5.length]);
+thx_Arrays.zip5 = function(array1,array2,array3,array4,array5) {
+	var length = thx_ArrayInts.min([array1.length,array2.length,array3.length,array4.length,array5.length]);
 	var array = [];
 	var _g = 0;
 	while(_g < length) {
@@ -8000,7 +24400,7 @@ thx_core_Arrays.zip5 = function(array1,array2,array3,array4,array5) {
 	}
 	return array;
 };
-thx_core_Arrays.unzip = function(array) {
+thx_Arrays.unzip = function(array) {
 	var a1 = [];
 	var a2 = [];
 	array.map(function(t) {
@@ -8009,7 +24409,7 @@ thx_core_Arrays.unzip = function(array) {
 	});
 	return { _0 : a1, _1 : a2};
 };
-thx_core_Arrays.unzip3 = function(array) {
+thx_Arrays.unzip3 = function(array) {
 	var a1 = [];
 	var a2 = [];
 	var a3 = [];
@@ -8020,7 +24420,7 @@ thx_core_Arrays.unzip3 = function(array) {
 	});
 	return { _0 : a1, _1 : a2, _2 : a3};
 };
-thx_core_Arrays.unzip4 = function(array) {
+thx_Arrays.unzip4 = function(array) {
 	var a1 = [];
 	var a2 = [];
 	var a3 = [];
@@ -8033,7 +24433,7 @@ thx_core_Arrays.unzip4 = function(array) {
 	});
 	return { _0 : a1, _1 : a2, _2 : a3, _3 : a4};
 };
-thx_core_Arrays.unzip5 = function(array) {
+thx_Arrays.unzip5 = function(array) {
 	var a1 = [];
 	var a2 = [];
 	var a3 = [];
@@ -8048,84 +24448,84 @@ thx_core_Arrays.unzip5 = function(array) {
 	});
 	return { _0 : a1, _1 : a2, _2 : a3, _3 : a4, _4 : a5};
 };
-var thx_core_ArrayFloats = function() { };
-thx_core_ArrayFloats.__name__ = ["thx","core","ArrayFloats"];
-thx_core_ArrayFloats.average = function(arr) {
-	return thx_core_ArrayFloats.sum(arr) / arr.length;
+var thx_ArrayFloats = function() { };
+thx_ArrayFloats.__name__ = ["thx","ArrayFloats"];
+thx_ArrayFloats.average = function(arr) {
+	return thx_ArrayFloats.sum(arr) / arr.length;
 };
-thx_core_ArrayFloats.compact = function(arr) {
+thx_ArrayFloats.compact = function(arr) {
 	return arr.filter(function(v) {
 		return null != v && isFinite(v);
 	});
 };
-thx_core_ArrayFloats.max = function(arr) {
+thx_ArrayFloats.max = function(arr) {
 	if(arr.length == 0) return null; else return arr.reduce(function(max,v) {
 		if(v > max) return v; else return max;
 	},arr[0]);
 };
-thx_core_ArrayFloats.min = function(arr) {
+thx_ArrayFloats.min = function(arr) {
 	if(arr.length == 0) return null; else return arr.reduce(function(min,v) {
 		if(v < min) return v; else return min;
 	},arr[0]);
 };
-thx_core_ArrayFloats.resize = function(array,length,fill) {
+thx_ArrayFloats.resize = function(array,length,fill) {
 	if(fill == null) fill = 0.0;
 	while(array.length < length) array.push(fill);
 	array.splice(length,array.length - length);
 	return array;
 };
-thx_core_ArrayFloats.sum = function(arr) {
+thx_ArrayFloats.sum = function(arr) {
 	return arr.reduce(function(tot,v) {
 		return tot + v;
 	},0.0);
 };
-var thx_core_ArrayInts = function() { };
-thx_core_ArrayInts.__name__ = ["thx","core","ArrayInts"];
-thx_core_ArrayInts.average = function(arr) {
-	return thx_core_ArrayInts.sum(arr) / arr.length;
+var thx_ArrayInts = function() { };
+thx_ArrayInts.__name__ = ["thx","ArrayInts"];
+thx_ArrayInts.average = function(arr) {
+	return thx_ArrayInts.sum(arr) / arr.length;
 };
-thx_core_ArrayInts.max = function(arr) {
+thx_ArrayInts.max = function(arr) {
 	if(arr.length == 0) return null; else return arr.reduce(function(max,v) {
 		if(v > max) return v; else return max;
 	},arr[0]);
 };
-thx_core_ArrayInts.min = function(arr) {
+thx_ArrayInts.min = function(arr) {
 	if(arr.length == 0) return null; else return arr.reduce(function(min,v) {
 		if(v < min) return v; else return min;
 	},arr[0]);
 };
-thx_core_ArrayInts.resize = function(array,length,fill) {
+thx_ArrayInts.resize = function(array,length,fill) {
 	if(fill == null) fill = 0;
 	while(array.length < length) array.push(fill);
 	array.splice(length,array.length - length);
 	return array;
 };
-thx_core_ArrayInts.sum = function(arr) {
+thx_ArrayInts.sum = function(arr) {
 	return arr.reduce(function(tot,v) {
 		return tot + v;
 	},0);
 };
-var thx_core_ArrayStrings = function() { };
-thx_core_ArrayStrings.__name__ = ["thx","core","ArrayStrings"];
-thx_core_ArrayStrings.compact = function(arr) {
+var thx_ArrayStrings = function() { };
+thx_ArrayStrings.__name__ = ["thx","ArrayStrings"];
+thx_ArrayStrings.compact = function(arr) {
 	return arr.filter(function(v) {
-		return !thx_core_Strings.isEmpty(v);
+		return !thx_Strings.isEmpty(v);
 	});
 };
-thx_core_ArrayStrings.max = function(arr) {
+thx_ArrayStrings.max = function(arr) {
 	if(arr.length == 0) return null; else return arr.reduce(function(max,v) {
 		if(v > max) return v; else return max;
 	},arr[0]);
 };
-thx_core_ArrayStrings.min = function(arr) {
+thx_ArrayStrings.min = function(arr) {
 	if(arr.length == 0) return null; else return arr.reduce(function(min,v) {
 		if(v < min) return v; else return min;
 	},arr[0]);
 };
-var thx_core_Either = { __ename__ : ["thx","core","Either"], __constructs__ : ["Left","Right"] };
-thx_core_Either.Left = function(value) { var $x = ["Left",0,value]; $x.__enum__ = thx_core_Either; $x.toString = $estr; return $x; };
-thx_core_Either.Right = function(value) { var $x = ["Right",1,value]; $x.__enum__ = thx_core_Either; $x.toString = $estr; return $x; };
-var thx_core_Error = function(message,stack,pos) {
+var thx_Either = { __ename__ : ["thx","Either"], __constructs__ : ["Left","Right"] };
+thx_Either.Left = function(value) { var $x = ["Left",0,value]; $x.__enum__ = thx_Either; $x.toString = $estr; return $x; };
+thx_Either.Right = function(value) { var $x = ["Right",1,value]; $x.__enum__ = thx_Either; $x.toString = $estr; return $x; };
+var thx_Error = function(message,stack,pos) {
 	Error.call(this,message);
 	this.message = message;
 	if(null == stack) {
@@ -8147,160 +24547,160 @@ var thx_core_Error = function(message,stack,pos) {
 	this.stackItems = stack;
 	this.pos = pos;
 };
-thx_core_Error.__name__ = ["thx","core","Error"];
-thx_core_Error.fromDynamic = function(err,pos) {
-	if(js_Boot.__instanceof(err,thx_core_Error)) return err;
-	return new thx_core_error_ErrorWrapper("" + Std.string(err),err,null,pos);
+thx_Error.__name__ = ["thx","Error"];
+thx_Error.fromDynamic = function(err,pos) {
+	if(js_Boot.__instanceof(err,thx_Error)) return err;
+	return new thx_error_ErrorWrapper("" + Std.string(err),err,null,pos);
 };
-thx_core_Error.__super__ = Error;
-thx_core_Error.prototype = $extend(Error.prototype,{
+thx_Error.__super__ = Error;
+thx_Error.prototype = $extend(Error.prototype,{
 	pos: null
 	,stackItems: null
 	,toString: function() {
 		return this.message + "\nfrom: " + this.pos.className + "." + this.pos.methodName + "() at " + this.pos.lineNumber + "\n\n" + haxe_CallStack.toString(this.stackItems);
 	}
-	,__class__: thx_core_Error
+	,__class__: thx_Error
 });
-var thx_core_Floats = function() { };
-thx_core_Floats.__name__ = ["thx","core","Floats"];
-thx_core_Floats.angleDifference = function(a,b,turn) {
+var thx_Floats = function() { };
+thx_Floats.__name__ = ["thx","Floats"];
+thx_Floats.angleDifference = function(a,b,turn) {
 	if(turn == null) turn = 360;
 	var r = (b - a) % turn;
 	if(r < 0) r += turn;
 	if(r > turn / 2) r -= turn;
 	return r;
 };
-thx_core_Floats.ceilTo = function(f,decimals) {
+thx_Floats.ceilTo = function(f,decimals) {
 	var p = Math.pow(10,decimals);
 	return Math.ceil(f * p) / p;
 };
-thx_core_Floats.canParse = function(s) {
-	return thx_core_Floats.pattern_parse.match(s);
+thx_Floats.canParse = function(s) {
+	return thx_Floats.pattern_parse.match(s);
 };
-thx_core_Floats.clamp = function(v,min,max) {
+thx_Floats.clamp = function(v,min,max) {
 	if(v < min) return min; else if(v > max) return max; else return v;
 };
-thx_core_Floats.clampSym = function(v,max) {
-	return thx_core_Floats.clamp(v,-max,max);
+thx_Floats.clampSym = function(v,max) {
+	return thx_Floats.clamp(v,-max,max);
 };
-thx_core_Floats.compare = function(a,b) {
+thx_Floats.compare = function(a,b) {
 	if(a < b) return -1; else if(a > b) return 1; else return 0;
 };
-thx_core_Floats.floorTo = function(f,decimals) {
+thx_Floats.floorTo = function(f,decimals) {
 	var p = Math.pow(10,decimals);
 	return Math.floor(f * p) / p;
 };
-thx_core_Floats.interpolate = function(f,a,b) {
+thx_Floats.interpolate = function(f,a,b) {
 	return (b - a) * f + a;
 };
-thx_core_Floats.interpolateAngle = function(f,a,b,turn) {
+thx_Floats.interpolateAngle = function(f,a,b,turn) {
 	if(turn == null) turn = 360;
-	return thx_core_Floats.wrapCircular(thx_core_Floats.interpolate(f,a,a + thx_core_Floats.angleDifference(a,b,turn)),turn);
+	return thx_Floats.wrapCircular(thx_Floats.interpolate(f,a,a + thx_Floats.angleDifference(a,b,turn)),turn);
 };
-thx_core_Floats.interpolateAngleWidest = function(f,a,b,turn) {
+thx_Floats.interpolateAngleWidest = function(f,a,b,turn) {
 	if(turn == null) turn = 360;
-	return thx_core_Floats.wrapCircular(thx_core_Floats.interpolateAngle(f,a,b,turn) - turn / 2,turn);
+	return thx_Floats.wrapCircular(thx_Floats.interpolateAngle(f,a,b,turn) - turn / 2,turn);
 };
-thx_core_Floats.interpolateAngleCW = function(f,a,b,turn) {
+thx_Floats.interpolateAngleCW = function(f,a,b,turn) {
 	if(turn == null) turn = 360;
-	a = thx_core_Floats.wrapCircular(a,turn);
-	b = thx_core_Floats.wrapCircular(b,turn);
+	a = thx_Floats.wrapCircular(a,turn);
+	b = thx_Floats.wrapCircular(b,turn);
 	if(b < a) b += turn;
-	return thx_core_Floats.wrapCircular(thx_core_Floats.interpolate(f,a,b),turn);
+	return thx_Floats.wrapCircular(thx_Floats.interpolate(f,a,b),turn);
 };
-thx_core_Floats.interpolateAngleCCW = function(f,a,b,turn) {
+thx_Floats.interpolateAngleCCW = function(f,a,b,turn) {
 	if(turn == null) turn = 360;
-	a = thx_core_Floats.wrapCircular(a,turn);
-	b = thx_core_Floats.wrapCircular(b,turn);
+	a = thx_Floats.wrapCircular(a,turn);
+	b = thx_Floats.wrapCircular(b,turn);
 	if(b > a) b -= turn;
-	return thx_core_Floats.wrapCircular(thx_core_Floats.interpolate(f,a,b),turn);
+	return thx_Floats.wrapCircular(thx_Floats.interpolate(f,a,b),turn);
 };
-thx_core_Floats.nearEquals = function(a,b) {
+thx_Floats.nearEquals = function(a,b) {
 	return Math.abs(a - b) <= 10e-10;
 };
-thx_core_Floats.nearZero = function(n) {
+thx_Floats.nearZero = function(n) {
 	return Math.abs(n) <= 10e-10;
 };
-thx_core_Floats.normalize = function(v) {
+thx_Floats.normalize = function(v) {
 	if(v < 0) return 0; else if(v > 1) return 1; else return v;
 };
-thx_core_Floats.parse = function(s) {
+thx_Floats.parse = function(s) {
 	if(s.substring(0,1) == "+") s = s.substring(1);
 	return parseFloat(s);
 };
-thx_core_Floats.root = function(base,index) {
+thx_Floats.root = function(base,index) {
 	return Math.pow(base,1 / index);
 };
-thx_core_Floats.roundTo = function(f,decimals) {
+thx_Floats.roundTo = function(f,decimals) {
 	var p = Math.pow(10,decimals);
 	return Math.round(f * p) / p;
 };
-thx_core_Floats.sign = function(value) {
+thx_Floats.sign = function(value) {
 	if(value < 0) return -1; else return 1;
 };
-thx_core_Floats.wrap = function(v,min,max) {
+thx_Floats.wrap = function(v,min,max) {
 	var range = max - min + 1;
 	if(v < min) v += range * ((min - v) / range + 1);
 	return min + (v - min) % range;
 };
-thx_core_Floats.wrapCircular = function(v,max) {
+thx_Floats.wrapCircular = function(v,max) {
 	v = v % max;
 	if(v < 0) v += max;
 	return v;
 };
-var thx_core_Functions0 = function() { };
-thx_core_Functions0.__name__ = ["thx","core","Functions0"];
-thx_core_Functions0.after = function(callback,n) {
+var thx_Functions0 = function() { };
+thx_Functions0.__name__ = ["thx","Functions0"];
+thx_Functions0.after = function(callback,n) {
 	return function() {
 		if(--n == 0) callback();
 	};
 };
-thx_core_Functions0.join = function(fa,fb) {
+thx_Functions0.join = function(fa,fb) {
 	return function() {
 		fa();
 		fb();
 	};
 };
-thx_core_Functions0.once = function(f) {
+thx_Functions0.once = function(f) {
 	return function() {
 		var t = f;
-		f = thx_core_Functions.noop;
+		f = thx_Functions.noop;
 		t();
 	};
 };
-thx_core_Functions0.negate = function(callback) {
+thx_Functions0.negate = function(callback) {
 	return function() {
 		return !callback();
 	};
 };
-thx_core_Functions0.times = function(n,callback) {
+thx_Functions0.times = function(n,callback) {
 	return function() {
-		return thx_core_Ints.range(n).map(function(_) {
+		return thx_Ints.range(n).map(function(_) {
 			return callback();
 		});
 	};
 };
-thx_core_Functions0.timesi = function(n,callback) {
+thx_Functions0.timesi = function(n,callback) {
 	return function() {
-		return thx_core_Ints.range(n).map(function(i) {
+		return thx_Ints.range(n).map(function(i) {
 			return callback(i);
 		});
 	};
 };
-var thx_core_Functions1 = function() { };
-thx_core_Functions1.__name__ = ["thx","core","Functions1"];
-thx_core_Functions1.compose = function(fa,fb) {
+var thx_Functions1 = function() { };
+thx_Functions1.__name__ = ["thx","Functions1"];
+thx_Functions1.compose = function(fa,fb) {
 	return function(v) {
 		return fa(fb(v));
 	};
 };
-thx_core_Functions1.join = function(fa,fb) {
+thx_Functions1.join = function(fa,fb) {
 	return function(v) {
 		fa(v);
 		fb(v);
 	};
 };
-thx_core_Functions1.memoize = function(callback,resolver) {
+thx_Functions1.memoize = function(callback,resolver) {
 	if(null == resolver) resolver = function(v) {
 		return "" + Std.string(v);
 	};
@@ -8313,35 +24713,35 @@ thx_core_Functions1.memoize = function(callback,resolver) {
 		return result;
 	};
 };
-thx_core_Functions1.negate = function(callback) {
+thx_Functions1.negate = function(callback) {
 	return function(v) {
 		return !callback(v);
 	};
 };
-thx_core_Functions1.noop = function(_) {
+thx_Functions1.noop = function(_) {
 };
-thx_core_Functions1.times = function(n,callback) {
+thx_Functions1.times = function(n,callback) {
 	return function(value) {
-		return thx_core_Ints.range(n).map(function(_) {
+		return thx_Ints.range(n).map(function(_) {
 			return callback(value);
 		});
 	};
 };
-thx_core_Functions1.timesi = function(n,callback) {
+thx_Functions1.timesi = function(n,callback) {
 	return function(value) {
-		return thx_core_Ints.range(n).map(function(i) {
+		return thx_Ints.range(n).map(function(i) {
 			return callback(value,i);
 		});
 	};
 };
-thx_core_Functions1.swapArguments = function(callback) {
+thx_Functions1.swapArguments = function(callback) {
 	return function(a2,a1) {
 		return callback(a1,a2);
 	};
 };
-var thx_core_Functions2 = function() { };
-thx_core_Functions2.__name__ = ["thx","core","Functions2"];
-thx_core_Functions2.memoize = function(callback,resolver) {
+var thx_Functions2 = function() { };
+thx_Functions2.__name__ = ["thx","Functions2"];
+thx_Functions2.memoize = function(callback,resolver) {
 	if(null == resolver) resolver = function(v1,v2) {
 		return "" + Std.string(v1) + ":" + Std.string(v2);
 	};
@@ -8354,14 +24754,14 @@ thx_core_Functions2.memoize = function(callback,resolver) {
 		return result;
 	};
 };
-thx_core_Functions2.negate = function(callback) {
+thx_Functions2.negate = function(callback) {
 	return function(v1,v2) {
 		return !callback(v1,v2);
 	};
 };
-var thx_core_Functions3 = function() { };
-thx_core_Functions3.__name__ = ["thx","core","Functions3"];
-thx_core_Functions3.memoize = function(callback,resolver) {
+var thx_Functions3 = function() { };
+thx_Functions3.__name__ = ["thx","Functions3"];
+thx_Functions3.memoize = function(callback,resolver) {
 	if(null == resolver) resolver = function(v1,v2,v3) {
 		return "" + Std.string(v1) + ":" + Std.string(v2) + ":" + Std.string(v3);
 	};
@@ -8374,67 +24774,67 @@ thx_core_Functions3.memoize = function(callback,resolver) {
 		return result;
 	};
 };
-thx_core_Functions3.negate = function(callback) {
+thx_Functions3.negate = function(callback) {
 	return function(v1,v2,v3) {
 		return !callback(v1,v2,v3);
 	};
 };
-var thx_core_Functions = function() { };
-thx_core_Functions.__name__ = ["thx","core","Functions"];
-thx_core_Functions.constant = function(v) {
+var thx_Functions = function() { };
+thx_Functions.__name__ = ["thx","Functions"];
+thx_Functions.constant = function(v) {
 	return function() {
 		return v;
 	};
 };
-thx_core_Functions.equality = function(a,b) {
+thx_Functions.equality = function(a,b) {
 	return a == b;
 };
-thx_core_Functions.identity = function(value) {
+thx_Functions.identity = function(value) {
 	return value;
 };
-thx_core_Functions.noop = function() {
+thx_Functions.noop = function() {
 };
-var thx_core_Ints = function() { };
-thx_core_Ints.__name__ = ["thx","core","Ints"];
-thx_core_Ints.abs = function(v) {
+var thx_Ints = function() { };
+thx_Ints.__name__ = ["thx","Ints"];
+thx_Ints.abs = function(v) {
 	if(v < 0) return -v; else return v;
 };
-thx_core_Ints.canParse = function(s) {
-	return thx_core_Ints.pattern_parse.match(s);
+thx_Ints.canParse = function(s) {
+	return thx_Ints.pattern_parse.match(s);
 };
-thx_core_Ints.clamp = function(v,min,max) {
+thx_Ints.clamp = function(v,min,max) {
 	if(v < min) return min; else if(v > max) return max; else return v;
 };
-thx_core_Ints.clampSym = function(v,max) {
-	return thx_core_Ints.clamp(v,-max,max);
+thx_Ints.clampSym = function(v,max) {
+	return thx_Ints.clamp(v,-max,max);
 };
-thx_core_Ints.compare = function(a,b) {
+thx_Ints.compare = function(a,b) {
 	return a - b;
 };
-thx_core_Ints.interpolate = function(f,a,b) {
+thx_Ints.interpolate = function(f,a,b) {
 	return Math.round(a + (b - a) * f);
 };
-thx_core_Ints.isEven = function(v) {
+thx_Ints.isEven = function(v) {
 	return v % 2 == 0;
 };
-thx_core_Ints.isOdd = function(v) {
+thx_Ints.isOdd = function(v) {
 	return v % 2 != 0;
 };
-thx_core_Ints.max = function(a,b) {
+thx_Ints.max = function(a,b) {
 	if(a > b) return a; else return b;
 };
-thx_core_Ints.min = function(a,b) {
+thx_Ints.min = function(a,b) {
 	if(a < b) return a; else return b;
 };
-thx_core_Ints.parse = function(s,base) {
+thx_Ints.parse = function(s,base) {
 	var v = parseInt(s,base);
 	if(isNaN(v)) return null; else return v;
 };
-thx_core_Ints.random = function(min,max) {
+thx_Ints.random = function(min,max) {
 	if(min == null) min = 0;
 	return Std.random(max + 1) + min;
 };
-thx_core_Ints.range = function(start,stop,step) {
+thx_Ints.range = function(start,stop,step) {
 	if(step == null) step = 1;
 	if(null == stop) {
 		stop = start;
@@ -8447,70 +24847,70 @@ thx_core_Ints.range = function(start,stop,step) {
 	if(step < 0) while((j = start + step * ++i) > stop) range.push(j); else while((j = start + step * ++i) < stop) range.push(j);
 	return range;
 };
-thx_core_Ints.toString = function(value,base) {
+thx_Ints.toString = function(value,base) {
 	return value.toString(base);
 };
-thx_core_Ints.toBool = function(v) {
+thx_Ints.toBool = function(v) {
 	return v != 0;
 };
-thx_core_Ints.sign = function(value) {
+thx_Ints.sign = function(value) {
 	if(value < 0) return -1; else return 1;
 };
-thx_core_Ints.wrapCircular = function(v,max) {
+thx_Ints.wrapCircular = function(v,max) {
 	v = v % max;
 	if(v < 0) v += max;
 	return v;
 };
-var thx_core_Iterators = function() { };
-thx_core_Iterators.__name__ = ["thx","core","Iterators"];
-thx_core_Iterators.all = function(it,predicate) {
+var thx_Iterators = function() { };
+thx_Iterators.__name__ = ["thx","Iterators"];
+thx_Iterators.all = function(it,predicate) {
 	while( it.hasNext() ) {
 		var item = it.next();
 		if(!predicate(item)) return false;
 	}
 	return true;
 };
-thx_core_Iterators.any = function(it,predicate) {
+thx_Iterators.any = function(it,predicate) {
 	while( it.hasNext() ) {
 		var item = it.next();
 		if(predicate(item)) return true;
 	}
 	return false;
 };
-thx_core_Iterators.eachPair = function(it,handler) {
-	thx_core_Arrays.eachPair(thx_core_Iterators.toArray(it),handler);
+thx_Iterators.eachPair = function(it,handler) {
+	thx_Arrays.eachPair(thx_Iterators.toArray(it),handler);
 };
-thx_core_Iterators.filter = function(it,predicate) {
-	return thx_core_Iterators.reduce(it,function(acc,item) {
+thx_Iterators.filter = function(it,predicate) {
+	return thx_Iterators.reduce(it,function(acc,item) {
 		if(predicate(item)) acc.push(item);
 		return acc;
 	},[]);
 };
-thx_core_Iterators.find = function(it,f) {
+thx_Iterators.find = function(it,f) {
 	while( it.hasNext() ) {
 		var item = it.next();
 		if(f(item)) return item;
 	}
 	return null;
 };
-thx_core_Iterators.first = function(it) {
+thx_Iterators.first = function(it) {
 	if(it.hasNext()) return it.next(); else return null;
 };
-thx_core_Iterators.isEmpty = function(it) {
+thx_Iterators.isEmpty = function(it) {
 	return !it.hasNext();
 };
-thx_core_Iterators.isIterator = function(v) {
+thx_Iterators.isIterator = function(v) {
 	var fields;
 	if(Reflect.isObject(v) && null == Type.getClass(v)) fields = Reflect.fields(v); else fields = Type.getInstanceFields(Type.getClass(v));
 	if(!Lambda.has(fields,"next") || !Lambda.has(fields,"hasNext")) return false;
 	return Reflect.isFunction(Reflect.field(v,"next")) && Reflect.isFunction(Reflect.field(v,"hasNext"));
 };
-thx_core_Iterators.last = function(it) {
+thx_Iterators.last = function(it) {
 	var buf = null;
 	while(it.hasNext()) buf = it.next();
 	return buf;
 };
-thx_core_Iterators.map = function(it,f) {
+thx_Iterators.map = function(it,f) {
 	var acc = [];
 	while( it.hasNext() ) {
 		var v = it.next();
@@ -8518,7 +24918,7 @@ thx_core_Iterators.map = function(it,f) {
 	}
 	return acc;
 };
-thx_core_Iterators.mapi = function(it,f) {
+thx_Iterators.mapi = function(it,f) {
 	var acc = [];
 	var i = 0;
 	while( it.hasNext() ) {
@@ -8527,24 +24927,24 @@ thx_core_Iterators.mapi = function(it,f) {
 	}
 	return acc;
 };
-thx_core_Iterators.order = function(it,sort) {
-	var n = thx_core_Iterators.toArray(it);
+thx_Iterators.order = function(it,sort) {
+	var n = thx_Iterators.toArray(it);
 	n.sort(sort);
 	return n;
 };
-thx_core_Iterators.reduce = function(it,callback,initial) {
-	thx_core_Iterators.map(it,function(v) {
+thx_Iterators.reduce = function(it,callback,initial) {
+	thx_Iterators.map(it,function(v) {
 		initial = callback(initial,v);
 	});
 	return initial;
 };
-thx_core_Iterators.reducei = function(it,callback,initial) {
-	thx_core_Iterators.mapi(it,function(v,i) {
+thx_Iterators.reducei = function(it,callback,initial) {
+	thx_Iterators.mapi(it,function(v,i) {
 		initial = callback(initial,v,i);
 	});
 	return initial;
 };
-thx_core_Iterators.toArray = function(it) {
+thx_Iterators.toArray = function(it) {
 	var items = [];
 	while( it.hasNext() ) {
 		var item = it.next();
@@ -8552,15 +24952,65 @@ thx_core_Iterators.toArray = function(it) {
 	}
 	return items;
 };
-var thx_core_Nil = { __ename__ : ["thx","core","Nil"], __constructs__ : ["nil"] };
-thx_core_Nil.nil = ["nil",0];
-thx_core_Nil.nil.toString = $estr;
-thx_core_Nil.nil.__enum__ = thx_core_Nil;
-var thx_core_Nulls = function() { };
-thx_core_Nulls.__name__ = ["thx","core","Nulls"];
-var thx_core_Options = function() { };
-thx_core_Options.__name__ = ["thx","core","Options"];
-thx_core_Options.equals = function(a,b,eq) {
+thx_Iterators.zip = function(it1,it2) {
+	var array = [];
+	while(it1.hasNext() && it2.hasNext()) array.push((function($this) {
+		var $r;
+		var _0 = it1.next();
+		var _1 = it2.next();
+		$r = { _0 : _0, _1 : _1};
+		return $r;
+	}(this)));
+	return array;
+};
+thx_Iterators.zip3 = function(it1,it2,it3) {
+	var array = [];
+	while(it1.hasNext() && it2.hasNext() && it3.hasNext()) array.push((function($this) {
+		var $r;
+		var _0 = it1.next();
+		var _1 = it2.next();
+		var _2 = it3.next();
+		$r = { _0 : _0, _1 : _1, _2 : _2};
+		return $r;
+	}(this)));
+	return array;
+};
+thx_Iterators.zip4 = function(it1,it2,it3,it4) {
+	var array = [];
+	while(it1.hasNext() && it2.hasNext() && it3.hasNext() && it4.hasNext()) array.push((function($this) {
+		var $r;
+		var _0 = it1.next();
+		var _1 = it2.next();
+		var _2 = it3.next();
+		var _3 = it4.next();
+		$r = { _0 : _0, _1 : _1, _2 : _2, _3 : _3};
+		return $r;
+	}(this)));
+	return array;
+};
+thx_Iterators.zip5 = function(it1,it2,it3,it4,it5) {
+	var array = [];
+	while(it1.hasNext() && it2.hasNext() && it3.hasNext() && it4.hasNext() && it5.hasNext()) array.push((function($this) {
+		var $r;
+		var _0 = it1.next();
+		var _1 = it2.next();
+		var _2 = it3.next();
+		var _3 = it4.next();
+		var _4 = it5.next();
+		$r = { _0 : _0, _1 : _1, _2 : _2, _3 : _3, _4 : _4};
+		return $r;
+	}(this)));
+	return array;
+};
+var thx_Nil = { __ename__ : ["thx","Nil"], __constructs__ : ["nil"] };
+thx_Nil.nil = ["nil",0];
+thx_Nil.nil.toString = $estr;
+thx_Nil.nil.__enum__ = thx_Nil;
+var thx_Nulls = function() { };
+thx_Nulls.__name__ = ["thx","Nulls"];
+var thx_Options = function() { };
+thx_Options.__name__ = ["thx","Options"];
+thx_Options.equals = function(a,b,eq) {
 	switch(a[1]) {
 	case 1:
 		switch(b[1]) {
@@ -8585,10 +25035,10 @@ thx_core_Options.equals = function(a,b,eq) {
 		break;
 	}
 };
-thx_core_Options.equalsValue = function(a,b,eq) {
-	return thx_core_Options.equals(a,null == b?haxe_ds_Option.None:haxe_ds_Option.Some(b),eq);
+thx_Options.equalsValue = function(a,b,eq) {
+	return thx_Options.equals(a,null == b?haxe_ds_Option.None:haxe_ds_Option.Some(b),eq);
 };
-thx_core_Options.flatMap = function(option,callback) {
+thx_Options.flatMap = function(option,callback) {
 	switch(option[1]) {
 	case 1:
 		return [];
@@ -8597,7 +25047,7 @@ thx_core_Options.flatMap = function(option,callback) {
 		return callback(v);
 	}
 };
-thx_core_Options.map = function(option,callback) {
+thx_Options.map = function(option,callback) {
 	switch(option[1]) {
 	case 1:
 		return haxe_ds_Option.None;
@@ -8606,7 +25056,7 @@ thx_core_Options.map = function(option,callback) {
 		return haxe_ds_Option.Some(callback(v));
 	}
 };
-thx_core_Options.toArray = function(option) {
+thx_Options.toArray = function(option) {
 	switch(option[1]) {
 	case 1:
 		return [];
@@ -8615,7 +25065,7 @@ thx_core_Options.toArray = function(option) {
 		return [v];
 	}
 };
-thx_core_Options.toBool = function(option) {
+thx_Options.toBool = function(option) {
 	switch(option[1]) {
 	case 1:
 		return false;
@@ -8623,10 +25073,10 @@ thx_core_Options.toBool = function(option) {
 		return true;
 	}
 };
-thx_core_Options.toOption = function(value) {
+thx_Options.toOption = function(value) {
 	if(null == value) return haxe_ds_Option.None; else return haxe_ds_Option.Some(value);
 };
-thx_core_Options.toValue = function(option) {
+thx_Options.toValue = function(option) {
 	switch(option[1]) {
 	case 1:
 		return null;
@@ -8635,9 +25085,9 @@ thx_core_Options.toValue = function(option) {
 		return v;
 	}
 };
-var thx_core__$Result_Result_$Impl_$ = {};
-thx_core__$Result_Result_$Impl_$.__name__ = ["thx","core","_Result","Result_Impl_"];
-thx_core__$Result_Result_$Impl_$.optionValue = function(this1) {
+var thx__$Result_Result_$Impl_$ = {};
+thx__$Result_Result_$Impl_$.__name__ = ["thx","_Result","Result_Impl_"];
+thx__$Result_Result_$Impl_$.optionValue = function(this1) {
 	switch(this1[1]) {
 	case 1:
 		var v = this1[2];
@@ -8646,7 +25096,7 @@ thx_core__$Result_Result_$Impl_$.optionValue = function(this1) {
 		return haxe_ds_Option.None;
 	}
 };
-thx_core__$Result_Result_$Impl_$.optionError = function(this1) {
+thx__$Result_Result_$Impl_$.optionError = function(this1) {
 	switch(this1[1]) {
 	case 0:
 		var v = this1[2];
@@ -8655,7 +25105,7 @@ thx_core__$Result_Result_$Impl_$.optionError = function(this1) {
 		return haxe_ds_Option.None;
 	}
 };
-thx_core__$Result_Result_$Impl_$.value = function(this1) {
+thx__$Result_Result_$Impl_$.value = function(this1) {
 	switch(this1[1]) {
 	case 1:
 		var v = this1[2];
@@ -8664,7 +25114,7 @@ thx_core__$Result_Result_$Impl_$.value = function(this1) {
 		return null;
 	}
 };
-thx_core__$Result_Result_$Impl_$.error = function(this1) {
+thx__$Result_Result_$Impl_$.error = function(this1) {
 	switch(this1[1]) {
 	case 0:
 		var v = this1[2];
@@ -8673,7 +25123,7 @@ thx_core__$Result_Result_$Impl_$.error = function(this1) {
 		return null;
 	}
 };
-thx_core__$Result_Result_$Impl_$.get_isSuccess = function(this1) {
+thx__$Result_Result_$Impl_$.get_isSuccess = function(this1) {
 	switch(this1[1]) {
 	case 1:
 		return true;
@@ -8681,7 +25131,7 @@ thx_core__$Result_Result_$Impl_$.get_isSuccess = function(this1) {
 		return false;
 	}
 };
-thx_core__$Result_Result_$Impl_$.get_isFailure = function(this1) {
+thx__$Result_Result_$Impl_$.get_isFailure = function(this1) {
 	switch(this1[1]) {
 	case 0:
 		return true;
@@ -8689,91 +25139,98 @@ thx_core__$Result_Result_$Impl_$.get_isFailure = function(this1) {
 		return false;
 	}
 };
-var thx_core_Strings = function() { };
-thx_core_Strings.__name__ = ["thx","core","Strings"];
-thx_core_Strings.after = function(value,searchFor) {
+var thx_Strings = function() { };
+thx_Strings.__name__ = ["thx","Strings"];
+thx_Strings.after = function(value,searchFor) {
 	var pos = value.indexOf(searchFor);
 	if(pos < 0) return ""; else return value.substring(pos + searchFor.length);
 };
-thx_core_Strings.capitalize = function(s) {
+thx_Strings.capitalize = function(s) {
 	return s.substring(0,1).toUpperCase() + s.substring(1);
 };
-thx_core_Strings.capitalizeWords = function(value,whiteSpaceOnly) {
+thx_Strings.capitalizeWords = function(value,whiteSpaceOnly) {
 	if(whiteSpaceOnly == null) whiteSpaceOnly = false;
-	if(whiteSpaceOnly) return thx_core_Strings.UCWORDSWS.map(value.substring(0,1).toUpperCase() + value.substring(1),thx_core_Strings.upperMatch); else return thx_core_Strings.UCWORDS.map(value.substring(0,1).toUpperCase() + value.substring(1),thx_core_Strings.upperMatch);
+	if(whiteSpaceOnly) return thx_Strings.UCWORDSWS.map(value.substring(0,1).toUpperCase() + value.substring(1),thx_Strings.upperMatch); else return thx_Strings.UCWORDS.map(value.substring(0,1).toUpperCase() + value.substring(1),thx_Strings.upperMatch);
 };
-thx_core_Strings.collapse = function(value) {
-	return thx_core_Strings.WSG.replace(StringTools.trim(value)," ");
+thx_Strings.collapse = function(value) {
+	return thx_Strings.WSG.replace(StringTools.trim(value)," ");
 };
-thx_core_Strings.compare = function(a,b) {
+thx_Strings.compare = function(a,b) {
 	if(a < b) return -1; else if(a > b) return 1; else return 0;
 };
-thx_core_Strings.contains = function(s,test) {
+thx_Strings.contains = function(s,test) {
 	return s.indexOf(test) >= 0;
 };
-thx_core_Strings.dasherize = function(s) {
+thx_Strings.containsAny = function(s,tests) {
+	return thx_Arrays.any(tests,(function(f,s1) {
+		return function(a1) {
+			return f(s1,a1);
+		};
+	})(thx_Strings.contains,s));
+};
+thx_Strings.dasherize = function(s) {
 	return StringTools.replace(s,"_","-");
 };
-thx_core_Strings.ellipsis = function(s,maxlen,symbol) {
+thx_Strings.ellipsis = function(s,maxlen,symbol) {
 	if(symbol == null) symbol = "...";
 	if(maxlen == null) maxlen = 20;
 	if(s.length > maxlen) return s.substring(0,symbol.length > maxlen - symbol.length?symbol.length:maxlen - symbol.length) + symbol; else return s;
 };
-thx_core_Strings.filter = function(s,predicate) {
+thx_Strings.filter = function(s,predicate) {
 	return s.split("").filter(predicate).join("");
 };
-thx_core_Strings.filterCharcode = function(s,predicate) {
-	return thx_core_Strings.toCharcodeArray(s).filter(predicate).map(function(i) {
+thx_Strings.filterCharcode = function(s,predicate) {
+	return thx_Strings.toCharcodeArray(s).filter(predicate).map(function(i) {
 		return String.fromCharCode(i);
 	}).join("");
 };
-thx_core_Strings.from = function(value,searchFor) {
+thx_Strings.from = function(value,searchFor) {
 	var pos = value.indexOf(searchFor);
 	if(pos < 0) return ""; else return value.substring(pos);
 };
-thx_core_Strings.humanize = function(s) {
-	return StringTools.replace(thx_core_Strings.underscore(s),"_"," ");
+thx_Strings.humanize = function(s) {
+	return StringTools.replace(thx_Strings.underscore(s),"_"," ");
 };
-thx_core_Strings.isAlphaNum = function(value) {
-	return thx_core_Strings.ALPHANUM.match(value);
+thx_Strings.isAlphaNum = function(value) {
+	return thx_Strings.ALPHANUM.match(value);
 };
-thx_core_Strings.isLowerCase = function(value) {
+thx_Strings.isLowerCase = function(value) {
 	return value.toLowerCase() == value;
 };
-thx_core_Strings.isUpperCase = function(value) {
+thx_Strings.isUpperCase = function(value) {
 	return value.toUpperCase() == value;
 };
-thx_core_Strings.ifEmpty = function(value,alt) {
+thx_Strings.ifEmpty = function(value,alt) {
 	if(null != value && "" != value) return value; else return alt;
 };
-thx_core_Strings.isDigitsOnly = function(value) {
-	return thx_core_Strings.DIGITS.match(value);
+thx_Strings.isDigitsOnly = function(value) {
+	return thx_Strings.DIGITS.match(value);
 };
-thx_core_Strings.isEmpty = function(value) {
+thx_Strings.isEmpty = function(value) {
 	return value == null || value == "";
 };
-thx_core_Strings.random = function(value,length) {
+thx_Strings.random = function(value,length) {
 	if(length == null) length = 1;
 	var pos = Math.floor((value.length - length + 1) * Math.random());
 	return HxOverrides.substr(value,pos,length);
 };
-thx_core_Strings.iterator = function(s) {
+thx_Strings.iterator = function(s) {
 	var _this = s.split("");
 	return HxOverrides.iter(_this);
 };
-thx_core_Strings.map = function(value,callback) {
+thx_Strings.map = function(value,callback) {
 	return value.split("").map(callback);
 };
-thx_core_Strings.remove = function(value,toremove) {
+thx_Strings.remove = function(value,toremove) {
 	return StringTools.replace(value,toremove,"");
 };
-thx_core_Strings.removeAfter = function(value,toremove) {
+thx_Strings.removeAfter = function(value,toremove) {
 	if(StringTools.endsWith(value,toremove)) return value.substring(0,value.length - toremove.length); else return value;
 };
-thx_core_Strings.removeBefore = function(value,toremove) {
+thx_Strings.removeBefore = function(value,toremove) {
 	if(StringTools.startsWith(value,toremove)) return value.substring(toremove.length); else return value;
 };
-thx_core_Strings.repeat = function(s,times) {
+thx_Strings.repeat = function(s,times) {
 	return ((function($this) {
 		var $r;
 		var _g = [];
@@ -8788,26 +25245,26 @@ thx_core_Strings.repeat = function(s,times) {
 		return $r;
 	}(this))).join("");
 };
-thx_core_Strings.reverse = function(s) {
+thx_Strings.reverse = function(s) {
 	var arr = s.split("");
 	arr.reverse();
 	return arr.join("");
 };
-thx_core_Strings.stripTags = function(s) {
-	return thx_core_Strings.STRIPTAGS.replace(s,"");
+thx_Strings.stripTags = function(s) {
+	return thx_Strings.STRIPTAGS.replace(s,"");
 };
-thx_core_Strings.surround = function(s,left,right) {
+thx_Strings.surround = function(s,left,right) {
 	return "" + left + s + (null == right?left:right);
 };
-thx_core_Strings.toArray = function(s) {
+thx_Strings.toArray = function(s) {
 	return s.split("");
 };
-thx_core_Strings.toCharcodeArray = function(s) {
-	return thx_core_Strings.map(s,function(s1) {
+thx_Strings.toCharcodeArray = function(s) {
+	return thx_Strings.map(s,function(s1) {
 		return HxOverrides.cca(s1,0);
 	});
 };
-thx_core_Strings.toChunks = function(s,len) {
+thx_Strings.toChunks = function(s,len) {
 	var chunks = [];
 	while(s.length > 0) {
 		chunks.push(s.substring(0,len));
@@ -8815,20 +25272,20 @@ thx_core_Strings.toChunks = function(s,len) {
 	}
 	return chunks;
 };
-thx_core_Strings.trimChars = function(value,charlist) {
-	return thx_core_Strings.trimCharsRight(thx_core_Strings.trimCharsLeft(value,charlist),charlist);
+thx_Strings.trimChars = function(value,charlist) {
+	return thx_Strings.trimCharsRight(thx_Strings.trimCharsLeft(value,charlist),charlist);
 };
-thx_core_Strings.trimCharsLeft = function(value,charlist) {
+thx_Strings.trimCharsLeft = function(value,charlist) {
 	var pos = 0;
 	var _g1 = 0;
 	var _g = value.length;
 	while(_g1 < _g) {
 		var i = _g1++;
-		if(thx_core_Strings.contains(charlist,value.charAt(i))) pos++; else break;
+		if(thx_Strings.contains(charlist,value.charAt(i))) pos++; else break;
 	}
 	return value.substring(pos);
 };
-thx_core_Strings.trimCharsRight = function(value,charlist) {
+thx_Strings.trimCharsRight = function(value,charlist) {
 	var len = value.length;
 	var pos = len;
 	var i;
@@ -8836,33 +25293,33 @@ thx_core_Strings.trimCharsRight = function(value,charlist) {
 	while(_g < len) {
 		var j = _g++;
 		i = len - j - 1;
-		if(thx_core_Strings.contains(charlist,value.charAt(i))) pos = i; else break;
+		if(thx_Strings.contains(charlist,value.charAt(i))) pos = i; else break;
 	}
 	return value.substring(0,pos);
 };
-thx_core_Strings.underscore = function(s) {
+thx_Strings.underscore = function(s) {
 	s = new EReg("::","g").replace(s,"/");
 	s = new EReg("([A-Z]+)([A-Z][a-z])","g").replace(s,"$1_$2");
 	s = new EReg("([a-z\\d])([A-Z])","g").replace(s,"$1_$2");
 	s = new EReg("-","g").replace(s,"_");
 	return s.toLowerCase();
 };
-thx_core_Strings.upTo = function(value,searchFor) {
+thx_Strings.upTo = function(value,searchFor) {
 	var pos = value.indexOf(searchFor);
 	if(pos < 0) return value; else return value.substring(0,pos);
 };
-thx_core_Strings.wrapColumns = function(s,columns,indent,newline) {
+thx_Strings.wrapColumns = function(s,columns,indent,newline) {
 	if(newline == null) newline = "\n";
 	if(indent == null) indent = "";
 	if(columns == null) columns = 78;
-	return thx_core_Strings.SPLIT_LINES.split(s).map(function(part) {
-		return thx_core_Strings.wrapLine(StringTools.trim(thx_core_Strings.WSG.replace(part," ")),columns,indent,newline);
+	return thx_Strings.SPLIT_LINES.split(s).map(function(part) {
+		return thx_Strings.wrapLine(StringTools.trim(thx_Strings.WSG.replace(part," ")),columns,indent,newline);
 	}).join(newline);
 };
-thx_core_Strings.upperMatch = function(re) {
+thx_Strings.upperMatch = function(re) {
 	return re.matched(0).toUpperCase();
 };
-thx_core_Strings.wrapLine = function(s,columns,indent,newline) {
+thx_Strings.wrapLine = function(s,columns,indent,newline) {
 	var parts = [];
 	var pos = 0;
 	var len = s.length;
@@ -8887,14 +25344,14 @@ thx_core_Strings.wrapLine = function(s,columns,indent,newline) {
 	}
 	return indent + parts.join(newline + indent);
 };
-var thx_core_Timer = function() { };
-thx_core_Timer.__name__ = ["thx","core","Timer"];
-thx_core_Timer.debounce = function(callback,delayms,leading) {
+var thx_Timer = function() { };
+thx_Timer.__name__ = ["thx","Timer"];
+thx_Timer.debounce = function(callback,delayms,leading) {
 	if(leading == null) leading = false;
-	var cancel = thx_core_Functions.noop;
+	var cancel = thx_Functions.noop;
 	var poll = function() {
 		cancel();
-		cancel = thx_core_Timer.delay(callback,delayms);
+		cancel = thx_Timer.delay(callback,delayms);
 	};
 	return function() {
 		if(leading) {
@@ -8904,12 +25361,12 @@ thx_core_Timer.debounce = function(callback,delayms,leading) {
 		poll();
 	};
 };
-thx_core_Timer.throttle = function(callback,delayms,leading) {
+thx_Timer.throttle = function(callback,delayms,leading) {
 	if(leading == null) leading = false;
 	var waiting = false;
 	var poll = function() {
 		waiting = true;
-		thx_core_Timer.delay(callback,delayms);
+		thx_Timer.delay(callback,delayms);
 	};
 	return function() {
 		if(leading) {
@@ -8921,23 +25378,23 @@ thx_core_Timer.throttle = function(callback,delayms,leading) {
 		poll();
 	};
 };
-thx_core_Timer.repeat = function(callback,delayms) {
+thx_Timer.repeat = function(callback,delayms) {
 	return (function(f,id) {
 		return function() {
 			f(id);
 		};
-	})(thx_core_Timer.clear,setInterval(callback,delayms));
+	})(thx_Timer.clear,setInterval(callback,delayms));
 };
-thx_core_Timer.delay = function(callback,delayms) {
+thx_Timer.delay = function(callback,delayms) {
 	return (function(f,id) {
 		return function() {
 			f(id);
 		};
-	})(thx_core_Timer.clear,setTimeout(callback,delayms));
+	})(thx_Timer.clear,setTimeout(callback,delayms));
 };
-thx_core_Timer.frame = function(callback) {
+thx_Timer.frame = function(callback) {
 	var cancelled = false;
-	var f = thx_core_Functions.noop;
+	var f = thx_Functions.noop;
 	var current = performance.now();
 	var next;
 	f = function() {
@@ -8952,184 +25409,184 @@ thx_core_Timer.frame = function(callback) {
 		cancelled = true;
 	};
 };
-thx_core_Timer.nextFrame = function(callback) {
+thx_Timer.nextFrame = function(callback) {
 	var id = requestAnimationFrame(callback);
 	return function() {
 		cancelAnimationFrame(id);
 	};
 };
-thx_core_Timer.immediate = function(callback) {
+thx_Timer.immediate = function(callback) {
 	return (function(f,id) {
 		return function() {
 			f(id);
 		};
-	})(thx_core_Timer.clear,setImmediate(callback));
+	})(thx_Timer.clear,setImmediate(callback));
 };
-thx_core_Timer.clear = function(id) {
+thx_Timer.clear = function(id) {
 	clearTimeout(id);
 	return;
 };
-thx_core_Timer.time = function() {
+thx_Timer.time = function() {
 	return performance.now();
 };
-var thx_core__$Tuple_Tuple0_$Impl_$ = {};
-thx_core__$Tuple_Tuple0_$Impl_$.__name__ = ["thx","core","_Tuple","Tuple0_Impl_"];
-thx_core__$Tuple_Tuple0_$Impl_$._new = function() {
-	return thx_core_Nil.nil;
+var thx__$Tuple_Tuple0_$Impl_$ = {};
+thx__$Tuple_Tuple0_$Impl_$.__name__ = ["thx","_Tuple","Tuple0_Impl_"];
+thx__$Tuple_Tuple0_$Impl_$._new = function() {
+	return thx_Nil.nil;
 };
-thx_core__$Tuple_Tuple0_$Impl_$["with"] = function(this1,v) {
+thx__$Tuple_Tuple0_$Impl_$["with"] = function(this1,v) {
 	return v;
 };
-thx_core__$Tuple_Tuple0_$Impl_$.toString = function(this1) {
+thx__$Tuple_Tuple0_$Impl_$.toString = function(this1) {
 	return "Tuple0()";
 };
-thx_core__$Tuple_Tuple0_$Impl_$.toNil = function(this1) {
+thx__$Tuple_Tuple0_$Impl_$.toNil = function(this1) {
 	return this1;
 };
-thx_core__$Tuple_Tuple0_$Impl_$.nilToTuple = function(v) {
-	return thx_core_Nil.nil;
+thx__$Tuple_Tuple0_$Impl_$.nilToTuple = function(v) {
+	return thx_Nil.nil;
 };
-var thx_core__$Tuple_Tuple1_$Impl_$ = {};
-thx_core__$Tuple_Tuple1_$Impl_$.__name__ = ["thx","core","_Tuple","Tuple1_Impl_"];
-thx_core__$Tuple_Tuple1_$Impl_$._new = function(_0) {
+var thx__$Tuple_Tuple1_$Impl_$ = {};
+thx__$Tuple_Tuple1_$Impl_$.__name__ = ["thx","_Tuple","Tuple1_Impl_"];
+thx__$Tuple_Tuple1_$Impl_$._new = function(_0) {
 	return _0;
 };
-thx_core__$Tuple_Tuple1_$Impl_$.get__0 = function(this1) {
+thx__$Tuple_Tuple1_$Impl_$.get__0 = function(this1) {
 	return this1;
 };
-thx_core__$Tuple_Tuple1_$Impl_$["with"] = function(this1,v) {
+thx__$Tuple_Tuple1_$Impl_$["with"] = function(this1,v) {
 	return { _0 : this1, _1 : v};
 };
-thx_core__$Tuple_Tuple1_$Impl_$.toString = function(this1) {
+thx__$Tuple_Tuple1_$Impl_$.toString = function(this1) {
 	return "Tuple1(" + Std.string(this1) + ")";
 };
-thx_core__$Tuple_Tuple1_$Impl_$.arrayToTuple = function(v) {
+thx__$Tuple_Tuple1_$Impl_$.arrayToTuple = function(v) {
 	return v[0];
 };
-var thx_core__$Tuple_Tuple2_$Impl_$ = {};
-thx_core__$Tuple_Tuple2_$Impl_$.__name__ = ["thx","core","_Tuple","Tuple2_Impl_"];
-thx_core__$Tuple_Tuple2_$Impl_$._new = function(_0,_1) {
+var thx__$Tuple_Tuple2_$Impl_$ = {};
+thx__$Tuple_Tuple2_$Impl_$.__name__ = ["thx","_Tuple","Tuple2_Impl_"];
+thx__$Tuple_Tuple2_$Impl_$._new = function(_0,_1) {
 	return { _0 : _0, _1 : _1};
 };
-thx_core__$Tuple_Tuple2_$Impl_$.get_left = function(this1) {
+thx__$Tuple_Tuple2_$Impl_$.get_left = function(this1) {
 	return this1._0;
 };
-thx_core__$Tuple_Tuple2_$Impl_$.get_right = function(this1) {
+thx__$Tuple_Tuple2_$Impl_$.get_right = function(this1) {
 	return this1._1;
 };
-thx_core__$Tuple_Tuple2_$Impl_$.flip = function(this1) {
+thx__$Tuple_Tuple2_$Impl_$.flip = function(this1) {
 	return { _0 : this1._1, _1 : this1._0};
 };
-thx_core__$Tuple_Tuple2_$Impl_$.dropLeft = function(this1) {
+thx__$Tuple_Tuple2_$Impl_$.dropLeft = function(this1) {
 	return this1._1;
 };
-thx_core__$Tuple_Tuple2_$Impl_$.dropRight = function(this1) {
+thx__$Tuple_Tuple2_$Impl_$.dropRight = function(this1) {
 	return this1._0;
 };
-thx_core__$Tuple_Tuple2_$Impl_$["with"] = function(this1,v) {
+thx__$Tuple_Tuple2_$Impl_$["with"] = function(this1,v) {
 	return { _0 : this1._0, _1 : this1._1, _2 : v};
 };
-thx_core__$Tuple_Tuple2_$Impl_$.toString = function(this1) {
+thx__$Tuple_Tuple2_$Impl_$.toString = function(this1) {
 	return "Tuple2(" + Std.string(this1._0) + "," + Std.string(this1._1) + ")";
 };
-thx_core__$Tuple_Tuple2_$Impl_$.arrayToTuple2 = function(v) {
+thx__$Tuple_Tuple2_$Impl_$.arrayToTuple2 = function(v) {
 	return { _0 : v[0], _1 : v[1]};
 };
-var thx_core__$Tuple_Tuple3_$Impl_$ = {};
-thx_core__$Tuple_Tuple3_$Impl_$.__name__ = ["thx","core","_Tuple","Tuple3_Impl_"];
-thx_core__$Tuple_Tuple3_$Impl_$._new = function(_0,_1,_2) {
+var thx__$Tuple_Tuple3_$Impl_$ = {};
+thx__$Tuple_Tuple3_$Impl_$.__name__ = ["thx","_Tuple","Tuple3_Impl_"];
+thx__$Tuple_Tuple3_$Impl_$._new = function(_0,_1,_2) {
 	return { _0 : _0, _1 : _1, _2 : _2};
 };
-thx_core__$Tuple_Tuple3_$Impl_$.flip = function(this1) {
+thx__$Tuple_Tuple3_$Impl_$.flip = function(this1) {
 	return { _0 : this1._2, _1 : this1._1, _2 : this1._0};
 };
-thx_core__$Tuple_Tuple3_$Impl_$.dropLeft = function(this1) {
+thx__$Tuple_Tuple3_$Impl_$.dropLeft = function(this1) {
 	return { _0 : this1._1, _1 : this1._2};
 };
-thx_core__$Tuple_Tuple3_$Impl_$.dropRight = function(this1) {
+thx__$Tuple_Tuple3_$Impl_$.dropRight = function(this1) {
 	return { _0 : this1._0, _1 : this1._1};
 };
-thx_core__$Tuple_Tuple3_$Impl_$["with"] = function(this1,v) {
+thx__$Tuple_Tuple3_$Impl_$["with"] = function(this1,v) {
 	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : v};
 };
-thx_core__$Tuple_Tuple3_$Impl_$.toString = function(this1) {
+thx__$Tuple_Tuple3_$Impl_$.toString = function(this1) {
 	return "Tuple3(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + ")";
 };
-thx_core__$Tuple_Tuple3_$Impl_$.arrayToTuple3 = function(v) {
+thx__$Tuple_Tuple3_$Impl_$.arrayToTuple3 = function(v) {
 	return { _0 : v[0], _1 : v[1], _2 : v[2]};
 };
-var thx_core__$Tuple_Tuple4_$Impl_$ = {};
-thx_core__$Tuple_Tuple4_$Impl_$.__name__ = ["thx","core","_Tuple","Tuple4_Impl_"];
-thx_core__$Tuple_Tuple4_$Impl_$._new = function(_0,_1,_2,_3) {
+var thx__$Tuple_Tuple4_$Impl_$ = {};
+thx__$Tuple_Tuple4_$Impl_$.__name__ = ["thx","_Tuple","Tuple4_Impl_"];
+thx__$Tuple_Tuple4_$Impl_$._new = function(_0,_1,_2,_3) {
 	return { _0 : _0, _1 : _1, _2 : _2, _3 : _3};
 };
-thx_core__$Tuple_Tuple4_$Impl_$.flip = function(this1) {
+thx__$Tuple_Tuple4_$Impl_$.flip = function(this1) {
 	return { _0 : this1._3, _1 : this1._2, _2 : this1._1, _3 : this1._0};
 };
-thx_core__$Tuple_Tuple4_$Impl_$.dropLeft = function(this1) {
+thx__$Tuple_Tuple4_$Impl_$.dropLeft = function(this1) {
 	return { _0 : this1._1, _1 : this1._2, _2 : this1._3};
 };
-thx_core__$Tuple_Tuple4_$Impl_$.dropRight = function(this1) {
+thx__$Tuple_Tuple4_$Impl_$.dropRight = function(this1) {
 	return { _0 : this1._0, _1 : this1._1, _2 : this1._2};
 };
-thx_core__$Tuple_Tuple4_$Impl_$["with"] = function(this1,v) {
+thx__$Tuple_Tuple4_$Impl_$["with"] = function(this1,v) {
 	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : this1._3, _4 : v};
 };
-thx_core__$Tuple_Tuple4_$Impl_$.toString = function(this1) {
+thx__$Tuple_Tuple4_$Impl_$.toString = function(this1) {
 	return "Tuple4(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + ")";
 };
-thx_core__$Tuple_Tuple4_$Impl_$.arrayToTuple4 = function(v) {
+thx__$Tuple_Tuple4_$Impl_$.arrayToTuple4 = function(v) {
 	return { _0 : v[0], _1 : v[1], _2 : v[2], _3 : v[3]};
 };
-var thx_core__$Tuple_Tuple5_$Impl_$ = {};
-thx_core__$Tuple_Tuple5_$Impl_$.__name__ = ["thx","core","_Tuple","Tuple5_Impl_"];
-thx_core__$Tuple_Tuple5_$Impl_$._new = function(_0,_1,_2,_3,_4) {
+var thx__$Tuple_Tuple5_$Impl_$ = {};
+thx__$Tuple_Tuple5_$Impl_$.__name__ = ["thx","_Tuple","Tuple5_Impl_"];
+thx__$Tuple_Tuple5_$Impl_$._new = function(_0,_1,_2,_3,_4) {
 	return { _0 : _0, _1 : _1, _2 : _2, _3 : _3, _4 : _4};
 };
-thx_core__$Tuple_Tuple5_$Impl_$.flip = function(this1) {
+thx__$Tuple_Tuple5_$Impl_$.flip = function(this1) {
 	return { _0 : this1._4, _1 : this1._3, _2 : this1._2, _3 : this1._1, _4 : this1._0};
 };
-thx_core__$Tuple_Tuple5_$Impl_$.dropLeft = function(this1) {
+thx__$Tuple_Tuple5_$Impl_$.dropLeft = function(this1) {
 	return { _0 : this1._1, _1 : this1._2, _2 : this1._3, _3 : this1._4};
 };
-thx_core__$Tuple_Tuple5_$Impl_$.dropRight = function(this1) {
+thx__$Tuple_Tuple5_$Impl_$.dropRight = function(this1) {
 	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : this1._3};
 };
-thx_core__$Tuple_Tuple5_$Impl_$["with"] = function(this1,v) {
+thx__$Tuple_Tuple5_$Impl_$["with"] = function(this1,v) {
 	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : this1._3, _4 : this1._4, _5 : v};
 };
-thx_core__$Tuple_Tuple5_$Impl_$.toString = function(this1) {
+thx__$Tuple_Tuple5_$Impl_$.toString = function(this1) {
 	return "Tuple5(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + "," + Std.string(this1._4) + ")";
 };
-thx_core__$Tuple_Tuple5_$Impl_$.arrayToTuple5 = function(v) {
+thx__$Tuple_Tuple5_$Impl_$.arrayToTuple5 = function(v) {
 	return { _0 : v[0], _1 : v[1], _2 : v[2], _3 : v[3], _4 : v[4]};
 };
-var thx_core__$Tuple_Tuple6_$Impl_$ = {};
-thx_core__$Tuple_Tuple6_$Impl_$.__name__ = ["thx","core","_Tuple","Tuple6_Impl_"];
-thx_core__$Tuple_Tuple6_$Impl_$._new = function(_0,_1,_2,_3,_4,_5) {
+var thx__$Tuple_Tuple6_$Impl_$ = {};
+thx__$Tuple_Tuple6_$Impl_$.__name__ = ["thx","_Tuple","Tuple6_Impl_"];
+thx__$Tuple_Tuple6_$Impl_$._new = function(_0,_1,_2,_3,_4,_5) {
 	return { _0 : _0, _1 : _1, _2 : _2, _3 : _3, _4 : _4, _5 : _5};
 };
-thx_core__$Tuple_Tuple6_$Impl_$.flip = function(this1) {
+thx__$Tuple_Tuple6_$Impl_$.flip = function(this1) {
 	return { _0 : this1._5, _1 : this1._4, _2 : this1._3, _3 : this1._2, _4 : this1._1, _5 : this1._0};
 };
-thx_core__$Tuple_Tuple6_$Impl_$.dropLeft = function(this1) {
+thx__$Tuple_Tuple6_$Impl_$.dropLeft = function(this1) {
 	return { _0 : this1._1, _1 : this1._2, _2 : this1._3, _3 : this1._4, _4 : this1._5};
 };
-thx_core__$Tuple_Tuple6_$Impl_$.dropRight = function(this1) {
+thx__$Tuple_Tuple6_$Impl_$.dropRight = function(this1) {
 	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : this1._3, _4 : this1._4};
 };
-thx_core__$Tuple_Tuple6_$Impl_$.toString = function(this1) {
+thx__$Tuple_Tuple6_$Impl_$.toString = function(this1) {
 	return "Tuple6(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + "," + Std.string(this1._4) + "," + Std.string(this1._5) + ")";
 };
-thx_core__$Tuple_Tuple6_$Impl_$.arrayToTuple6 = function(v) {
+thx__$Tuple_Tuple6_$Impl_$.arrayToTuple6 = function(v) {
 	return { _0 : v[0], _1 : v[1], _2 : v[2], _3 : v[3], _4 : v[4], _5 : v[5]};
 };
-var thx_core_Types = function() { };
-thx_core_Types.__name__ = ["thx","core","Types"];
-thx_core_Types.isAnonymousObject = function(v) {
+var thx_Types = function() { };
+thx_Types.__name__ = ["thx","Types"];
+thx_Types.isAnonymousObject = function(v) {
 	return Reflect.isObject(v) && null == Type.getClass(v);
 };
-thx_core_Types.isPrimitive = function(v) {
+thx_Types.isPrimitive = function(v) {
 	{
 		var _g = Type["typeof"](v);
 		switch(_g[1]) {
@@ -9143,17 +25600,17 @@ thx_core_Types.isPrimitive = function(v) {
 		}
 	}
 };
-thx_core_Types.hasSuperClass = function(cls,sup) {
+thx_Types.hasSuperClass = function(cls,sup) {
 	while(null != cls) {
 		if(cls == sup) return true;
 		cls = Type.getSuperClass(cls);
 	}
 	return false;
 };
-thx_core_Types.sameType = function(a,b) {
-	return thx_core_Types.typeToString(Type["typeof"](a)) == thx_core_Types.typeToString(Type["typeof"](b));
+thx_Types.sameType = function(a,b) {
+	return thx_Types.typeToString(Type["typeof"](a)) == thx_Types.typeToString(Type["typeof"](b));
 };
-thx_core_Types.typeInheritance = function(type) {
+thx_Types.typeInheritance = function(type) {
 	switch(type[1]) {
 	case 1:
 		return ["Int"];
@@ -9180,7 +25637,7 @@ thx_core_Types.typeInheritance = function(type) {
 		throw new js__$Boot_HaxeError("invalid type " + Std.string(type));
 	}
 };
-thx_core_Types.typeToString = function(type) {
+thx_Types.typeToString = function(type) {
 	switch(type[1]) {
 	case 0:
 		return "Null";
@@ -9204,29 +25661,29 @@ thx_core_Types.typeToString = function(type) {
 		throw new js__$Boot_HaxeError("invalid type " + Std.string(type));
 	}
 };
-thx_core_Types.valueTypeInheritance = function(value) {
-	return thx_core_Types.typeInheritance(Type["typeof"](value));
+thx_Types.valueTypeInheritance = function(value) {
+	return thx_Types.typeInheritance(Type["typeof"](value));
 };
-thx_core_Types.valueTypeToString = function(value) {
-	return thx_core_Types.typeToString(Type["typeof"](value));
+thx_Types.valueTypeToString = function(value) {
+	return thx_Types.typeToString(Type["typeof"](value));
 };
-var thx_core_error_AbstractMethod = function(posInfo) {
-	thx_core_Error.call(this,"method " + posInfo.className + "." + posInfo.methodName + "() is abstract",null,posInfo);
+var thx_error_AbstractMethod = function(posInfo) {
+	thx_Error.call(this,"method " + posInfo.className + "." + posInfo.methodName + "() is abstract",null,posInfo);
 };
-thx_core_error_AbstractMethod.__name__ = ["thx","core","error","AbstractMethod"];
-thx_core_error_AbstractMethod.__super__ = thx_core_Error;
-thx_core_error_AbstractMethod.prototype = $extend(thx_core_Error.prototype,{
-	__class__: thx_core_error_AbstractMethod
+thx_error_AbstractMethod.__name__ = ["thx","error","AbstractMethod"];
+thx_error_AbstractMethod.__super__ = thx_Error;
+thx_error_AbstractMethod.prototype = $extend(thx_Error.prototype,{
+	__class__: thx_error_AbstractMethod
 });
-var thx_core_error_ErrorWrapper = function(message,innerError,stack,pos) {
-	thx_core_Error.call(this,message,stack,pos);
+var thx_error_ErrorWrapper = function(message,innerError,stack,pos) {
+	thx_Error.call(this,message,stack,pos);
 	this.innerError = innerError;
 };
-thx_core_error_ErrorWrapper.__name__ = ["thx","core","error","ErrorWrapper"];
-thx_core_error_ErrorWrapper.__super__ = thx_core_Error;
-thx_core_error_ErrorWrapper.prototype = $extend(thx_core_Error.prototype,{
+thx_error_ErrorWrapper.__name__ = ["thx","error","ErrorWrapper"];
+thx_error_ErrorWrapper.__super__ = thx_Error;
+thx_error_ErrorWrapper.prototype = $extend(thx_Error.prototype,{
 	innerError: null
-	,__class__: thx_core_error_ErrorWrapper
+	,__class__: thx_error_ErrorWrapper
 });
 var thx_promise_Future = function() {
 	this.handlers = [];
@@ -9238,7 +25695,7 @@ thx_promise_Future.sequence = function(arr) {
 		var poll;
 		var poll1 = null;
 		poll1 = function(_) {
-			if(arr.length == 0) callback(thx_core_Nil.nil); else arr.shift().then(poll1);
+			if(arr.length == 0) callback(thx_Nil.nil); else arr.shift().then(poll1);
 		};
 		poll = poll1;
 		poll(null);
@@ -9247,7 +25704,7 @@ thx_promise_Future.sequence = function(arr) {
 thx_promise_Future.afterAll = function(arr) {
 	return thx_promise_Future.create(function(callback) {
 		thx_promise_Future.all(arr).then(function(_) {
-			callback(thx_core_Nil.nil);
+			callback(thx_Nil.nil);
 		});
 	});
 };
@@ -9255,7 +25712,7 @@ thx_promise_Future.all = function(arr) {
 	return thx_promise_Future.create(function(callback) {
 		var results = [];
 		var counter = 0;
-		thx_core_Arrays.mapi(arr,function(p,i) {
+		thx_Arrays.mapi(arr,function(p,i) {
 			p.then(function(value) {
 				results[i] = value;
 				counter++;
@@ -9292,7 +25749,7 @@ thx_promise_Future.prototype = {
 		}));
 	}
 	,hasValue: function() {
-		return thx_core_Options.toBool(this.state);
+		return thx_Options.toBool(this.state);
 	}
 	,map: function(handler) {
 		var _g = this;
@@ -9338,7 +25795,7 @@ thx_promise_Future.prototype = {
 				break;
 			case 0:
 				var r = _g[2];
-				throw new thx_core_Error("future was already \"" + Std.string(r) + "\", can't apply the new state \"" + Std.string(newstate) + "\"",null,{ fileName : "Future.hx", lineNumber : 108, className : "thx.promise.Future", methodName : "setState"});
+				throw new thx_Error("future was already \"" + Std.string(r) + "\", can't apply the new state \"" + Std.string(newstate) + "\"",null,{ fileName : "Future.hx", lineNumber : 108, className : "thx.promise.Future", methodName : "setState"});
 				break;
 			}
 		}
@@ -9566,7 +26023,7 @@ thx_promise_FutureNil.join = function(p1,p2) {
 thx_promise_FutureNil.nil = function(p) {
 	return thx_promise_Future.create(function(callback) {
 		p.then(function(_) {
-			callback(thx_core_Nil.nil);
+			callback(thx_Nil.nil);
 		});
 	});
 };
@@ -9574,7 +26031,7 @@ var thx_promise__$Promise_Promise_$Impl_$ = {};
 thx_promise__$Promise_Promise_$Impl_$.__name__ = ["thx","promise","_Promise","Promise_Impl_"];
 thx_promise__$Promise_Promise_$Impl_$.futureToPromise = function(future) {
 	return future.map(function(v) {
-		return thx_core_Either.Right(v);
+		return thx_Either.Right(v);
 	});
 };
 thx_promise__$Promise_Promise_$Impl_$.sequence = function(arr) {
@@ -9591,7 +26048,7 @@ thx_promise__$Promise_Promise_$Impl_$.sequence = function(arr) {
 thx_promise__$Promise_Promise_$Impl_$.afterAll = function(arr) {
 	return thx_promise__$Promise_Promise_$Impl_$.create(function(resolve,reject) {
 		thx_promise__$Promise_Promise_$Impl_$.either(thx_promise__$Promise_Promise_$Impl_$.all(arr),function(_) {
-			resolve(thx_core_Nil.nil);
+			resolve(thx_Nil.nil);
 		},reject);
 	});
 };
@@ -9601,7 +26058,7 @@ thx_promise__$Promise_Promise_$Impl_$.all = function(arr) {
 		var results = [];
 		var counter = 0;
 		var hasError = false;
-		thx_core_Arrays.mapi(arr,function(p,i) {
+		thx_Arrays.mapi(arr,function(p,i) {
 			thx_promise__$Promise_Promise_$Impl_$.either(p,function(value) {
 				if(hasError) return;
 				results[i] = value;
@@ -9618,9 +26075,9 @@ thx_promise__$Promise_Promise_$Impl_$.all = function(arr) {
 thx_promise__$Promise_Promise_$Impl_$.create = function(callback) {
 	return thx_promise_Future.create(function(cb) {
 		callback(function(value) {
-			cb(thx_core_Either.Right(value));
+			cb(thx_Either.Right(value));
 		},function(error) {
-			cb(thx_core_Either.Left(error));
+			cb(thx_Either.Left(error));
 		});
 	});
 };
@@ -9748,6 +26205,11 @@ thx_promise__$Promise_Promise_$Impl_$.mapFailureFuture = function(this1,failure)
 		return thx_promise_Future.value(value);
 	},failure);
 };
+thx_promise__$Promise_Promise_$Impl_$.mapFailurePromise = function(this1,failure) {
+	return thx_promise__$Promise_Promise_$Impl_$.mapEitherFuture(this1,function(value) {
+		return thx_promise__$Promise_Promise_$Impl_$.value(value);
+	},failure);
+};
 thx_promise__$Promise_Promise_$Impl_$.mapSuccess = function(this1,success) {
 	return thx_promise__$Promise_Promise_$Impl_$.mapEitherFuture(this1,function(v) {
 		return thx_promise__$Promise_Promise_$Impl_$.value(success(v));
@@ -9806,9 +26268,9 @@ thx_promise_Promises.join = function(p1,p2) {
 thx_promise_Promises.log = function(promise,prefix) {
 	if(prefix == null) prefix = "";
 	return thx_promise__$Promise_Promise_$Impl_$.either(promise,function(r) {
-		haxe_Log.trace("" + prefix + " SUCCESS: " + Std.string(r),{ fileName : "Promise.hx", lineNumber : 199, className : "thx.promise.Promises", methodName : "log"});
+		haxe_Log.trace("" + prefix + " SUCCESS: " + Std.string(r),{ fileName : "Promise.hx", lineNumber : 202, className : "thx.promise.Promises", methodName : "log"});
 	},function(e) {
-		haxe_Log.trace("" + prefix + " ERROR: " + e.toString(),{ fileName : "Promise.hx", lineNumber : 200, className : "thx.promise.Promises", methodName : "log"});
+		haxe_Log.trace("" + prefix + " ERROR: " + e.toString(),{ fileName : "Promise.hx", lineNumber : 203, className : "thx.promise.Promises", methodName : "log"});
 	});
 };
 var thx_promise_PromiseTuple6 = function() { };
@@ -9971,18 +26433,50 @@ thx_promise_PromiseNil.join = function(p1,p2) {
 thx_promise_PromiseNil.nil = function(p) {
 	return thx_promise__$Promise_Promise_$Impl_$.create(function(resolve,reject) {
 		thx_promise__$Promise_Promise_$Impl_$.failure(thx_promise__$Promise_Promise_$Impl_$.success(p,function(_) {
-			resolve(thx_core_Nil.nil);
+			resolve(thx_Nil.nil);
+		}),reject);
+	});
+};
+var thx_promise_PromiseAPlus = function() { };
+thx_promise_PromiseAPlus.__name__ = ["thx","promise","PromiseAPlus"];
+thx_promise_PromiseAPlus.promise = function(p) {
+	return thx_promise__$Promise_Promise_$Impl_$.create(function(resolve,reject) {
+		p.then(resolve,function(e) {
+			reject(thx_Error.fromDynamic(e,{ fileName : "Promise.hx", lineNumber : 352, className : "thx.promise.PromiseAPlus", methodName : "promise"}));
+		});
+	});
+};
+thx_promise_PromiseAPlus.aPlus = function(p) {
+	return new Promise(function(resolve,reject) {
+		thx_promise__$Promise_Promise_$Impl_$.failure(thx_promise__$Promise_Promise_$Impl_$.success(p,resolve),reject);
+	});
+};
+var thx_promise_PromiseAPlusVoid = function() { };
+thx_promise_PromiseAPlusVoid.__name__ = ["thx","promise","PromiseAPlusVoid"];
+thx_promise_PromiseAPlusVoid.promise = function(p) {
+	return thx_promise__$Promise_Promise_$Impl_$.create(function(resolve,reject) {
+		p.then(function() {
+			resolve(thx_Nil.nil);
+		},function(e) {
+			reject(thx_Error.fromDynamic(e,{ fileName : "Promise.hx", lineNumber : 364, className : "thx.promise.PromiseAPlusVoid", methodName : "promise"}));
+		});
+	});
+};
+thx_promise_PromiseAPlusVoid.aPlus = function(p) {
+	return new Promise(function(resolve,reject) {
+		thx_promise__$Promise_Promise_$Impl_$.failure(thx_promise__$Promise_Promise_$Impl_$.success(p,function() {
+			resolve(thx_Nil.nil);
 		}),reject);
 	});
 };
 var thx_promise_Timer = function() { };
 thx_promise_Timer.__name__ = ["thx","promise","Timer"];
 thx_promise_Timer.delay = function(delayms) {
-	return thx_promise_Timer.delayValue(thx_core_Nil.nil,delayms);
+	return thx_promise_Timer.delayValue(thx_Nil.nil,delayms);
 };
 thx_promise_Timer.delayValue = function(value,delayms) {
 	return thx_promise_Future.create(function(callback) {
-		thx_core_Timer.delay((function(f,a1) {
+		thx_Timer.delay((function(f,a1) {
 			return function() {
 				f(a1);
 			};
@@ -9990,11 +26484,11 @@ thx_promise_Timer.delayValue = function(value,delayms) {
 	});
 };
 thx_promise_Timer.immediate = function() {
-	return thx_promise_Timer.immediateValue(thx_core_Nil.nil);
+	return thx_promise_Timer.immediateValue(thx_Nil.nil);
 };
 thx_promise_Timer.immediateValue = function(value) {
 	return thx_promise_Future.create(function(callback) {
-		thx_core_Timer.immediate((function(f,a1) {
+		thx_Timer.immediate((function(f,a1) {
 			return function() {
 				f(a1);
 			};
@@ -10107,7 +26601,7 @@ thx_stream_Emitter.prototype = {
 				case 0:
 					var v = r[2];
 					cancel();
-					cancel = thx_core_Timer.delay((function(f,v1) {
+					cancel = thx_Timer.delay((function(f,v1) {
 						return function() {
 							f(v1);
 						};
@@ -10119,7 +26613,7 @@ thx_stream_Emitter.prototype = {
 						stream.cancel();
 						break;
 					case false:
-						thx_core_Timer.delay($bind(stream,stream.end),delay);
+						thx_Timer.delay($bind(stream,stream.end),delay);
 						break;
 					}
 					break;
@@ -10130,7 +26624,7 @@ thx_stream_Emitter.prototype = {
 	,delay: function(time) {
 		var _g = this;
 		return new thx_stream_Emitter(function(stream) {
-			var cancel = thx_core_Timer.delay(function() {
+			var cancel = thx_Timer.delay(function() {
 				_g.init(stream);
 			},time);
 			stream.addCleanUp(cancel);
@@ -10270,7 +26764,7 @@ thx_stream_Emitter.prototype = {
 	}
 	,toNil: function() {
 		return this.map(function(_) {
-			return thx_core_Nil.nil;
+			return thx_Nil.nil;
 		});
 	}
 	,toTrue: function() {
@@ -10360,7 +26854,7 @@ thx_stream_Emitter.prototype = {
 	}
 	,memberOf: function(arr,equality) {
 		return this.filter(function(v) {
-			return thx_core_Arrays.contains(arr,v,equality);
+			return thx_Arrays.contains(arr,v,equality);
 		});
 	}
 	,notNull: function() {
@@ -10624,7 +27118,7 @@ thx_stream_Emitter.prototype = {
 			streams.push(stream);
 			if(!inited) {
 				inited = true;
-				thx_core_Timer.immediate(function() {
+				thx_Timer.immediate(function() {
 					_g.init(new thx_stream_Stream(function(r) {
 						switch(r[1]) {
 						case 0:
@@ -10989,19 +27483,19 @@ thx_stream_EmitterOptions.either = function(emitter,some,none,end) {
 };
 thx_stream_EmitterOptions.filterOption = function(emitter) {
 	return emitter.filter(function(opt) {
-		return thx_core_Options.toBool(opt);
+		return thx_Options.toBool(opt);
 	}).map(function(opt1) {
-		return thx_core_Options.toValue(opt1);
+		return thx_Options.toValue(opt1);
 	});
 };
 thx_stream_EmitterOptions.toBool = function(emitter) {
 	return emitter.map(function(opt) {
-		return thx_core_Options.toBool(opt);
+		return thx_Options.toBool(opt);
 	});
 };
 thx_stream_EmitterOptions.toValue = function(emitter) {
 	return emitter.map(function(opt) {
-		return thx_core_Options.toValue(opt);
+		return thx_Options.toValue(opt);
 	});
 };
 var thx_stream_EmitterBools = function() { };
@@ -11123,7 +27617,7 @@ thx_stream_StreamValue.Pulse = function(value) { var $x = ["Pulse",0,value]; $x.
 thx_stream_StreamValue.End = function(cancel) { var $x = ["End",1,cancel]; $x.__enum__ = thx_stream_StreamValue; $x.toString = $estr; return $x; };
 var thx_stream_Value = function(value,equals) {
 	var _g = this;
-	if(null == equals) this.equals = thx_core_Functions.equality; else this.equals = equals;
+	if(null == equals) this.equals = thx_Functions.equality; else this.equals = equals;
 	this.value = value;
 	this.downStreams = [];
 	this.upStreams = [];
@@ -11140,7 +27634,7 @@ thx_stream_Value.createOption = function(value,equals) {
 	var def;
 	if(null == value) def = haxe_ds_Option.None; else def = haxe_ds_Option.Some(value);
 	return new thx_stream_Value(def,function(a,b) {
-		return thx_core_Options.equals(a,b,equals);
+		return thx_Options.equals(a,b,equals);
 	});
 };
 thx_stream_Value.__super__ = thx_stream_Emitter;
@@ -11195,7 +27689,7 @@ thx_stream_dom_Dom.__name__ = ["thx","stream","dom","Dom"];
 thx_stream_dom_Dom.ready = function() {
 	return thx_promise__$Promise_Promise_$Impl_$.create(function(resolve,_) {
 		window.document.addEventListener("DOMContentLoaded",function(_1) {
-			resolve(thx_core_Nil.nil);
+			resolve(thx_Nil.nil);
 		},false);
 	});
 };
@@ -11360,7 +27854,7 @@ var ArrayBuffer = typeof(window) != "undefined" && window.ArrayBuffer || typeof(
 if(ArrayBuffer.prototype.slice == null) ArrayBuffer.prototype.slice = js_html_compat_ArrayBuffer.sliceImpl;
 var DataView = typeof(window) != "undefined" && window.DataView || typeof(global) != "undefined" && global.DataView || js_html_compat_DataView;
 var Uint8Array = typeof(window) != "undefined" && window.Uint8Array || typeof(global) != "undefined" && global.Uint8Array || js_html_compat_Uint8Array._new;
-dots_Dom.addCss(".sui-icon-add,.sui-icon-collapse,.sui-icon-down,.sui-icon-expand,.sui-icon-remove,.sui-icon-up{background-repeat:no-repeat}.sui-icon-add{background-image:url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20d%3D%22M45%2029H35V19c0-1.657-1.343-3-3-3s-3%201.343-3%203v10H19c-1.657%200-3%201.343-3%203s1.343%203%203%203h10v10c0%201.657%201.343%203%203%203s3-1.343%203-3V35h10c1.657%200%203-1.343%203-3s-1.343-3-3-3zM32%200C14.327%200%200%2014.327%200%2032s14.327%2032%2032%2032%2032-14.327%2032-32S49.673%200%2032%200zm0%2058C17.64%2058%206%2046.36%206%2032S17.64%206%2032%206s26%2011.64%2026%2026-11.64%2026-26%2026z%22%20enable-background%3D%22new%22%2F%3E%3C%2Fsvg%3E\")}.sui-icon-collapse{background-image:url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20d%3D%22M52.16%2038.918l-18-18C33.612%2020.352%2032.847%2020%2032%2020h-.014c-.848%200-1.613.352-2.16.918l-18%2018%20.008.007c-.516.54-.834%201.27-.834%202.075%200%201.657%201.343%203%203%203%20.91%200%201.725-.406%202.275-1.046l15.718-15.718L47.917%2043.16c.54.52%201.274.84%202.083.84%201.657%200%203-1.343%203-3%200-.81-.32-1.542-.84-2.082z%22%20enable-background%3D%22new%22%2F%3E%3C%2Fsvg%3E\")}.sui-icon-down{background-image:url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20d%3D%22M53%2023c0-1.657-1.343-3-3-3-.81%200-1.542.32-2.082.84L31.992%2036.764%2016.275%2021.046C15.725%2020.406%2014.91%2020%2014%2020c-1.657%200-3%201.343-3%203%200%20.805.318%201.536.835%202.075l-.008.008%2018%2018c.547.565%201.312.917%202.16.917H32c.85%200%201.613-.352%202.16-.918l18-18c.52-.54.84-1.273.84-2.082z%22%20enable-background%3D%22new%22%2F%3E%3C%2Fsvg%3E\")}.sui-icon-expand{background-image:url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20d%3D%22M53%2023c0-1.657-1.343-3-3-3-.81%200-1.542.32-2.082.84L31.992%2036.764%2016.275%2021.046C15.725%2020.406%2014.91%2020%2014%2020c-1.657%200-3%201.343-3%203%200%20.805.318%201.536.835%202.075l-.008.008%2018%2018c.547.565%201.312.917%202.16.917H32c.85%200%201.613-.352%202.16-.918l18-18c.52-.54.84-1.273.84-2.082z%22%20enable-background%3D%22new%22%2F%3E%3C%2Fsvg%3E\")}.sui-icon-remove{background-image:url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20d%3D%22M45%2029H19c-1.657%200-3%201.343-3%203s1.343%203%203%203h26c1.657%200%203-1.343%203-3s-1.343-3-3-3zM32%200C14.327%200%200%2014.327%200%2032s14.327%2032%2032%2032%2032-14.327%2032-32S49.673%200%2032%200zm0%2058C17.64%2058%206%2046.36%206%2032S17.64%206%2032%206s26%2011.64%2026%2026-11.64%2026-26%2026z%22%20enable-background%3D%22new%22%2F%3E%3C%2Fsvg%3E\")}.sui-icon-up{background-image:url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20d%3D%22M52.16%2038.918l-18-18C33.612%2020.352%2032.847%2020%2032%2020h-.014c-.848%200-1.613.352-2.16.918l-18%2018%20.008.007c-.516.54-.834%201.27-.834%202.075%200%201.657%201.343%203%203%203%20.91%200%201.725-.406%202.275-1.046l15.718-15.718L47.917%2043.16c.54.52%201.274.84%202.083.84%201.657%200%203-1.343%203-3%200-.81-.32-1.542-.84-2.082z%22%20enable-background%3D%22new%22%2F%3E%3C%2Fsvg%3E\")}.sui-grid{border-collapse:collapse;}.sui-grid *{box-sizing:border-box}.sui-grid td{border-bottom:1px solid #ddd;margin:0;padding:0}.sui-grid tr:first-child td{border-top:1px solid #ddd}.sui-grid td:first-child{border-left:1px solid #ddd}.sui-grid td:last-child{border-right:1px solid #ddd}.sui-grid td.sui-top,.sui-grid td.sui-left{background-color:#fff}.sui-grid td.sui-bottom,.sui-grid td.sui-right{background-color:#f6f6f6}.sui-bottom-left,.sui-bottom-right,.sui-top-left,.sui-top-right{position:absolute;background-color:#fff}.sui-top-right{top:0;right:0;-webkit-box-shadow:-1px 1px 6px rgba(0,0,0,0.1);-moz-box-shadow:-1px 1px 6px rgba(0,0,0,0.1);box-shadow:-1px 1px 6px rgba(0,0,0,0.1);}.sui-top-right.sui-grid tr:first-child td{border-top:none}.sui-top-right.sui-grid td:last-child{border-right:none}.sui-top-left{top:0;left:0;-webkit-box-shadow:1px 1px 6px rgba(0,0,0,0.1);-moz-box-shadow:1px 1px 6px rgba(0,0,0,0.1);box-shadow:1px 1px 6px rgba(0,0,0,0.1);}.sui-top-left.sui-grid tr:first-child td{border-top:none}.sui-top-left.sui-grid td:last-child{border-left:none}.sui-bottom-right{bottom:0;right:0;-webkit-box-shadow:-1px 1px 6px rgba(0,0,0,0.1);-moz-box-shadow:-1px 1px 6px rgba(0,0,0,0.1);box-shadow:-1px 1px 6px rgba(0,0,0,0.1);}.sui-bottom-right.sui-grid tr:first-child td{border-bottom:none}.sui-bottom-right.sui-grid td:last-child{border-right:none}.sui-bottom-left{bottom:0;left:0;-webkit-box-shadow:1px 1px 6px rgba(0,0,0,0.1);-moz-box-shadow:1px 1px 6px rgba(0,0,0,0.1);box-shadow:1px 1px 6px rgba(0,0,0,0.1);}.sui-bottom-left.sui-grid tr:first-child td{border-bottom:none}.sui-bottom-left.sui-grid td:last-child{border-left:none}.sui-fill{position:absolute;width:100%;max-height:100%;top:0;left:0}.sui-append{width:100%}.sui-control,.sui-folder{-moz-user-select:-moz-none;-khtml-user-select:none;-webkit-user-select:none;-o-user-select:none;user-select:none;font-size:11px;font-family:Helvetica,\"Nimbus Sans L\",\"Liberation Sans\",Arial,sans-serif;line-height:18px;vertical-align:middle;}.sui-control *,.sui-folder *{box-sizing:border-box;margin:0;padding:0}.sui-control button,.sui-folder button{line-height:18px;vertical-align:middle}.sui-control input,.sui-folder input{line-height:18px;vertical-align:middle;border:none;background-color:#f6f6f6;max-width:16em}.sui-control button:hover,.sui-folder button:hover{background-color:#fafafa;border:1px solid #ddd}.sui-control button:focus,.sui-folder button:focus{background-color:#fafafa;border:1px solid #aaa;outline:#eee solid 2px}.sui-control input:focus,.sui-folder input:focus{outline:#eee solid 2px;$outline-offset:-2px;background-color:#fafafa}.sui-control output,.sui-folder output{padding:0 6px;background-color:#fff;display:inline-block}.sui-control input[type=\"number\"],.sui-folder input[type=\"number\"],.sui-control input[type=\"date\"],.sui-folder input[type=\"date\"],.sui-control input[type=\"datetime-local\"],.sui-folder input[type=\"datetime-local\"],.sui-control input[type=\"time\"],.sui-folder input[type=\"time\"]{text-align:right}.sui-control input[type=\"number\"],.sui-folder input[type=\"number\"]{font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace}.sui-control input,.sui-folder input{padding:0 6px}.sui-control input[type=\"color\"],.sui-folder input[type=\"color\"],.sui-control input[type=\"checkbox\"],.sui-folder input[type=\"checkbox\"]{padding:0;margin:0}.sui-control input[type=\"range\"],.sui-folder input[type=\"range\"]{margin:0 8px;min-height:19px}.sui-control button,.sui-folder button{background-color:#eee;border:1px solid #aaa;border-radius:4px}.sui-control.sui-control-single input,.sui-folder.sui-control-single input,.sui-control.sui-control-single output,.sui-folder.sui-control-single output,.sui-control.sui-control-single button,.sui-folder.sui-control-single button,.sui-control.sui-control-single select,.sui-folder.sui-control-single select{width:100%}.sui-control.sui-control-single input[type=\"checkbox\"],.sui-folder.sui-control-single input[type=\"checkbox\"]{width:initial}.sui-control.sui-control-double input,.sui-folder.sui-control-double input,.sui-control.sui-control-double output,.sui-folder.sui-control-double output,.sui-control.sui-control-double button,.sui-folder.sui-control-double button{width:50%}.sui-control.sui-control-double .input1,.sui-folder.sui-control-double .input1{width:calc(100% - 7em);max-width:8em}.sui-control.sui-control-double .input2,.sui-folder.sui-control-double .input2{width:7em}.sui-control.sui-control-double .input1[type=\"range\"],.sui-folder.sui-control-double .input1[type=\"range\"]{width:calc(100% - 7em - 16px)}.sui-control.sui-type-bool,.sui-folder.sui-type-bool{text-align:center}.sui-control.sui-invalid,.sui-folder.sui-invalid{border-left:4px solid #d00}.sui-array{list-style:none;}.sui-array .sui-array-item{border-bottom:1px dotted #aaa;position:relative;}.sui-array .sui-array-item .sui-icon,.sui-array .sui-array-item .sui-icon-mini{opacity:.1}.sui-array .sui-array-item .sui-array-add .sui-icon,.sui-array .sui-array-item .sui-array-add .sui-icon-mini{opacity:.2}.sui-array .sui-array-item > *{vertical-align:top}.sui-array .sui-array-item:first-child > .sui-move > .sui-icon-up{visibility:hidden}.sui-array .sui-array-item:last-child{border-bottom:none;}.sui-array .sui-array-item:last-child > .sui-move > .sui-icon-down{visibility:hidden}.sui-array .sui-array-item > div{display:inline-block}.sui-array .sui-array-item .sui-move{position:absolute;width:8px;height:100%;}.sui-array .sui-array-item .sui-move .sui-icon-mini{display:block;position:absolute}.sui-array .sui-array-item .sui-move .sui-icon-up{top:0;left:1px}.sui-array .sui-array-item .sui-move .sui-icon-down{bottom:0;left:1px}.sui-array .sui-array-item .sui-control-container{margin:0 14px 0 10px;width:calc(100% - 24px)}.sui-array .sui-array-item .sui-remove{width:12px;position:absolute;right:1px;top:0}.sui-array .sui-array-item .sui-icon-remove,.sui-array .sui-array-item .sui-icon-up,.sui-array .sui-array-item .sui-icon-down{cursor:pointer}.sui-array .sui-array-item.sui-focus > .sui-move .sui-icon,.sui-array .sui-array-item.sui-focus > .sui-remove .sui-icon,.sui-array .sui-array-item.sui-focus > .sui-move .sui-icon-mini,.sui-array .sui-array-item.sui-focus > .sui-remove .sui-icon-mini{opacity:.4}.sui-array ~ .sui-control{margin-bottom:0}.sui-map{border-collapse:collapse;}.sui-map .sui-map-item > td{border-bottom:1px dotted #aaa;}.sui-map .sui-map-item > td:first-child{border-left:none}.sui-map .sui-map-item:last-child > td{border-bottom:none}.sui-map .sui-map-item .sui-icon{opacity:.1}.sui-map .sui-map-item .sui-array-add .sui-icon{opacity:.2}.sui-map .sui-map-item .sui-remove{width:14px;text-align:right;padding:0 1px}.sui-map .sui-map-item .sui-icon-remove{cursor:pointer}.sui-map .sui-map-item.sui-focus > .sui-remove .sui-icon{opacity:.4}.sui-disabled .sui-icon,.sui-disabled .sui-icon-mini,.sui-disabled .sui-icon:hover,.sui-disabled .sui-icon-mini:hover{opacity:.05 !important;cursor:default}.sui-array-add{text-align:right;}.sui-array-add .sui-icon,.sui-array-add .sui-icon-mini{margin-right:1px;opacity:.2;cursor:pointer}.sui-icon,.sui-icon-mini{display:inline-block;opacity:.4;vertical-align:middle;}.sui-icon:hover,.sui-icon-mini:hover{opacity:.8 !important}.sui-icon{width:12px;height:12px;background-size:12px 12px}.sui-icon-mini{width:8px;height:8px;background-size:8px 8px}.sui-folder{padding:0 6px;font-weight:bold}.sui-collapsible{cursor:pointer}.sui-bottom-left .sui-trigger-toggle,.sui-bottom-right .sui-trigger-toggle{transform:rotate(180deg)}.sui-choice-options > .sui-grid,.sui-grid-inner{width:100%}.sui-choice-options > .sui-grid > tr > td:first-child,.sui-choice-options > .sui-grid > tbody > tr > td:first-child{border-left:none}.sui-choice-options > .sui-grid > tr:last-child > td,.sui-choice-options > .sui-grid > tbody > tr:last-child > td{border-bottom:none}.sui-grid-inner{border-left:6px solid #f6f6f6}.sui-choice-header select{width:100%}");
+dots_Dom.addCss(".sui-control i.sui-icon-remove{background-image:url(\"data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNi4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2aWV3Qm94PSIwIDAgNjQgNjQiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDY0IDY0IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnIGlkPSJDSVJDTEVfX3gyRl9fTUlOVVNfMV8iIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgICAgIj4NCgk8ZyBpZD0iQ0lSQ0xFX194MkZfX01JTlVTIj4NCgkJPGc+DQoJCQk8cGF0aCBkPSJNNDUsMjlIMTljLTEuNjU3LDAtMywxLjM0My0zLDNzMS4zNDMsMywzLDNoMjZjMS42NTcsMCwzLTEuMzQzLDMtM1M0Ni42NTcsMjksNDUsMjl6IE0zMiwwQzE0LjMyNywwLDAsMTQuMzI3LDAsMzINCgkJCQlzMTQuMzI3LDMyLDMyLDMyczMyLTE0LjMyNywzMi0zMlM0OS42NzMsMCwzMiwweiBNMzIsNThDMTcuNjQxLDU4LDYsNDYuMzU5LDYsMzJDNiwxNy42NCwxNy42NDEsNiwzMiw2DQoJCQkJYzE0LjM1OSwwLDI2LDExLjY0MSwyNiwyNkM1OCw0Ni4zNTksNDYuMzU5LDU4LDMyLDU4eiIvPg0KCQk8L2c+DQoJPC9nPg0KPC9nPg0KPC9zdmc+DQo=\")}.sui-control i.sui-icon-add{background-image:url(\"data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNi4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2aWV3Qm94PSIwIDAgNjQgNjQiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDY0IDY0IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnIGlkPSJDSVJDTEVfX3gyRl9fUExVU18xXyIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAgICAiPg0KCTxnIGlkPSJDSVJDTEVfX3gyRl9fUExVUyI+DQoJCTxnPg0KCQkJPHBhdGggZD0iTTQ1LDI5SDM1VjE5YzAtMS42NTctMS4zNDMtMy0zLTNzLTMsMS4zNDMtMywzdjEwSDE5Yy0xLjY1NywwLTMsMS4zNDMtMywzczEuMzQzLDMsMywzaDEwdjEwYzAsMS42NTcsMS4zNDMsMywzLDMNCgkJCQlzMy0xLjM0MywzLTNWMzVoMTBjMS42NTcsMCwzLTEuMzQzLDMtM1M0Ni42NTcsMjksNDUsMjl6IE0zMiwwQzE0LjMyNywwLDAsMTQuMzI3LDAsMzJzMTQuMzI3LDMyLDMyLDMyczMyLTE0LjMyNywzMi0zMg0KCQkJCVM0OS42NzMsMCwzMiwweiBNMzIsNThDMTcuNjQxLDU4LDYsNDYuMzU5LDYsMzJDNiwxNy42NCwxNy42NDEsNiwzMiw2YzE0LjM1OSwwLDI2LDExLjY0MSwyNiwyNkM1OCw0Ni4zNTksNDYuMzU5LDU4LDMyLDU4eiIvPg0KCQk8L2c+DQoJPC9nPg0KPC9nPg0KPC9zdmc+DQo=\")}.sui-control i.sui-icon-up{background-image:url(\"data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNi4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2aWV3Qm94PSIwIDAgNjQgNjQiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDY0IDY0IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnIGlkPSJBUlJPV19feDJGX19VUF8xXyIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAgICAiPg0KCTxnIGlkPSJBUlJPV19feDJGX19VUCI+DQoJCTxnPg0KCQkJPHBhdGggZD0iTTUyLjE1OSwzOC45MThMNTIuMTU5LDM4LjkxOEwzNC4xNiwyMC45MTdsLTAuMDAxLDAuMDAxQzMzLjYxMywyMC4zNTIsMzIuODQ4LDIwLDMyLDIwYy0wLjAwMiwwLTAuMDA0LDAtMC4wMDcsMA0KCQkJCXMtMC4wMDQsMC0wLjAwNywwYy0wLjg0OCwwLTEuNjEzLDAuMzUyLTIuMTU5LDAuOTE4bC0wLjAwMS0wLjAwMWwtMTgsMThsMC4wMDgsMC4wMDhDMTEuMzE4LDM5LjQ2NCwxMSw0MC4xOTUsMTEsNDENCgkJCQljMCwxLjY1NywxLjM0MywzLDMsM2MwLjkxLDAsMS43MjUtMC40MDYsMi4yNzUtMS4wNDZsMTUuNzE4LTE1LjcxOEw0Ny45MTcsNDMuMTZsMC4wMDEtMC4wMDFDNDguNDU4LDQzLjY4LDQ5LjE5MSw0NCw1MCw0NA0KCQkJCWMxLjY1NywwLDMtMS4zNDMsMy0zQzUzLDQwLjE5MSw1Mi42OCwzOS40NTgsNTIuMTU5LDM4LjkxOHoiLz4NCgkJPC9nPg0KCTwvZz4NCjwvZz4NCjwvc3ZnPg0K\")}.sui-control i.sui-icon-down{background-image:url(\"data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNi4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iNjRweCIgaGVpZ2h0PSI2NHB4IiB2aWV3Qm94PSIwIDAgNjQgNjQiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDY0IDY0IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnIGlkPSJBUlJPV19feDJGX19ET1dOXzFfIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3ICAgICI+DQoJPGcgaWQ9IkFSUk9XX194MkZfX0RPV04iPg0KCQk8Zz4NCgkJCTxwYXRoIGQ9Ik01MywyM2MwLTEuNjU3LTEuMzQzLTMtMy0zYy0wLjgwOSwwLTEuNTQyLDAuMzIxLTIuMDgyLDAuODQxbC0wLjAwMS0wLjAwMUwzMS45OTMsMzYuNzY0TDE2LjI3NSwyMS4wNDYNCgkJCQlDMTUuNzI1LDIwLjQwNiwxNC45MSwyMCwxNCwyMGMtMS42NTcsMC0zLDEuMzQzLTMsM2MwLDAuODA1LDAuMzE4LDEuNTM2LDAuODM1LDIuMDc1bC0wLjAwOCwwLjAwOGwxOCwxOGwwLjAwMS0wLjAwMQ0KCQkJCUMzMC4zNzQsNDMuNjQ4LDMxLjEzOSw0NCwzMS45ODcsNDRjMC4wMDIsMCwwLjAwNCwwLDAuMDA3LDBjMC4wMDIsMCwwLjAwNCwwLDAuMDA3LDBjMC44NDksMCwxLjYxMi0wLjM1MiwyLjE1OS0wLjkxOA0KCQkJCWwwLjAwMSwwLjAwMWwxOC0xOGwtMC4wMDEtMC4wMDFDNTIuNjgsMjQuNTQzLDUzLDIzLjgwOSw1MywyM3oiLz4NCgkJPC9nPg0KCTwvZz4NCjwvZz4NCjwvc3ZnPg0K\")}.sui-grid{border-collapse:collapse;}.sui-grid *{box-sizing:border-box}.sui-grid td{border-bottom:1px solid #ddd;margin:0;padding:0}.sui-grid tr:first-child td{border-top:1px solid #ddd}.sui-grid td:first-child{border-left:1px solid #ddd}.sui-grid td:last-child{border-right:1px solid #ddd}.sui-grid td.sui-top,.sui-grid td.sui-left{background-color:#fff}.sui-grid td.sui-bottom,.sui-grid td.sui-right{background-color:#f6f6f6}.sui-bottom-left,.sui-bottom-right,.sui-top-left,.sui-top-right{position:absolute;background-color:#fff}.sui-top-right{top:0;right:0;-webkit-box-shadow:-1px 1px 6px rgba(0,0,0,0.1);-moz-box-shadow:-1px 1px 6px rgba(0,0,0,0.1);box-shadow:-1px 1px 6px rgba(0,0,0,0.1);}.sui-top-right.sui-grid tr:first-child td{border-top:none}.sui-top-right.sui-grid td:last-child{border-right:none}.sui-top-left{top:0;left:0;-webkit-box-shadow:1px 1px 6px rgba(0,0,0,0.1);-moz-box-shadow:1px 1px 6px rgba(0,0,0,0.1);box-shadow:1px 1px 6px rgba(0,0,0,0.1);}.sui-top-left.sui-grid tr:first-child td{border-top:none}.sui-top-left.sui-grid td:last-child{border-left:none}.sui-bottom-right{bottom:0;right:0;-webkit-box-shadow:-1px 1px 6px rgba(0,0,0,0.1);-moz-box-shadow:-1px 1px 6px rgba(0,0,0,0.1);box-shadow:-1px 1px 6px rgba(0,0,0,0.1);}.sui-bottom-right.sui-grid tr:first-child td{border-bottom:none}.sui-bottom-right.sui-grid td:last-child{border-right:none}.sui-bottom-left{bottom:0;left:0;-webkit-box-shadow:1px 1px 6px rgba(0,0,0,0.1);-moz-box-shadow:1px 1px 6px rgba(0,0,0,0.1);box-shadow:1px 1px 6px rgba(0,0,0,0.1);}.sui-bottom-left.sui-grid tr:first-child td{border-bottom:none}.sui-bottom-left.sui-grid td:last-child{border-left:none}.sui-fill{position:absolute;width:100%;max-height:100%;top:0;left:0}.sui-append{width:100%}.sui-control,.sui-folder{-moz-user-select:-moz-none;-khtml-user-select:none;-webkit-user-select:none;-o-user-select:none;user-select:none;font-size:11px;font-family:Helvetica,\"Nimbus Sans L\",\"Liberation Sans\",Arial,sans-serif;line-height:18px;vertical-align:middle;}.sui-control *,.sui-folder *{box-sizing:border-box;margin:0;padding:0}.sui-control button,.sui-folder button{line-height:18px;vertical-align:middle}.sui-control input,.sui-folder input{line-height:18px;vertical-align:middle;border:none;background-color:#f6f6f6;max-width:16em}.sui-control button:hover,.sui-folder button:hover{background-color:#fafafa;border:1px solid #ddd}.sui-control button:focus,.sui-folder button:focus{background-color:#fafafa;border:1px solid #aaa;outline:#eee solid 2px}.sui-control input:focus,.sui-folder input:focus{outline:#eee solid 2px;$outline-offset:-2px;background-color:#fafafa}.sui-control output,.sui-folder output{padding:0 6px;background-color:#fff;display:inline-block}.sui-control input[type=\"number\"],.sui-folder input[type=\"number\"],.sui-control input[type=\"date\"],.sui-folder input[type=\"date\"],.sui-control input[type=\"datetime-local\"],.sui-folder input[type=\"datetime-local\"],.sui-control input[type=\"time\"],.sui-folder input[type=\"time\"]{text-align:right}.sui-control input[type=\"number\"],.sui-folder input[type=\"number\"]{font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace}.sui-control input,.sui-folder input{padding:0 6px}.sui-control input[type=\"color\"],.sui-folder input[type=\"color\"],.sui-control input[type=\"checkbox\"],.sui-folder input[type=\"checkbox\"]{padding:0;margin:0}.sui-control input[type=\"range\"],.sui-folder input[type=\"range\"]{margin:0 8px;min-height:19px}.sui-control button,.sui-folder button{background-color:#eee;border:1px solid #aaa;border-radius:4px}.sui-control.sui-control-single input,.sui-folder.sui-control-single input,.sui-control.sui-control-single output,.sui-folder.sui-control-single output,.sui-control.sui-control-single button,.sui-folder.sui-control-single button,.sui-control.sui-control-single select,.sui-folder.sui-control-single select{width:100%}.sui-control.sui-control-single input[type=\"checkbox\"],.sui-folder.sui-control-single input[type=\"checkbox\"]{width:initial}.sui-control.sui-control-double input,.sui-folder.sui-control-double input,.sui-control.sui-control-double output,.sui-folder.sui-control-double output,.sui-control.sui-control-double button,.sui-folder.sui-control-double button,.sui-control.sui-control-double select,.sui-folder.sui-control-double select{width:50%}.sui-control.sui-control-double .input1,.sui-folder.sui-control-double .input1{width:calc(100% - 7em);max-width:8em}.sui-control.sui-control-double .input2,.sui-folder.sui-control-double .input2{width:7em}.sui-control.sui-control-double .input1[type=\"range\"],.sui-folder.sui-control-double .input1[type=\"range\"]{width:calc(100% - 7em - 16px)}.sui-control.sui-type-bool,.sui-folder.sui-type-bool{text-align:center}.sui-control.sui-invalid,.sui-folder.sui-invalid{border-left:4px solid #d00}.sui-array{list-style:none;}.sui-array .sui-array-item{border-bottom:1px dotted #aaa;position:relative;}.sui-array .sui-array-item .sui-icon,.sui-array .sui-array-item .sui-icon-mini{opacity:.1}.sui-array .sui-array-item .sui-array-add .sui-icon,.sui-array .sui-array-item .sui-array-add .sui-icon-mini{opacity:.2}.sui-array .sui-array-item > *{vertical-align:top}.sui-array .sui-array-item:first-child > .sui-move > .sui-icon-up{visibility:hidden}.sui-array .sui-array-item:last-child{border-bottom:none;}.sui-array .sui-array-item:last-child > .sui-move > .sui-icon-down{visibility:hidden}.sui-array .sui-array-item > div{display:inline-block}.sui-array .sui-array-item .sui-move{position:absolute;width:8px;height:100%;}.sui-array .sui-array-item .sui-move .sui-icon-mini{display:block;position:absolute}.sui-array .sui-array-item .sui-move .sui-icon-up{top:0;left:1px}.sui-array .sui-array-item .sui-move .sui-icon-down{bottom:0;left:1px}.sui-array .sui-array-item .sui-control-container{margin:0 14px 0 10px;width:calc(100% - 24px)}.sui-array .sui-array-item .sui-remove{width:12px;position:absolute;right:1px;top:0}.sui-array .sui-array-item .sui-icon-remove,.sui-array .sui-array-item .sui-icon-up,.sui-array .sui-array-item .sui-icon-down{cursor:pointer}.sui-array .sui-array-item.sui-focus > .sui-move .sui-icon,.sui-array .sui-array-item.sui-focus > .sui-remove .sui-icon,.sui-array .sui-array-item.sui-focus > .sui-move .sui-icon-mini,.sui-array .sui-array-item.sui-focus > .sui-remove .sui-icon-mini{opacity:.4}.sui-array ~ .sui-control{margin-bottom:0}.sui-map{border-collapse:collapse;}.sui-map .sui-map-item > td{border-bottom:1px dotted #aaa;}.sui-map .sui-map-item > td:first-child{border-left:none}.sui-map .sui-map-item:last-child > td{border-bottom:none}.sui-map .sui-map-item .sui-icon{opacity:.1}.sui-map .sui-map-item .sui-array-add .sui-icon{opacity:.2}.sui-map .sui-map-item .sui-remove{width:14px;text-align:right;padding:0 1px}.sui-map .sui-map-item .sui-icon-remove{cursor:pointer}.sui-map .sui-map-item.sui-focus > .sui-remove .sui-icon{opacity:.4}.sui-disabled .sui-icon,.sui-disabled .sui-icon-mini,.sui-disabled .sui-icon:hover,.sui-disabled .sui-icon-mini:hover{opacity:.05 !important;cursor:default}.sui-array-add{text-align:right;}.sui-array-add .sui-icon,.sui-array-add .sui-icon-mini{margin-right:1px;opacity:.2;cursor:pointer}.sui-icon,.sui-icon-mini{display:inline-block;opacity:.4;vertical-align:middle;}.sui-icon:hover,.sui-icon-mini:hover{opacity:.8 !important}.sui-icon{width:12px;height:12px;background-size:12px 12px}.sui-icon-mini{width:8px;height:8px;background-size:8px 8px}.sui-folder{padding:0 6px;font-weight:bold}.sui-collapsible{cursor:pointer}.sui-bottom-left .sui-trigger-toggle,.sui-bottom-right .sui-trigger-toggle{transform:rotate(180deg)}.sui-choice-options > .sui-grid,.sui-grid-inner{width:100%}.sui-choice-options > .sui-grid > tr > td:first-child,.sui-choice-options > .sui-grid > tbody > tr > td:first-child{border-left:none}.sui-choice-options > .sui-grid > tr:last-child > td,.sui-choice-options > .sui-grid > tbody > tr:last-child > td{border-bottom:none}.sui-grid-inner{border-left:6px solid #f6f6f6}.sui-choice-header select{width:100%}");
 
       // Production steps of ECMA-262, Edition 5, 15.4.4.21
       // Reference: http://es5.github.io/#x15.4.4.21
@@ -11429,6 +27923,39 @@ if(typeof(scope.performance.now) == "undefined") {
 }
 SuiDemoJS.width = 800;
 SuiDemoJS.height = 500;
+com_fundoware_engine_bigint_FunBigInt_$.s_firstCachedValue = -16;
+com_fundoware_engine_bigint_FunBigInt_$.s_lastCachedValue = 16;
+com_fundoware_engine_bigint_FunMutableBigInt_$.s_testAllocation = false;
+com_fundoware_engine_bigint_FunMutableBigInt_$.s_debugAllocationPadding = 0;
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.ZERO = (function($this) {
+	var $r;
+	var a = com_fundoware_engine_bigint_FunBigInt_$.fromInt(0);
+	$r = a;
+	return $r;
+}(this));
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.ONE = (function($this) {
+	var $r;
+	var a = com_fundoware_engine_bigint_FunBigInt_$.fromInt(1);
+	$r = a;
+	return $r;
+}(this));
+com_fundoware_engine_bigint__$FunBigInt_FunBigInt_$Impl_$.NEGATIVE_ONE = (function($this) {
+	var $r;
+	var a = com_fundoware_engine_bigint_FunBigInt_$.fromInt(-1);
+	$r = a;
+	return $r;
+}(this));
+com_fundoware_engine_exception_FunExceptions.FUN_NULL_ARGUMENT = "null argument";
+com_fundoware_engine_exception_FunExceptions.FUN_INVALID_ARGUMENT = "invalid argument";
+com_fundoware_engine_exception_FunExceptions.FUN_BUFFER_TOO_SMALL = "buffer too small";
+com_fundoware_engine_exception_FunExceptions.FUN_OVERFLOW = "overflow";
+com_fundoware_engine_exception_FunExceptions.FUN_ABSTRACT_METHOD = "abstract method";
+com_fundoware_engine_exception_FunExceptions.FUN_ILLEGAL_STATE = "illegal state";
+com_fundoware_engine_exception_FunExceptions.FUN_NOT_IMPLEMENTED = "not implemented";
+com_fundoware_engine_exception_FunExceptions.FUN_DIVISION_BY_ZERO = "division by zero";
+com_fundoware_engine_exception_FunExceptions.FUN_INVALID_OPERATION = "invalid operation";
+com_fundoware_engine_exception_FunExceptions.FUN_CHECKSUM_MISMATCH = "checksum mismatch";
+com_fundoware_engine_exception_FunExceptions.FUN_RUNTIME_TEST_FAILED = "run-time test failed";
 dots_Html.pattern = new EReg("[<]([^> ]+)","");
 dots_Query.doc = document;
 haxe_crypto_Base64.CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -11440,31 +27967,46 @@ haxe_io_FPHelper.i64tmp = (function($this) {
 	$r = x;
 	return $r;
 }(this));
+js_Boot.__toStr = {}.toString;
 hxClipper_ClipperBase.HORIZONTAL = -3.4E+38;
 hxClipper_ClipperBase.SKIP = -2;
 hxClipper_ClipperBase.UNASSIGNED = -1;
 hxClipper_ClipperBase.TOLERANCE = 1.0E-20;
-hxClipper_ClipperBase.LO_RANGE = 32767;
-hxClipper_ClipperBase.HI_RANGE = 32767;
+hxClipper_ClipperBase.LO_RANGE = (function($this) {
+	var $r;
+	var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromInt(1073741823);
+	$r = a;
+	return $r;
+}(this));
+hxClipper_ClipperBase.HI_RANGE = (function($this) {
+	var $r;
+	var this1 = com_fundoware_engine_bigint_FunBigIntTools.parseValueUnsigned("0x3FFFFFFFFFFFFFFF");
+	$r = (function($this) {
+		var $r;
+		var a = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
+		$r = a;
+		return $r;
+	}($this));
+	return $r;
+}(this));
 hxClipper_ClipperOffset.TWO_PI = 6.283185307179586476925286766559;
 hxClipper_ClipperOffset.DEFAULT_ARC_TOLERANCE = 0.25;
-js_Boot.__toStr = {}.toString;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
 sui_controls_ColorControl.PATTERN = new EReg("^[#][0-9a-f]{6}$","i");
 sui_controls_DataList.nid = 0;
-thx_core_Floats.TOLERANCE = 10e-5;
-thx_core_Floats.EPSILON = 10e-10;
-thx_core_Floats.pattern_parse = new EReg("^(\\+|-)?\\d+(\\.\\d+)?(e-?\\d+)?$","");
-thx_core_Ints.pattern_parse = new EReg("^[+-]?(\\d+|0x[0-9A-F]+)$","i");
-thx_core_Ints.BASE = "0123456789abcdefghijklmnopqrstuvwxyz";
-thx_core_Strings.UCWORDS = new EReg("[^a-zA-Z]([a-z])","g");
-thx_core_Strings.UCWORDSWS = new EReg("\\s[a-z]","g");
-thx_core_Strings.ALPHANUM = new EReg("^[a-z0-9]+$","i");
-thx_core_Strings.DIGITS = new EReg("^[0-9]+$","");
-thx_core_Strings.STRIPTAGS = new EReg("</?[a-z]+[^>]*?/?>","gi");
-thx_core_Strings.WSG = new EReg("\\s+","g");
-thx_core_Strings.SPLIT_LINES = new EReg("\r\n|\n\r|\n|\r","g");
-thx_core_Timer.FRAME_RATE = Math.round(16.666666666666668);
-thx_promise__$Promise_Promise_$Impl_$.nil = thx_promise__$Promise_Promise_$Impl_$.value(thx_core_Nil.nil);
+thx_Floats.TOLERANCE = 10e-5;
+thx_Floats.EPSILON = 10e-10;
+thx_Floats.pattern_parse = new EReg("^(\\+|-)?\\d+(\\.\\d+)?(e-?\\d+)?$","");
+thx_Ints.pattern_parse = new EReg("^[+-]?(\\d+|0x[0-9A-F]+)$","i");
+thx_Ints.BASE = "0123456789abcdefghijklmnopqrstuvwxyz";
+thx_Strings.UCWORDS = new EReg("[^a-zA-Z]([a-z])","g");
+thx_Strings.UCWORDSWS = new EReg("\\s[a-z]","g");
+thx_Strings.ALPHANUM = new EReg("^[a-z0-9]+$","i");
+thx_Strings.DIGITS = new EReg("^[0-9]+$","");
+thx_Strings.STRIPTAGS = new EReg("</?[a-z]+[^>]*?/?>","gi");
+thx_Strings.WSG = new EReg("\\s+","g");
+thx_Strings.SPLIT_LINES = new EReg("\r\n|\n\r|\n|\r","g");
+thx_Timer.FRAME_RATE = Math.round(16.666666666666668);
+thx_promise__$Promise_Promise_$Impl_$.nil = thx_promise__$Promise_Promise_$Impl_$.value(thx_Nil.nil);
 SuiDemoJS.main();
 })(typeof console != "undefined" ? console : {log:function(){}});

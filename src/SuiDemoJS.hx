@@ -10,10 +10,14 @@ import js.html.CanvasRenderingContext2D;
 import js.html.CanvasWindingRule;
 import sui.*;
 import sui.controls.*;
-import thx.core.Timer;
+import thx.Timer;
 
 using hxClipper.Clipper.InternalTools;
 
+#if USE_INT64
+import com.fundoware.engine.bigint.FunMutableBigInt as BigInt;
+using com.fundoware.engine.bigint.FunBigIntTools;
+#end
 
 typedef Polygon = Array<IntPoint>;
 
@@ -28,7 +32,7 @@ class SuiDemoJS {
 	
 	var australia:Polygons;
 	
-	var scale:Float = 10;
+	var scale:Float = 1000;
 	
 	var clipType:ClipType;
 	var fillType:PolyFillType;
@@ -287,13 +291,14 @@ class SuiDemoJS {
 	function drawPoly(poly:Polygon):Void
 	{
 		var p0 = poly[0];
-		ctx.moveTo(p0.x / scale, p0.y / scale);
+		var scale = Math.round(scale);
+		ctx.moveTo((p0.x / scale).toFloat(), (p0.y / scale).toFloat());
 		for (i in 1...poly.length) {
 			var p = poly[i];
 			
-			ctx.lineTo(p.x / scale, p.y / scale);
+			ctx.lineTo((p.x / scale).toFloat(), (p.y / scale).toFloat());
 		}
-		ctx.lineTo(p0.x / scale, p0.y / scale);	// close path
+		ctx.lineTo((p0.x / scale).toFloat(), (p0.y / scale).toFloat());	// close path
 	}
 	
 	function drawPolys(polys:Polygons, strokeColor:String, fillColor:String, strokeAlpha:Float = 1, fillAlpha:Float = 1, lineWidth:Float = 1, fillRule:CanvasWindingRule = null):Void
