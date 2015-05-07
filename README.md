@@ -8,8 +8,11 @@ Port of [Angus Johnson's Clipper lib v6.2.9](http://sourceforge.net/projects/pol
  - Int64 feature has not been ported yet (as it requires an Int128 not currently available in haxe)
  - Tests from the original code have also been ported. They're all passing, except the ones requiring 64bit Ints
 
+![](SuiDemo.png)
+<sup>Screenshot of [online js demo](https://rawgit.com/azrafe7/hxClipper/master/bin/js/index.html) (using [sui](https://github.com/fponticelli/sui))</sup>
+
 ![](GuiDemo.png)
-<small>Screenshot of C# GuiDemo compiled with VS using haxe generated .NET dll</small>
+<sup>Screenshot of C# GuiDemo compiled with VS using haxe generated .NET dll</sup>
 
 ## License
 

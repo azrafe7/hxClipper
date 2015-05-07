@@ -1,0 +1,7 @@
+-cp src
+-js bin/js/SuiDemo.js
+-resource GuiDemo/aust.bin@australia
+-lib sui
+-D debug
+-D USE_LINES
+-main SuiDemoJS

@@ -20,7 +20,6 @@
 
 package ;
 
-import flash.Lib;
 import haxe.Log;
 import haxe.Timer;
 import haxe.unit.TestCase;
