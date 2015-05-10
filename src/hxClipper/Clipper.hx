@@ -37,7 +37,7 @@
  * CS -> HX notes:
  * 		[~] should be up to r493 (although the tests are still relative to r483)
  * 		[x] move some statics from ClipperBase to Clipper
- * 		[ ] find a way to fix Int128 and Slopes...
+ * 		[~] find a way to fix Int128 and Slopes... (using hxBitcoin BigInts)
  * 		[x] fix multi declarations
  * 		[x] fix internal
  * 		[x] check capacity
@@ -51,23 +51,16 @@
 
 package hxClipper;
 
-import com.fundoware.engine.bigint.FunBigInt;
 import haxe.ds.ArraySort;
-import haxe.Int64;
 import hxClipper.Clipper.ClipperBase;
 import hxClipper.Clipper.DoublePoint;
 import hxClipper.Clipper.IntPoint;
 
-#if USE_INT64
-import com.fundoware.engine.bigint.FunMutableBigInt as BigInt;
-using com.fundoware.engine.bigint.FunBigIntTools;
-#end
-
 using hxClipper.Clipper.InternalTools;
 
-//USE_INT64: When enabled 64bit ints are used instead of 32bit ints. This
+//USE_BIGINT: When enabled, BigInts from hxBitcoin lib will be used instead of 32bit ints. This
 //impacts performance but coordinate values are not limited to the range +/- 46340
-//#define USE_INT64
+//#define USE_BIGINT
 
 //USE_XYZ: adds a Z member to IntPoint. Adds a minor cost to performance.
 //#define USE_XYZ
@@ -76,14 +69,36 @@ using hxClipper.Clipper.InternalTools;
 //#define USE_LINES
 
 
-#if !USE_INT64
+#if !USE_BIGINT
 typedef CInt = Int;
 #else
+import com.fundoware.engine.bigint.FunMutableBigInt as BigInt;
 typedef CInt = BigInt;
 #end
 
 typedef Path = Array<IntPoint>;
 typedef Paths = Array<Array<IntPoint>>;
+
+
+#if debug
+class Info {
+	static public var ver(default, null):String;
+	
+	static function __init__() {
+		ver = "0.2";
+		
+		//NOTE: check for a cleaner way to do this
+		var CIntType = 
+		#if USE_BIGINT
+			"hxBitCoin's BigInt";
+		#else
+			"Int";
+		#end
+		
+		trace('hxClipper v${Info.ver}: using ${CIntType} as CInt implementation.');
+	}
+}
+#end
 
 class DoublePoint 
 {
@@ -521,12 +536,12 @@ class ClipperBase
 		return (val > -TOLERANCE) && (val < TOLERANCE);
 	}
 
-#if !USE_INT64 
+#if !USE_BIGINT
 	inline static var LO_RANGE:CInt = 0x7FFF;
 	inline static var HI_RANGE:CInt = 0x7FFF;
 #else 
 	static var LO_RANGE:CInt = 0x3FFFFFFF;
-	static var HI_RANGE:CInt = FunBigIntTools.parseValueUnsigned("0x3FFFFFFFFFFFFFFF");
+	static var HI_RANGE:CInt = com.fundoware.engine.bigint.FunBigIntTools.parseValueUnsigned("0x3FFFFFFFFFFFFFFF");
 #end
 
 	/*internal*/ var mMinimaList:LocalMinima;
@@ -2477,12 +2492,12 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function isMaxima(e:TEdge, y:Float):Bool {
-		return (e != null && e.top.y == y.toBigInt() && e.nextInLML == null);
+		return (e != null && e.top.y == y.toCInt() && e.nextInLML == null);
 	}
 	//------------------------------------------------------------------------------
 
 	function isIntermediate(e:TEdge, y:Float):Bool {
-		return (e.top.y == y.toBigInt() && e.nextInLML != null);
+		return (e.top.y == y.toCInt() && e.nextInLML != null);
 	}
 	//------------------------------------------------------------------------------
 
@@ -4197,6 +4212,10 @@ class ClipperException
 
 class InternalTools
 {
+	static inline var SHIFT64:Float = 18446744073709551616.0; //2^64
+	static inline var HI:Int = 1;
+	static inline var LO:Int = 0;
+
 	/** Empties an array of its contents. */
 	static inline public function clear<T>(array:Array<T>)
 	{
@@ -4212,14 +4231,34 @@ class InternalTools
 		return (a && !b) || (b && !a);
 	}
 	
-	static inline public function toFloat(bi:BigInt):Float
+	static inline public function toFloat(cint:CInt):Float
 	{
-		return Std.parseFloat(bi.toString());
+	#if USE_BIGINT
+		var ints:haxe.ds.Vector<Int> = new haxe.ds.Vector(2);
+		ints[HI] = 0;  // clear the hi int in case we're dealing with a one-int BigInt
+		var res:Float = 0.0;
+		cint.toInts(ints);
+		if (ints[HI] < 0) {
+			if (ints[LO] == 0)
+				res = ints[HI] * SHIFT64;
+			else
+				res = -(~ints[LO] + ~ints[HI] * SHIFT64);
+		}
+		else
+			res = (ints[LO] + ints[HI] * SHIFT64);
+		return res;
+	#else
+		return cint;
+	#end
 	}
 	
-	static inline public function toBigInt(f:Float):BigInt
+	static inline public function toCInt(f:Float):CInt
 	{
-		return FunBigIntTools.parseValueUnsigned(Std.string(Math.fround(f)));
+	#if USE_BIGINT
+		return com.fundoware.engine.bigint.FunBigIntTools.parseValueUnsigned(Std.string(Math.fround(f)));
+	#else
+		return Math.round(f);
+	#end
 	}
 }
 //------------------------------------------------------------------------------
