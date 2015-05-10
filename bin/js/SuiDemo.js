@@ -466,100 +466,15 @@ SuiDemoJS.prototype = {
 	}
 	,drawPoly: function(poly) {
 		var p0 = poly[0];
-		var scale = Math.round(this.scale);
-		this.ctx.moveTo(hxClipper_InternalTools.toFloat((function($this) {
-			var $r;
-			var this1;
-			{
-				var a = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p0.x,scale);
-				this1 = a;
-			}
-			$r = (function($this) {
-				var $r;
-				var a1 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this1);
-				$r = a1;
-				return $r;
-			}($this));
-			return $r;
-		}(this))),hxClipper_InternalTools.toFloat((function($this) {
-			var $r;
-			var this2;
-			{
-				var a2 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p0.y,scale);
-				this2 = a2;
-			}
-			$r = (function($this) {
-				var $r;
-				var a3 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this2);
-				$r = a3;
-				return $r;
-			}($this));
-			return $r;
-		}(this))));
+		this.ctx.moveTo(hxClipper_InternalTools.toFloat(p0.x) / this.scale,hxClipper_InternalTools.toFloat(p0.y) / this.scale);
 		var _g1 = 1;
 		var _g = poly.length;
 		while(_g1 < _g) {
 			var i = _g1++;
 			var p = poly[i];
-			this.ctx.lineTo(hxClipper_InternalTools.toFloat((function($this) {
-				var $r;
-				var this3;
-				{
-					var a4 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p.x,scale);
-					this3 = a4;
-				}
-				$r = (function($this) {
-					var $r;
-					var a5 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this3);
-					$r = a5;
-					return $r;
-				}($this));
-				return $r;
-			}(this))),hxClipper_InternalTools.toFloat((function($this) {
-				var $r;
-				var this4;
-				{
-					var a6 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p.y,scale);
-					this4 = a6;
-				}
-				$r = (function($this) {
-					var $r;
-					var a7 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this4);
-					$r = a7;
-					return $r;
-				}($this));
-				return $r;
-			}(this))));
+			this.ctx.lineTo(hxClipper_InternalTools.toFloat(p.x) / this.scale,hxClipper_InternalTools.toFloat(p.y) / this.scale);
 		}
-		this.ctx.lineTo(hxClipper_InternalTools.toFloat((function($this) {
-			var $r;
-			var this5;
-			{
-				var a8 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p0.x,scale);
-				this5 = a8;
-			}
-			$r = (function($this) {
-				var $r;
-				var a9 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this5);
-				$r = a9;
-				return $r;
-			}($this));
-			return $r;
-		}(this))),hxClipper_InternalTools.toFloat((function($this) {
-			var $r;
-			var this6;
-			{
-				var a10 = com_fundoware_engine_bigint_FunBigInt_$.divideInt2(p0.y,scale);
-				this6 = a10;
-			}
-			$r = (function($this) {
-				var $r;
-				var a11 = com_fundoware_engine_bigint_FunMutableBigInt_$.fromBigInt(this6);
-				$r = a11;
-				return $r;
-			}($this));
-			return $r;
-		}(this))));
+		this.ctx.lineTo(hxClipper_InternalTools.toFloat(p0.x) / this.scale,hxClipper_InternalTools.toFloat(p0.y) / this.scale);
 	}
 	,drawPolys: function(polys,strokeColor,fillColor,strokeAlpha,fillAlpha,lineWidth,fillRule) {
 		if(lineWidth == null) lineWidth = 1;

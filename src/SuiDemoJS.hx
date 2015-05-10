@@ -291,14 +291,13 @@ class SuiDemoJS {
 	function drawPoly(poly:Polygon):Void
 	{
 		var p0 = poly[0];
-		var scale = Math.round(scale);
-		ctx.moveTo((p0.x / scale).toFloat(), (p0.y / scale).toFloat());
+		ctx.moveTo((p0.x.toFloat() / scale), (p0.y.toFloat() / scale));
 		for (i in 1...poly.length) {
 			var p = poly[i];
 			
-			ctx.lineTo((p.x / scale).toFloat(), (p.y / scale).toFloat());
+			ctx.lineTo((p.x.toFloat() / scale), (p.y.toFloat() / scale));
 		}
-		ctx.lineTo((p0.x / scale).toFloat(), (p0.y / scale).toFloat());	// close path
+		ctx.lineTo((p0.x.toFloat() / scale), (p0.y.toFloat() / scale));	// close path
 	}
 	
 	function drawPolys(polys:Polygons, strokeColor:String, fillColor:String, strokeAlpha:Float = 1, fillAlpha:Float = 1, lineWidth:Float = 1, fillRule:CanvasWindingRule = null):Void
