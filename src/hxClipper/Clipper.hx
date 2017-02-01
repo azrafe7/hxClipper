@@ -310,16 +310,19 @@ class IntPoint
 #if USE_XYZ 
 	public var z:CInt;
 
+	#if (AGGR_INLINE) inline #end 
 	public function new(x:CInt = 0, y:CInt = 0, z:CInt = 0) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
 
+	#if (AGGR_INLINE) inline #end 
 	public function clone() {
 		return new IntPoint(this.x, this.y, this.z);
 	}
 	
+	#if (AGGR_INLINE) inline #end 
 	public function copyFrom(ip:IntPoint):Void {
 		this.x = ip.x;
 		this.y = ip.y;
@@ -343,11 +346,13 @@ class IntPoint
 		return pt.clone();
 	}
 #else 
+	#if (AGGR_INLINE) inline #end 
 	public function new(x:CInt = 0, y:CInt = 0) {
 		this.x = x;
 		this.y = y;
 	}
 
+	#if (AGGR_INLINE) inline #end 
 	public function clone() {
 		return new IntPoint(this.x, this.y);
 	}
@@ -356,6 +361,7 @@ class IntPoint
 		return '(x:$x, y:$y)';
 	}
 	
+	#if (AGGR_INLINE) inline #end 
 	public function copyFrom(ip:IntPoint):Void {
 		this.x = ip.x;
 		this.y = ip.y;
@@ -374,6 +380,7 @@ class IntPoint
 	}
 #end
 
+	#if (AGGR_INLINE) inline #end 
 	public function equals(ip:IntPoint):Bool {
 		return this.x == ip.x && this.y == ip.y;
 	}
@@ -409,6 +416,7 @@ class IntRect
 	public var right:CInt;
 	public var bottom:CInt;
 
+	#if (AGGR_INLINE) inline #end 
 	public function new(l:CInt, t:CInt, r:CInt, b:CInt) {
 		this.left = l;
 		this.top = t;
@@ -416,6 +424,7 @@ class IntRect
 		this.bottom = b;
 	}
 	
+	#if (AGGR_INLINE) inline #end 
 	public function clone(ir:IntRect):IntRect {
 		return new IntRect(left, top, right, bottom);
 	}
@@ -509,6 +518,7 @@ class IntersectNode
 	/*internal*/ var edge2:TEdge;
 	/*internal*/ var pt:IntPoint = new IntPoint();
 	
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ function new() { }
 }
 
@@ -530,6 +540,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ var rightBound:TEdge;
 	/*internal*/ var next:LocalMinima;
 	
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ function new() { }
 }
 
@@ -539,6 +550,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ var y:CInt;
 	/*internal*/ var next:Scanbeam;
 	
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ function new() { }
 }
 
@@ -549,6 +561,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ var next:Maxima;
 	/*internal*/ var prev:Maxima;
 	
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ function new() { }
 }
 
@@ -565,6 +578,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ var bottomPt:OutPt;
 	/*internal*/ var polyNode:PolyNode; //NOTE: check name here
 	
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ function new() { }
 }
 
@@ -576,6 +590,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ var next:OutPt;
 	/*internal*/ var prev:OutPt;
 	
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ function new() { }
 }
 
@@ -586,6 +601,7 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ var outPt2:OutPt;
 	/*internal*/ var offPt:IntPoint = new IntPoint();
 	
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ function new() { }
 }
 
@@ -600,6 +616,7 @@ class ClipperBase
 	inline static var TOLERANCE:Float = 1.0E-20;
 	
 	// NOTE: camelcase
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ static function nearZero(val:Float):Bool {
 		return (val > -TOLERANCE) && (val < TOLERANCE);
 	}
@@ -635,6 +652,7 @@ class ClipperBase
 	}*/
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ static function isHorizontal(e:TEdge):Bool {
 		return e.delta.y == 0;
 	}
@@ -706,6 +724,7 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ function new() //constructor (nb: no external instantiation)
 	{
 		mMinimaList = null;
@@ -1200,7 +1219,8 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-    /*internal*/ function localMinimaPending():Bool {
+  #if (AGGR_INLINE) inline #end 
+  /*internal*/ function localMinimaPending():Bool {
         return (mCurrentLM != null);
     }
     //------------------------------------------------------------------------------
@@ -1220,6 +1240,7 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 	
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ function disposeOutRec(index:Int):Void {
 		var outRec:OutRec = mPolyOuts[index];
 		outRec.pts = null;
@@ -2029,6 +2050,7 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	//NOTE: ref?
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ function swapPoints(/*ref*/ pt1:IntPoint, /*ref*/ pt2:IntPoint):Void {
 		var tmp = pt1.clone();
 		pt1.copyFrom(pt2);
@@ -2268,6 +2290,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	static function swapSides(edge1:TEdge, edge2:TEdge):Void {
 		var side:EdgeSide = edge1.side;
 		edge1.side = edge2.side;
@@ -2275,6 +2298,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	static function swapPolyIndexes(edge1:TEdge, edge2:TEdge):Void {
 		var outIdx:Int = edge1.outIdx;
 		edge1.outIdx = edge2.outIdx;
@@ -2638,21 +2662,25 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	function getNextInAEL(e:TEdge, direction:Direction):TEdge {
 		return direction == Direction.D_LEFT_TO_RIGHT ? e.nextInAEL : e.prevInAEL;
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	function isMinima(e:TEdge):Bool {
 		return e != null && (e.prev.nextInLML != e) && (e.next.nextInLML != e);
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	function isMaxima(e:TEdge, y:Float):Bool {
 		return (e != null && e.top.y == y && e.nextInLML == null);
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	function isIntermediate(e:TEdge, y:Float):Bool {
 		return (e.top.y == y && e.nextInLML != null);
 	}
@@ -2744,11 +2772,13 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	function edgesAdjacent(inode:IntersectNode):Bool {
 		return (inode.edge1.nextInSEL == inode.edge2) || (inode.edge1.prevInSEL == inode.edge2);
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	static function intersectNodeSort(node1:IntersectNode, node2:IntersectNode):Int {
 		//the following typecast is safe because the differences in Pt.Y will
 		//be limited to the height of the scanbeam.
@@ -2793,12 +2823,14 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ static function round(value:Float):CInt {
 		// NOTE: check how to cast
 		return value < 0 ? /*(cInt)*/Std.int(value - 0.5) : /*(cInt)*/Std.int(value + 0.5);
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	static function topX(edge:TEdge, currentY:CInt):CInt {
 		if (currentY == edge.top.y) return edge.top.x;
 		return edge.bot.x + round(edge.dx * (currentY - edge.bot.y));
@@ -2997,6 +3029,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	static public function orientation(poly:Path):Bool {
 		return area(poly) >= 0;
 	}
@@ -3671,6 +3704,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	function areaOfOutRec(outRec:OutRec):Float {
 		return areaOfOutPt(outRec.pts);
 	}
@@ -3975,6 +4009,7 @@ class ClipperOffset
 	inline static var TWO_PI:Float = 6.283185307179586476925286766559; // NOTE: Math.PI * 2;
 	inline static var DEFAULT_ARC_TOLERANCE:Float = 0.25;
 
+	#if (AGGR_INLINE) inline #end 
 	public function new(miterLimit:Float = 2.0, arcTolerance:Float = DEFAULT_ARC_TOLERANCE) {
 		this.miterLimit = miterLimit;
 		this.arcTolerance = arcTolerance;
@@ -3988,6 +4023,7 @@ class ClipperOffset
 	}
 	//------------------------------------------------------------------------------
 
+	#if (AGGR_INLINE) inline #end 
 	/*internal*/ static function round(value:Float):CInt {
 		// NOTE: check how to cast (this is already defined in Clipper)
 		//return value < 0 ? /*(cInt)*/Std.int(value - 0.5) : /*(cInt)*/Std.int(value + 0.5);
@@ -4396,6 +4432,7 @@ class ClipperException
 {
 	var desc:String;
 	
+	#if (AGGR_INLINE) inline #end 
 	public function new(description:String) {
 		this.desc = description;
 	}
