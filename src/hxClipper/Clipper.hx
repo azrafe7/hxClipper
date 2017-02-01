@@ -1,8 +1,8 @@
 ﻿/*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.4.0 (r495)                                                    *
-* Date      :  2 July 2015                                                     *
+* Version   :  6.4.1 (r498)                                                    *
+* Date      :  5 December 2016                                                 *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2010-2015                                         *
 *                                                                              *
@@ -3504,7 +3504,7 @@ class Clipper extends ClipperBase
 		//same as FixupFirstLefts1 but doesn't call Poly2ContainsPoly1()
 		for (outRec in mPolyOuts) {
 			var firstLeft:OutRec = parseFirstLeft(outRec.firstLeft);
-			if (outRec.pts != null && outRec.firstLeft == oldOutRec) 
+			if (outRec.pts != null && firstLeft == oldOutRec) 
 				outRec.firstLeft = newOutRec;
 		}
 	}
