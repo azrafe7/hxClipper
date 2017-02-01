@@ -1,8 +1,8 @@
 ﻿/*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.3.0 (r494)                                                    *
-* Date      :  19 April 2015                                                   *
+* Version   :  6.4.0 (r495)                                                    *
+* Date      :  2 July 2015                                                     *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2010-2015                                         *
 *                                                                              *
@@ -1612,7 +1612,12 @@ class Clipper extends ClipperBase
 			}
 
 			if (rb != null) {
-				if (ClipperBase.isHorizontal(rb)) addEdgeToSEL(rb);
+				if (ClipperBase.isHorizontal(rb)) {
+					if (rb.nextInLML != null) {
+						insertScanbeam(rb.nextInLML.top.y);
+					}
+					addEdgeToSEL(rb);
+				}
 				else insertScanbeam(rb.top.y);
 			}
 
