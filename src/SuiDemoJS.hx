@@ -10,7 +10,7 @@ import js.html.CanvasRenderingContext2D;
 import js.html.CanvasWindingRule;
 import sui.*;
 import sui.controls.*;
-import thx.core.Timer;
+import thx.Timer;
 
 using hxClipper.Clipper.InternalTools;
 
