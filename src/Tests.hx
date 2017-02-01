@@ -53,6 +53,10 @@ class Tests extends TestCase
     var polytree:PolyTree;
     var pft:PolyFillType;
 
+	static function main():Void {
+		Tests.run();
+	}
+	
 	public function new()
 	{
 		super();
