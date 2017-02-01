@@ -1,8 +1,8 @@
 ﻿/*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.2.9 (r493)                                                    *
-* Date      :  16 February 2015                                                *
+* Version   :  6.3.0 (r494)                                                    *
+* Date      :  19 April 2015                                                   *
 * Website   :  http://www.angusj.com                                           *
 * Copyright :  Angus Johnson 2010-2015                                         *
 *                                                                              *
@@ -35,7 +35,7 @@
 
 /*
  * CS -> HX notes:
- * 		[~] should be up to r493 (although the tests are still relative to r483)
+ * 		[~] should be up to r494 (tests relative to sandbox from r479)
  * 		[x] move some statics from ClipperBase to Clipper
  * 		[ ] find a way to fix Int128 and Slopes...
  * 		[x] fix multi declarations
@@ -44,6 +44,7 @@
  * 		[x] check switches/break
  * 		[x] check occurrences of IntPoint.equals()
  * 		[~] fix struct vs class issues (structs are: DoublePoint, Int128, IntPoint, IntRect)
+ * 		[x] replace structs check for equality with .equals() instead of ==
  * 		[x] replace structs assignments with clone() or copyFrom()
  * 		[ ] EitherType for Paths and PolyTree in Execute() (instead of Dynamic and Std.is())?
  * 		[x] adjust to haxe naming style conventions
@@ -476,12 +477,12 @@ enum EndType {
 /*internal*/ private class TEdge 
 {
 	/*internal*/ var bot:IntPoint = new IntPoint();
-	/*internal*/ var curr:IntPoint = new IntPoint();
+	/*internal*/ var curr:IntPoint = new IntPoint(); //current (updated for every new scanbeam)
 	/*internal*/ var top:IntPoint = new IntPoint();
 	/*internal*/ var delta:IntPoint = new IntPoint();
 	/*internal*/ var dx:Float;
 	/*internal*/ var polyType:PolyType;
-	/*internal*/ var side:EdgeSide;
+	/*internal*/ var side:EdgeSide; //side only refers to current side of solution poly
 	/*internal*/ var windDelta:Int; //1 or -1 depending on winding direction
 	/*internal*/ var windCnt:Int;
 	/*internal*/ var windCnt2:Int; //winding count of the opposite polytype
@@ -551,6 +552,8 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ function new() { }
 }
 
+//OutRec: contains a path in the clipping solution. Edges in the AEL will
+//carry a pointer to an OutRec when they are part of the clipping solution.
 @:allow(hxClipper.ClipperBase)
 /*internal*/ private class OutRec 
 {
@@ -612,6 +615,9 @@ class ClipperBase
 	/*internal*/ var mMinimaList:LocalMinima;
 	/*internal*/ var mCurrentLM:LocalMinima;
 	/*internal*/ var mEdges:Array<Array<TEdge>> = new Array<Array<TEdge>>();
+    /*internal*/ var mScanbeam:Scanbeam;
+    /*internal*/ var mPolyOuts:Array<OutRec>;
+    /*internal*/ var mActiveEdges:TEdge;
 	/*internal*/ var mUseFullRange:Bool;
 	/*internal*/ var mHasOpenPaths:Bool;
 
@@ -680,7 +686,7 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	/*protected*/ static function slopesEqual3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, useFullRange:Bool):Bool {
+	/*internal*/ static function slopesEqual3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, useFullRange:Bool):Bool {
 	#if USE_INT64	
 		if (useFullRange) return Int128.Int128Mul(pt1.y - pt2.y, pt2.x - pt3.x) == Int128.Int128Mul(pt1.x - pt2.x, pt2.y - pt3.y);
 		else 
@@ -690,7 +696,7 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	/*protected*/ static function slopesEqual4(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, pt4:IntPoint, useFullRange:Bool):Bool {
+	/*internal*/ static function slopesEqual4(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, pt4:IntPoint, useFullRange:Bool):Bool {
 	#if USE_INT64	
 		if (useFullRange) return Int128.Int128Mul(pt1.y - pt2.y, pt3.x - pt4.x) == Int128.Int128Mul(pt1.x - pt2.x, pt3.y - pt4.y);
 		else 
@@ -1080,9 +1086,16 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function popLocalMinima():Void {
-		if (mCurrentLM == null) return;
-		mCurrentLM = mCurrentLM.next;
+	// NOTE: out (r493 to r494)
+	/*internal*/ function popLocalMinima(y:CInt, /*out*/ current:{lm:LocalMinima}):Bool {
+		current.lm = mCurrentLM;
+		
+        if (mCurrentLM != null && mCurrentLM.y == y)
+        {
+            mCurrentLM = mCurrentLM.next;
+            return true;
+        }
+        return false;
 	}
 	//------------------------------------------------------------------------------
 
@@ -1102,27 +1115,28 @@ class ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function reset():Void {
+	/*internal*/ function reset():Void {
 		mCurrentLM = mMinimaList;
 		if (mCurrentLM == null) return; //ie nothing to process
 
 		//reset all edges ...
+		mScanbeam = null;
 		var lm:LocalMinima = mMinimaList;
 		while (lm != null) {
+			insertScanbeam(lm.y);
 			var e:TEdge = lm.leftBound;
 			if (e != null) {
 				e.curr.copyFrom(e.bot);
-				e.side = EdgeSide.ES_LEFT;
 				e.outIdx = UNASSIGNED;
 			}
 			e = lm.rightBound;
 			if (e != null) {
 				e.curr.copyFrom(e.bot);
-				e.side = EdgeSide.ES_RIGHT;
 				e.outIdx = UNASSIGNED;
 			}
 			lm = lm.next;
 		}
+		mActiveEdges = null;
 	}
 	//------------------------------------------------------------------------------
 
@@ -1147,7 +1161,147 @@ class ClipperBase
 		}
 		return result;
 	}
+	//------------------------------------------------------------------------------
 
+	/*internal*/ function insertScanbeam(y:CInt):Void {
+		//single-linked list: sorted descending, ignoring dups.
+		if (mScanbeam == null) {
+			mScanbeam = new Scanbeam();
+			mScanbeam.next = null;
+			mScanbeam.y = y;
+		} else if (y > mScanbeam.y) {
+			var newSb = new Scanbeam();
+			newSb.y = y;
+			newSb.next = mScanbeam;
+			mScanbeam = newSb;
+		} else {
+			var sb2 = mScanbeam;
+			while (sb2.next != null && (y <= sb2.next.y)) sb2 = sb2.next;
+			if (y == sb2.y) return; //ie ignores duplicates
+			var newSb = new Scanbeam();
+			newSb.y = y;
+			newSb.next = sb2.next;
+			sb2.next = newSb;
+		}
+	}
+	//------------------------------------------------------------------------------
+	
+	// NOTE: changed signature in r494 (from CInt->Void to Out<CInt>->Bool)
+	/*internal*/ function popScanbeam(/*out y:CInt*/):{y:CInt, popped:Bool} {
+		var res = { y:0, popped:false };
+		if (mScanbeam == null)
+		{
+			return res;
+		}
+        res.y = mScanbeam.y;
+        mScanbeam = mScanbeam.next;
+		res.popped = true;
+		return res;
+	}
+	//------------------------------------------------------------------------------
+
+    /*internal*/ function localMinimaPending():Bool {
+        return (mCurrentLM != null);
+    }
+    //------------------------------------------------------------------------------
+
+	/*internal*/ function createOutRec():OutRec {
+		var result = new OutRec();
+		result.idx = ClipperBase.UNASSIGNED;
+		result.isHole = false;
+		result.isOpen = false;
+		result.firstLeft = null;
+		result.pts = null;
+		result.bottomPt = null;
+		result.polyNode = null;
+		mPolyOuts.push(result);
+		result.idx = mPolyOuts.length - 1;
+		return result;
+	}
+	//------------------------------------------------------------------------------
+	
+	/*internal*/ function disposeOutRec(index:Int):Void {
+		var outRec:OutRec = mPolyOuts[index];
+		outRec.pts = null;
+		outRec = null;
+		mPolyOuts[index] = null;
+	}
+	//------------------------------------------------------------------------------
+
+	// NOTE: ref (updated to return the modified edge)
+	/*internal*/ function updateEdgeIntoAEL(/*ref*/ e:TEdge):TEdge {
+		if (e.nextInLML == null) throw new ClipperException("UpdateEdgeIntoAEL: invalid call");
+		var aelPrev:TEdge = e.prevInAEL;
+		var aelNext:TEdge = e.nextInAEL;
+		e.nextInLML.outIdx = e.outIdx;
+		if (aelPrev != null) aelPrev.nextInAEL = e.nextInLML;
+		else mActiveEdges = e.nextInLML;
+		if (aelNext != null) aelNext.prevInAEL = e.nextInLML;
+		e.nextInLML.side = e.side;
+		e.nextInLML.windDelta = e.windDelta;
+		e.nextInLML.windCnt = e.windCnt;
+		e.nextInLML.windCnt2 = e.windCnt2;
+		e = e.nextInLML;
+		e.curr.copyFrom(e.bot);
+		e.prevInAEL = aelPrev;
+		e.nextInAEL = aelNext;
+		if (!ClipperBase.isHorizontal(e)) insertScanbeam(e.top.y);
+		return e;
+	}
+	//------------------------------------------------------------------------------
+
+	/*internal*/ function swapPositionsInAEL(edge1:TEdge, edge2:TEdge):Void {
+		//check that one or other edge hasn't already been removed from AEL ...
+		if (edge1.nextInAEL == edge1.prevInAEL || edge2.nextInAEL == edge2.prevInAEL) return;
+
+		if (edge1.nextInAEL == edge2) {
+			var next:TEdge = edge2.nextInAEL;
+			if (next != null) next.prevInAEL = edge1;
+			var prev:TEdge = edge1.prevInAEL;
+			if (prev != null) prev.nextInAEL = edge2;
+			edge2.prevInAEL = prev;
+			edge2.nextInAEL = edge1;
+			edge1.prevInAEL = edge2;
+			edge1.nextInAEL = next;
+		} else if (edge2.nextInAEL == edge1) {
+			var next:TEdge = edge1.nextInAEL;
+			if (next != null) next.prevInAEL = edge2;
+			var prev:TEdge = edge2.prevInAEL;
+			if (prev != null) prev.nextInAEL = edge1;
+			edge1.prevInAEL = prev;
+			edge1.nextInAEL = edge2;
+			edge2.prevInAEL = edge1;
+			edge2.nextInAEL = next;
+		} else {
+			var next:TEdge = edge1.nextInAEL;
+			var prev:TEdge = edge1.prevInAEL;
+			edge1.nextInAEL = edge2.nextInAEL;
+			if (edge1.nextInAEL != null) edge1.nextInAEL.prevInAEL = edge1;
+			edge1.prevInAEL = edge2.prevInAEL;
+			if (edge1.prevInAEL != null) edge1.prevInAEL.nextInAEL = edge1;
+			edge2.nextInAEL = next;
+			if (edge2.nextInAEL != null) edge2.nextInAEL.prevInAEL = edge2;
+			edge2.prevInAEL = prev;
+			if (edge2.prevInAEL != null) edge2.prevInAEL.nextInAEL = edge2;
+		}
+
+		if (edge1.prevInAEL == null) mActiveEdges = edge1;
+		else if (edge2.prevInAEL == null) mActiveEdges = edge2;
+	}
+	//------------------------------------------------------------------------------
+
+	/*internal*/ function deleteFromAEL(e:TEdge):Void {
+		var aelPrev:TEdge = e.prevInAEL;
+		var aelNext:TEdge = e.nextInAEL;
+		if (aelPrev == null && aelNext == null && (e != mActiveEdges)) return; //already deleted
+		if (aelPrev != null) aelPrev.nextInAEL = aelNext;
+		else mActiveEdges = aelNext;
+		if (aelNext != null) aelNext.prevInAEL = aelPrev;
+		e.nextInAEL = null;
+		e.prevInAEL = null;
+	}
+	//------------------------------------------------------------------------------
+	
 } //end ClipperBase
 
 typedef IntersectNodeComparer = IntersectNode->IntersectNode->Int;
@@ -1171,11 +1325,8 @@ class Clipper extends ClipperBase
 	inline static public var ioStrictlySimple:Int = 2;
 	inline static public var ioPreserveCollinear:Int = 4;*/
 
-	var mPolyOuts:Array<OutRec>;
 	var mClipType:ClipType;
-	var mScanbeam:Scanbeam;
 	var mMaxima:Maxima;
-	var mActiveEdges:TEdge;
 	var mSortedEdges:TEdge;
 	var mIntersectList:Array<IntersectNode>;
 	var mIntersectNodeComparer:IntersectNodeComparer;
@@ -1220,27 +1371,6 @@ class Clipper extends ClipperBase
 		else return 0;
 	}
 	
-	function insertScanbeam(y:CInt):Void {
-		//single-linked list: sorted descending, ignoring dups.
-		if (mScanbeam == null) {
-			mScanbeam = new Scanbeam();
-			mScanbeam.next = null;
-			mScanbeam.y = y;
-		} else if (y > mScanbeam.y) {
-			var newSb = new Scanbeam();
-			newSb.y = y;
-			newSb.next = mScanbeam;
-			mScanbeam = newSb;
-		} else {
-			var sb2 = mScanbeam;
-			while (sb2.next != null && (y <= sb2.next.y)) sb2 = sb2.next;
-			if (y == sb2.y) return; //ie ignores duplicates
-			var newSb = new Scanbeam();
-			newSb.y = y;
-			newSb.next = sb2.next;
-			sb2.next = newSb;
-		}
-	}
 	//------------------------------------------------------------------------------
 
 	function insertMaxima(x:CInt):Void {
@@ -1264,19 +1394,6 @@ class Clipper extends ClipperBase
 			newMax.prev = m;
 			if (m.next != null) m.next.prev = newMax;
 			m.next = newMax;
-		}
-	}
-	//------------------------------------------------------------------------------
-
-	override function reset():Void {
-		super.reset();
-		mScanbeam = null;
-		mActiveEdges = null;
-		mSortedEdges = null;
-		var lm:LocalMinima = mMinimaList;
-		while (lm != null) {
-			insertScanbeam(lm.y);
-			lm = lm.next;
 		}
 	}
 	//------------------------------------------------------------------------------
@@ -1366,23 +1483,34 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	//NOTE: double check logic of changes from r493 to r494
 	function executeInternal():Bool {
 		try {
 			reset();
-			if (mCurrentLM == null) return false;
-
-			var botY:CInt = popScanbeam();
-			do {
-				insertLocalMinimaIntoAEL(botY);
-				processHorizontals();
-				mGhostJoins.clear();
-				
-				if (mScanbeam == null) break;
-				var topY:CInt = popScanbeam();
-				if (!processIntersections(topY)) return false;
-				processEdgesAtTopOfScanbeam(topY);
-				botY = topY;
-			} while (mScanbeam != null || mCurrentLM != null);
+			mSortedEdges = null;
+			mMaxima = null;
+			
+			var botY:CInt, topY:CInt;
+			var popRes = popScanbeam();
+			botY = popRes.y;
+			if (!popRes.popped) return false;
+			
+			insertLocalMinimaIntoAEL(botY);
+			while (true) {
+				popRes = popScanbeam();
+				topY = popRes.y;
+				if (popRes.popped || localMinimaPending()) {
+					processHorizontals();
+					mGhostJoins.clear();
+					
+					if (!processIntersections(topY)) return false;
+					processEdgesAtTopOfScanbeam(topY);
+					botY = topY;
+					insertLocalMinimaIntoAEL(botY);
+				} else {
+					break;
+				}
+			}
 
 			//fix orientations ...
 			for (i in 0...mPolyOuts.length) {
@@ -1416,24 +1544,9 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function popScanbeam():CInt {
-		var y:CInt = mScanbeam.y;
-		mScanbeam = mScanbeam.next;
-		return y;
-	}
-	//------------------------------------------------------------------------------
-
 	function disposeAllPolyPts():Void {
 		for (i in 0...mPolyOuts.length) disposeOutRec(i);
 		mPolyOuts.clear();
-	}
-	//------------------------------------------------------------------------------
-
-	function disposeOutRec(index:Int):Void {
-		var outRec:OutRec = mPolyOuts[index];
-		outRec.pts = null;
-		outRec = null;
-		mPolyOuts[index] = null;
 	}
 	//------------------------------------------------------------------------------
 
@@ -1467,11 +1580,13 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 #end
 
+	// NOTE: watch out changes from r493 to r494
 	function insertLocalMinimaIntoAEL(botY:CInt):Void {
-		while (mCurrentLM != null && (mCurrentLM.y == botY)) {
-			var lb:TEdge = mCurrentLM.leftBound;
-			var rb:TEdge = mCurrentLM.rightBound;
-			popLocalMinima();
+		var current = {lm:null};
+		while (popLocalMinima(botY, /*out*/ current)) {
+			var lm:LocalMinima = current.lm;
+			var lb:TEdge = lm.leftBound;
+			var rb:TEdge = lm.rightBound;
 
 			var op1:OutPt = null;
 			if (lb == null) {
@@ -1514,7 +1629,8 @@ class Clipper extends ClipperBase
 			}
 
 			if (lb.outIdx >= 0 && lb.prevInAEL != null && lb.prevInAEL.curr.x == lb.bot.x && lb.prevInAEL.outIdx >= 0 
-				&& ClipperBase.slopesEqual(lb.prevInAEL, lb, mUseFullRange) && lb.windDelta != 0 && lb.prevInAEL.windDelta != 0) 
+				&& ClipperBase.slopesEqual4(lb.prevInAEL.curr, lb.prevInAEL.top, lb.curr, lb.top, mUseFullRange) 
+				&& lb.windDelta != 0 && lb.prevInAEL.windDelta != 0) 
 			{
 				var op2:OutPt = addOutPt(lb.prevInAEL, lb.bot);
 				addJoin(op1, op2, lb.top);
@@ -1522,7 +1638,8 @@ class Clipper extends ClipperBase
 
 			if (lb.nextInAEL != rb) {
 
-				if (rb.outIdx >= 0 && rb.prevInAEL.outIdx >= 0 && ClipperBase.slopesEqual(rb.prevInAEL, rb, mUseFullRange) 
+				if (rb.outIdx >= 0 && rb.prevInAEL.outIdx >= 0 
+					&& ClipperBase.slopesEqual4(rb.prevInAEL.curr, rb.prevInAEL.top, rb.curr, rb.top, mUseFullRange) 
 					&& rb.windDelta != 0 && rb.prevInAEL.windDelta != 0) 
 				{
 					var op2:OutPt = addOutPt(rb.prevInAEL, rb.bot);
@@ -1662,7 +1779,9 @@ class Clipper extends ClipperBase
 		//find the edge of the same polytype that immediately preceeds 'edge' in AEL
 		while (e != null && ((e.polyType != edge.polyType) || (e.windDelta == 0))) e = e.prevInAEL;
 		if (e == null) {
-			edge.windCnt = (edge.windDelta == 0 ? 1 : edge.windDelta);
+			var pft:PolyFillType = (edge.polyType == PolyType.PT_SUBJECT ? mSubjFillType : mClipFillType);
+			if (edge.windDelta == 0) edge.windCnt = (pft == PolyFillType.PFT_NEGATIVE ? -1 : 1);
+			else edge.windCnt = edge.windDelta;
 			edge.windCnt2 = 0;
 			e = mActiveEdges; //ie get ready to calc WindCnt2
 		} else if (edge.windDelta == 0 && mClipType != ClipType.CT_UNION) {
@@ -1730,8 +1849,9 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function addEdgeToSEL(edge:TEdge):Void {
-		//SEL pointers in PEdge are reused to build a list of horizontal edges.
-		//However, we don't need to worry about order with horizontal edge processing.
+		//SEL pointers in PEdge are used to build transient lists of horizontal edges.
+		//However, since we don't need to worry about processing order, all additions
+		//are made to the front of the list ...
 		if (mSortedEdges == null) {
 			mSortedEdges = edge;
 			edge.prevInSEL = null;
@@ -1745,6 +1865,22 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	// NOTE: check `out` param refactor into multireturn (r493 to r494)
+	/*internal*/ function popEdgeFromSEL(/*out*/ /*e:TEdge*/):{popped:Bool, edge:TEdge} {
+		//Pop edge from front of SEL (ie SEL is a FILO list)
+		var res = { popped:false, edge:null };
+		res.edge = mSortedEdges;
+		if (res.edge == null) return res;
+		var oldE:TEdge = res.edge;
+		mSortedEdges = res.edge.nextInSEL;
+		if (mSortedEdges != null) mSortedEdges.prevInSEL = null;
+		oldE.nextInSEL = null;
+		oldE.prevInSEL = null;
+		res.popped = true;
+		return res;
+	}
+	//------------------------------------------------------------------------------
+
 	function copyAELToSEL():Void {
 		var e:TEdge = mActiveEdges;
 		mSortedEdges = e;
@@ -1753,46 +1889,6 @@ class Clipper extends ClipperBase
 			e.nextInSEL = e.nextInAEL;
 			e = e.nextInAEL;
 		}
-	}
-	//------------------------------------------------------------------------------
-
-	function swapPositionsInAEL(edge1:TEdge, edge2:TEdge):Void {
-		//check that one or other edge hasn't already been removed from AEL ...
-		if (edge1.nextInAEL == edge1.prevInAEL || edge2.nextInAEL == edge2.prevInAEL) return;
-
-		if (edge1.nextInAEL == edge2) {
-			var next:TEdge = edge2.nextInAEL;
-			if (next != null) next.prevInAEL = edge1;
-			var prev:TEdge = edge1.prevInAEL;
-			if (prev != null) prev.nextInAEL = edge2;
-			edge2.prevInAEL = prev;
-			edge2.nextInAEL = edge1;
-			edge1.prevInAEL = edge2;
-			edge1.nextInAEL = next;
-		} else if (edge2.nextInAEL == edge1) {
-			var next:TEdge = edge1.nextInAEL;
-			if (next != null) next.prevInAEL = edge2;
-			var prev:TEdge = edge2.prevInAEL;
-			if (prev != null) prev.nextInAEL = edge1;
-			edge1.prevInAEL = prev;
-			edge1.nextInAEL = edge2;
-			edge2.prevInAEL = edge1;
-			edge2.nextInAEL = next;
-		} else {
-			var next:TEdge = edge1.nextInAEL;
-			var prev:TEdge = edge1.prevInAEL;
-			edge1.nextInAEL = edge2.nextInAEL;
-			if (edge1.nextInAEL != null) edge1.nextInAEL.prevInAEL = edge1;
-			edge1.prevInAEL = edge2.prevInAEL;
-			if (edge1.prevInAEL != null) edge1.prevInAEL.nextInAEL = edge1;
-			edge2.nextInAEL = next;
-			if (edge2.nextInAEL != null) edge2.nextInAEL.prevInAEL = edge2;
-			edge2.prevInAEL = prev;
-			if (edge2.prevInAEL != null) edge2.prevInAEL.nextInAEL = edge2;
-		}
-
-		if (edge1.prevInAEL == null) mActiveEdges = edge1;
-		else if (edge2.prevInAEL == null) mActiveEdges = edge2;
 	}
 	//------------------------------------------------------------------------------
 
@@ -1848,8 +1944,9 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
+	// NOTE: check `result` (as Angus' code doesn't init it)
 	function addLocalMinPoly(e1:TEdge, e2:TEdge, pt:IntPoint):OutPt {
-		var result:OutPt;
+		var result:OutPt = null;
 		var e:TEdge, prevE:TEdge;
 		if (ClipperBase.isHorizontal(e2) || (e1.dx > e2.dx)) {
 			result = addOutPt(e1, pt);
@@ -1869,27 +1966,16 @@ class Clipper extends ClipperBase
 			else prevE = e.prevInAEL;
 		}
 
-		if (prevE != null && prevE.outIdx >= 0 && (topX(prevE, pt.y) == topX(e, pt.y)) 
-			&& ClipperBase.slopesEqual(e, prevE, mUseFullRange) && (e.windDelta != 0) && (prevE.windDelta != 0)) 
-		{
-			var outPt:OutPt = addOutPt(prevE, pt);
-			addJoin(result, outPt, e.top);
+		if (prevE != null && prevE.outIdx >= 0) {
+			var xPrev:CInt = topX(prevE, pt.y);
+			var xE:CInt = topX(e, pt.y);
+			if ((xPrev == xE) && (e.windDelta != 0) && (prevE.windDelta != 0) 
+				&& ClipperBase.slopesEqual4(new IntPoint(xPrev, pt.y), prevE.top, new IntPoint(xE, pt.y), e.top, mUseFullRange))
+			{
+				var outPt:OutPt = addOutPt(prevE, pt);
+				addJoin(result, outPt, e.top);
+			}
 		}
-		return result;
-	}
-	//------------------------------------------------------------------------------
-
-	function createOutRec():OutRec {
-		var result = new OutRec();
-		result.idx = ClipperBase.UNASSIGNED;
-		result.isHole = false;
-		result.isOpen = false;
-		result.firstLeft = null;
-		result.pts = null;
-		result.bottomPt = null;
-		result.polyNode = null;
-		mPolyOuts.push(result);
-		result.idx = mPolyOuts.length - 1;
 		return result;
 	}
 	//------------------------------------------------------------------------------
@@ -1962,16 +2048,26 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function setHoleState(e:TEdge, outRec:OutRec):Void {
-		var isHole = false;
 		var e2:TEdge = e.prevInAEL;
+		var eTmp:TEdge = null;
 		while (e2 != null) {
 			if (e2.outIdx >= 0 && e2.windDelta != 0) {
-				isHole = !isHole;
-				if (outRec.firstLeft == null) outRec.firstLeft = mPolyOuts[e2.outIdx];
+				if (eTmp == null) {
+					eTmp = e2;
+				} else if (eTmp.outIdx == e2.outIdx) {
+					eTmp = null; // paired
+				}
 			}
 			e2 = e2.prevInAEL;
 		}
-		if (isHole) outRec.isHole = true;
+
+		if (eTmp == null) {
+          outRec.firstLeft = null;
+          outRec.isHole = false;
+        } else {
+          outRec.firstLeft = mPolyOuts[eTmp.outIdx];
+          outRec.isHole = !outRec.firstLeft.isHole;
+        }
 	}
 	//------------------------------------------------------------------------------
 
@@ -1999,7 +2095,14 @@ class Clipper extends ClipperBase
 		p = btmPt2.next;
 		while ((p.pt.equals(btmPt2.pt)) && (p != btmPt2)) p = p.next;
 		var dx2n:Float = Math.abs(getDx(btmPt2.pt, p.pt));
-		return (dx1p >= dx2p && dx1p >= dx2n) || (dx1n >= dx2p && dx1n >= dx2n);
+		
+		if (Math.max(dx1p, dx1n) == Math.max(dx2p, dx2n) 
+			&& Math.min(dx1p, dx1n) == Math.min(dx2p, dx2n))
+		{
+			return areaOfOutPt(btmPt1) > 0; //if otherwise identical use orientation
+		} else {
+			return (dx1p >= dx2p && dx1p >= dx2n) || (dx1n >= dx2p && dx1n >= dx2n);
+		}
 	}
 	//------------------------------------------------------------------------------
 
@@ -2049,7 +2152,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function param1RightOfParam2(outRec1:OutRec, outRec2:OutRec):Bool {
+	function outRec1RightOfOutRec2(outRec1:OutRec, outRec2:OutRec):Bool {
 		do {
 			outRec1 = outRec1.firstLeft;
 			if (outRec1 == outRec2) return true;
@@ -2067,21 +2170,21 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function appendPolygon(e1:TEdge, e2:TEdge):Void {
-		//get the start and ends of both output polygons ...
 		var outRec1:OutRec = mPolyOuts[e1.outIdx];
 		var outRec2:OutRec = mPolyOuts[e2.outIdx];
 
 		var holeStateRec:OutRec;
-		if (param1RightOfParam2(outRec1, outRec2)) holeStateRec = outRec2;
-		else if (param1RightOfParam2(outRec2, outRec1)) holeStateRec = outRec1;
+		if (outRec1RightOfOutRec2(outRec1, outRec2)) holeStateRec = outRec2;
+		else if (outRec1RightOfOutRec2(outRec2, outRec1)) holeStateRec = outRec1;
 		else holeStateRec = getLowermostRec(outRec1, outRec2);
 
+		//get the start and ends of both output polygons and
+		//join E2 poly onto E1 poly and delete pointers to E2 ...
 		var p1_lft:OutPt = outRec1.pts;
 		var p1_rt:OutPt = p1_lft.prev;
 		var p2_lft:OutPt = outRec2.pts;
 		var p2_rt:OutPt = p2_lft.prev;
 
-		var side:EdgeSide;
 		//join e2 poly onto e1 poly and delete pointers to e2 ...
 		if (e1.side == EdgeSide.ES_LEFT) {
 			if (e2.side == EdgeSide.ES_LEFT) {
@@ -2100,7 +2203,6 @@ class Clipper extends ClipperBase
 				p1_rt.next = p2_lft;
 				outRec1.pts = p2_lft;
 			}
-			side = EdgeSide.ES_LEFT;
 		} else {
 			if (e2.side == EdgeSide.ES_RIGHT) {
 				//a b c z y x
@@ -2116,7 +2218,6 @@ class Clipper extends ClipperBase
 				p1_lft.prev = p2_rt;
 				p2_rt.next = p1_lft;
 			}
-			side = EdgeSide.ES_RIGHT;
 		}
 
 		outRec1.bottomPt = null;
@@ -2139,7 +2240,7 @@ class Clipper extends ClipperBase
 		while (e != null) {
 			if (e.outIdx == ObsoleteIdx) {
 				e.outIdx = OKIdx;
-				e.side = side;
+				e.side = e1.side;
 				break;
 			}
 			e = e.nextInAEL;
@@ -2337,18 +2438,6 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function deleteFromAEL(e:TEdge):Void {
-		var aelPrev:TEdge = e.prevInAEL;
-		var aelNext:TEdge = e.nextInAEL;
-		if (aelPrev == null && aelNext == null && (e != mActiveEdges)) return; //already deleted
-		if (aelPrev != null) aelPrev.nextInAEL = aelNext;
-		else mActiveEdges = aelNext;
-		if (aelNext != null) aelNext.prevInAEL = aelPrev;
-		e.nextInAEL = null;
-		e.prevInAEL = null;
-	}
-	//------------------------------------------------------------------------------
-
 	function deleteFromSEL(e:TEdge):Void {
 		var selPrev:TEdge = e.prevInSEL;
 		var selNext:TEdge = e.nextInSEL;
@@ -2361,34 +2450,17 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	// NOTE: ref (updated to return the modified edge)
-	function updateEdgeIntoAEL(/*ref*/ e:TEdge):TEdge {
-		if (e.nextInLML == null) throw new ClipperException("UpdateEdgeIntoAEL: invalid call");
-		var aelPrev:TEdge = e.prevInAEL;
-		var aelNext:TEdge = e.nextInAEL;
-		e.nextInLML.outIdx = e.outIdx;
-		if (aelPrev != null) aelPrev.nextInAEL = e.nextInLML;
-		else mActiveEdges = e.nextInLML;
-		if (aelNext != null) aelNext.prevInAEL = e.nextInLML;
-		e.nextInLML.side = e.side;
-		e.nextInLML.windDelta = e.windDelta;
-		e.nextInLML.windCnt = e.windCnt;
-		e.nextInLML.windCnt2 = e.windCnt2;
-		e = e.nextInLML;
-		e.curr.copyFrom(e.bot);
-		e.prevInAEL = aelPrev;
-		e.nextInAEL = aelNext;
-		if (!ClipperBase.isHorizontal(e)) insertScanbeam(e.top.y);
-		return e;
-	}
-	//------------------------------------------------------------------------------
-
+	// NOTE: check r493 to 494 refactor
 	function processHorizontals():Void {
-		var horzEdge:TEdge = mSortedEdges;
-		while (horzEdge != null) {
-			deleteFromSEL(horzEdge);
-			processHorizontal(horzEdge);
-			horzEdge = mSortedEdges;
+		var horzEdge:TEdge = null; //mSortedEdges;
+		while (true) {
+			var popRes = popEdgeFromSEL(/*out horzEdge*/);
+			horzEdge = popRes.edge;
+			if (popRes.popped) {
+				processHorizontal(horzEdge);
+			} else {
+				break;
+			}
 		}
 	}
 	//------------------------------------------------------------------------------
@@ -2410,7 +2482,7 @@ class Clipper extends ClipperBase
 	function processHorizontal(horzEdge:TEdge):Void {
 		var dir:Direction = null;
 		var horzLeft:CInt = 0, horzRight:CInt = 0;
-		var isOpen:Bool = horzEdge.outIdx >= 0 && mPolyOuts[horzEdge.outIdx].isOpen;
+		var isOpen:Bool = horzEdge.windDelta == 0;
 		
 		// NOTE: out
 		var outParams = {/*out*/ dir:dir, /*out*/ left:horzLeft, /*out*/ right:horzRight};
@@ -2581,12 +2653,22 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-	function getMaximaPair(e:TEdge):TEdge {
-		var result:TEdge = null;
-		if ((e.next.top.equals(e.top)) && e.next.nextInLML == null) result = e.next;
-		else if ((e.prev.top.equals(e.top)) && e.prev.nextInLML == null) result = e.prev;
-		if (result != null && (result.outIdx == ClipperBase.SKIP || (result.nextInAEL == result.prevInAEL 
-			&& !ClipperBase.isHorizontal(result)))) 
+	// NOTE: using equals() instead ot == to test equality. Check other places where this change is needed.
+	/*internal*/ function getMaximaPair(e:TEdge):TEdge {
+		if ((e.next.top.equals(e.top)) && e.next.nextInLML == null)
+			return e.next;
+		else if ((e.prev.top.equals(e.top)) && e.prev.nextInLML == null)
+			return e.prev;
+		else 
+			return null;
+	}
+	//------------------------------------------------------------------------------
+
+	/*internal*/ function getMaximaPairEx(e:TEdge):TEdge {
+		//as above but returns null if MaxPair isn't in AEL (unless it's horizontal)
+		var result:TEdge = getMaximaPair(e);
+		if (result == null || result.outIdx == ClipperBase.SKIP 
+			|| ((result.nextInAEL == result.prevInAEL) && !ClipperBase.isHorizontal(result))) 
 		{
 			return null;
 		}
@@ -2599,7 +2681,9 @@ class Clipper extends ClipperBase
 		try {
 			buildIntersectList(topY);
 			if (mIntersectList.length == 0) return true;
-			if (mIntersectList.length == 1 || fixupIntersectionOrder()) processIntersectList();
+			if (mIntersectList.length == 1 || fixupIntersectionOrder()) {
+				processIntersectList();
+			}
 			else return false;
 		} catch (e:Dynamic) {
 			mSortedEdges = null;
@@ -2635,6 +2719,9 @@ class Clipper extends ClipperBase
 				if (e.curr.x > eNext.curr.x) {
 					// NOTE: out
 					intersectPoint(e, eNext, /*out*/ pt);
+					if (pt.y < topY) {
+						pt = new IntPoint(topX(e, topY), topY);
+					}
 					var newNode = new IntersectNode();
 					newNode.edge1 = e;
 					newNode.edge2 = eNext;
@@ -2692,10 +2779,10 @@ class Clipper extends ClipperBase
 
 	function processIntersectList():Void {
 		for (i in 0...mIntersectList.length) {
-			var iNode:IntersectNode = mIntersectList[i]; {
-				intersectEdges(iNode.edge1, iNode.edge2, iNode.pt);
-				swapPositionsInAEL(iNode.edge1, iNode.edge2);
-			}
+			var iNode:IntersectNode = mIntersectList[i];
+			intersectEdges(iNode.edge1, iNode.edge2, iNode.pt);
+			swapPositionsInAEL(iNode.edge1, iNode.edge2);
+			
 		}
 		mIntersectList.clear();
 	}
@@ -2775,7 +2862,7 @@ class Clipper extends ClipperBase
 			var isMaximaEdge:Bool = isMaxima(e, topY);
 
 			if (isMaximaEdge) {
-				var eMaxPair:TEdge = getMaximaPair(e);
+				var eMaxPair:TEdge = getMaximaPairEx(e);
 				isMaximaEdge = (eMaxPair == null || !ClipperBase.isHorizontal(eMaxPair));
 			}
 
@@ -2836,12 +2923,16 @@ class Clipper extends ClipperBase
 				var ePrev:TEdge = e.prevInAEL;
 				var eNext:TEdge = e.nextInAEL;
 				if (ePrev != null && ePrev.curr.x == e.bot.x && ePrev.curr.y == e.bot.y && op != null && ePrev.outIdx >= 0 
-					&& ePrev.curr.y > ePrev.top.y && ClipperBase.slopesEqual(e, ePrev, mUseFullRange) && (e.windDelta != 0) && (ePrev.windDelta != 0)) 
+					&& ePrev.curr.y > ePrev.top.y 
+					&& ClipperBase.slopesEqual4(e.curr, e.top, ePrev.curr, ePrev.top, mUseFullRange) 
+					&& (e.windDelta != 0) && (ePrev.windDelta != 0)) 
 				{
 					var op2:OutPt = addOutPt(ePrev, e.bot);
 					addJoin(op, op2, e.top);
 				} else if (eNext != null && eNext.curr.x == e.bot.x && eNext.curr.y == e.bot.y && op != null && eNext.outIdx >= 0 
-						   && eNext.curr.y > eNext.top.y && ClipperBase.slopesEqual(e, eNext, mUseFullRange) && (e.windDelta != 0) && (eNext.windDelta != 0)) 
+						   && eNext.curr.y > eNext.top.y 
+						   && ClipperBase.slopesEqual4(e.curr, e.top, eNext.curr, eNext.top, mUseFullRange) 
+						   && (e.windDelta != 0) && (eNext.windDelta != 0)) 
 				{
 					var op2:OutPt = addOutPt(eNext, e.bot);
 					addJoin(op, op2, e.top);
@@ -2853,7 +2944,7 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function doMaxima(e:TEdge):Void {
-		var eMaxPair:TEdge = getMaximaPair(e);
+		var eMaxPair:TEdge = getMaximaPairEx(e);
 		if (eMaxPair == null) {
 			if (e.outIdx >= 0) addOutPt(e, e.top);
 			deleteFromAEL(e);
@@ -3374,18 +3465,43 @@ class Clipper extends ClipperBase
 	function fixupFirstLefts1(oldOutRec:OutRec, newOutRec:OutRec):Void {
 		for (i in 0...mPolyOuts.length) {
 			var outRec:OutRec = mPolyOuts[i];
-			if (outRec.pts == null || outRec.firstLeft == null) continue;
 			var firstLeft:OutRec = parseFirstLeft(outRec.firstLeft);
-			if (firstLeft == oldOutRec) {
+			if (outRec.pts != null && firstLeft == oldOutRec) {
 				if (poly2ContainsPoly1(outRec.pts, newOutRec.pts)) outRec.firstLeft = newOutRec;
 			}
 		}
 	}
 	//----------------------------------------------------------------------
 
-	function fixupFirstLefts2(oldOutRec:OutRec, newOutRec:OutRec):Void {
-		for (outRec in mPolyOuts)
-			if (outRec.firstLeft == oldOutRec) outRec.firstLeft = newOutRec;
+	function fixupFirstLefts2(innerOutRec:OutRec, outerOutRec:OutRec):Void {
+		//A polygon has split into two such that one is now the inner of the other.
+		//It's possible that these polygons now wrap around other polygons, so check
+		//every polygon that's also contained by OuterOutRec's FirstLeft container
+		//(including nil) to see if they've become inner to the new inner polygon ...
+		var orfl:OutRec = outerOutRec.firstLeft;
+		for (outRec in mPolyOuts) {
+			if (outRec.pts == null || outRec == outerOutRec || outRec == innerOutRec) 
+				continue;
+			var firstLeft:OutRec = parseFirstLeft(outRec.firstLeft);
+			if (firstLeft != orfl && firstLeft != innerOutRec && firstLeft != outerOutRec) 
+				continue;
+			if (poly2ContainsPoly1(outRec.pts, innerOutRec.pts))
+				outRec.firstLeft = innerOutRec;
+			else if (poly2ContainsPoly1(outRec.pts, outerOutRec.pts))
+				outRec.firstLeft = outerOutRec;
+			else if (outRec.firstLeft == innerOutRec || outRec.firstLeft == outerOutRec)
+				outRec.firstLeft = orfl;
+		}
+	}
+	//----------------------------------------------------------------------
+
+	function fixupFirstLefts3(oldOutRec:OutRec, newOutRec:OutRec):Void {
+		//same as FixupFirstLefts1 but doesn't call Poly2ContainsPoly1()
+		for (outRec in mPolyOuts) {
+			var firstLeft:OutRec = parseFirstLeft(outRec.firstLeft);
+			if (outRec.pts != null && outRec.firstLeft == oldOutRec) 
+				outRec.firstLeft = newOutRec;
+		}
 	}
 	//----------------------------------------------------------------------
 
@@ -3409,8 +3525,8 @@ class Clipper extends ClipperBase
 			//before calling JoinPoints() ...
 			var holeStateRec:OutRec;
 			if (outRec1 == outRec2) holeStateRec = outRec1;
-			else if (param1RightOfParam2(outRec1, outRec2)) holeStateRec = outRec2;
-			else if (param1RightOfParam2(outRec2, outRec1)) holeStateRec = outRec1;
+			else if (outRec1RightOfOutRec2(outRec1, outRec2)) holeStateRec = outRec2;
+			else if (outRec1RightOfOutRec2(outRec2, outRec1)) holeStateRec = outRec1;
 			else holeStateRec = getLowermostRec(outRec1, outRec2);
 
 			if (!joinPoints(join, outRec1, outRec2)) continue;
@@ -3426,32 +3542,22 @@ class Clipper extends ClipperBase
 				//update all OutRec2.pts Idx's ...
 				updateOutPtIdxs(outRec2);
 
-				//We now need to check every OutRec.FirstLeft pointer. If it points
-				//to OutRec1 it may need to point to OutRec2 instead ...
-				if (mUsingPolyTree) for (j in 0...mPolyOuts.length - 1) {
-					var oRec:OutRec = mPolyOuts[j];
-					if (oRec.pts == null || parseFirstLeft(oRec.firstLeft) != outRec1 || oRec.isHole == outRec1.isHole) continue;
-					if (poly2ContainsPoly1(oRec.pts, join.outPt2)) oRec.firstLeft = outRec2;
-				}
-
 				if (poly2ContainsPoly1(outRec2.pts, outRec1.pts)) {
-					//outRec2 is contained by outRec1 ...
+					//outRec1 contains outRec2 ...
 					outRec2.isHole = !outRec1.isHole;
 					outRec2.firstLeft = outRec1;
 
-					//fixup FirstLeft pointers that may need reassigning to OutRec1
 					if (mUsingPolyTree) fixupFirstLefts2(outRec2, outRec1);
 
 					if ((outRec2.isHole.xor(reverseSolution)) == (areaOfOutRec(outRec2) > 0)) reversePolyPtLinks(outRec2.pts);
 
 				} else if (poly2ContainsPoly1(outRec1.pts, outRec2.pts)) {
-					//outRec1 is contained by outRec2 ...
+					//outRec2 contains outRec1 ...
 					outRec2.isHole = outRec1.isHole;
 					outRec1.isHole = !outRec2.isHole;
 					outRec2.firstLeft = outRec1.firstLeft;
 					outRec1.firstLeft = outRec2;
 
-					//fixup FirstLeft pointers that may need reassigning to OutRec1
 					if (mUsingPolyTree) fixupFirstLefts2(outRec1, outRec2);
 
 					if ((outRec1.isHole.xor(reverseSolution)) == (areaOfOutRec(outRec1) > 0)) reversePolyPtLinks(outRec1.pts);
@@ -3476,7 +3582,7 @@ class Clipper extends ClipperBase
 				outRec2.firstLeft = outRec1;
 
 				//fixup FirstLeft pointers that may need reassigning to OutRec1
-				if (mUsingPolyTree) fixupFirstLefts2(outRec2, outRec1);
+				if (mUsingPolyTree) fixupFirstLefts3(outRec2, outRec1);
 			}
 		}
 	}
@@ -3561,7 +3667,12 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	function areaOfOutRec(outRec:OutRec):Float {
-		var op:OutPt = outRec.pts;
+		return areaOfOutPt(outRec.pts);
+	}
+	//------------------------------------------------------------------------------
+	
+	function areaOfOutPt(op:OutPt):Float {
+		var opFirst:OutPt = op;
 		if (op == null) return 0;
 		var a:Float = 0;
 		do {
@@ -3570,7 +3681,7 @@ class Clipper extends ClipperBase
 			var dy:Float = /*(double)*/(op.prev.pt.y - op.pt.y);
 			a += dx * dy;
 			op = op.next;
-		} while (op != outRec.pts);
+		} while (op != opFirst);
 		return a * 0.5;
 	}
 
@@ -4308,3 +4419,20 @@ class InternalTools
 	}
 }
 //------------------------------------------------------------------------------
+
+abstract Ref<T>(haxe.ds.Vector<T>) {
+  public var value(get, set):T;
+  
+  inline function new() this = new haxe.ds.Vector(1);
+  
+  @:to inline function get_value():T return this[0];
+  inline function set_value(param:T) return this[0] = param;
+  
+  public function toString():String return '@[' + Std.string(value)+']';
+  
+  @:noUsing @:from static inline public function to<A>(v:A):Ref<A> {
+    var ret = new Ref();
+    ret.value = v;
+    return ret;
+  }
+}
