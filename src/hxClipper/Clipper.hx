@@ -35,7 +35,7 @@
 
 /*
  * CS -> HX notes:
- * 		[~] should be up to r494 (tests relative to sandbox from r479)
+ * 		[~] should be up to r498 (tests relative to sandbox from r479)
  * 		[x] move some statics from ClipperBase to Clipper
  * 		[ ] find a way to fix Int128 and Slopes...
  * 		[x] fix multi declarations
