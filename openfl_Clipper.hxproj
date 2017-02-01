@@ -6,7 +6,7 @@
     <movie input="" />
     <movie path="openfl_project.xml" />
     <movie fps="60" />
-    <movie width="800" />
+    <movie width="1000" />
     <movie height="600" />
     <movie version="1" />
     <movie minorVersion="0" />
@@ -16,20 +16,22 @@
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
-    <class path="c:\HaxeToolkit\haxe\openfl\git" />
-    <class path="c:\HaxeToolkit\haxe\lime\2,3,0" />
+    <class path="D:\Downloads\Dev\Haxe\openfl_git" />
+    <class path="D:\Downloads\Dev\Haxe\lime_git" />
     <class path="src" />
     <class path="..\..\src" />
-    <class path="bin\flash\haxe" />
+    <class path="d:\Downloads\Dev\Haxe\openfl_git\externs\core\openfl" />
+    <class path="d:\Downloads\Dev\Haxe\openfl_git\externs\extras" />
+    <class path="bin\flash\debug\haxe" />
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="openfl=3.0.0-beta.3&#xA;lime=2.3.0&#xA;openfl-next&#xA;tools=2.3.0&#xA;no-compilation&#xA;openfl-flash&#xA;web&#xA;USE_LINES&#xA;USE_XYZ&#xA;swf-script-timeout=60" />
+    <option directives="openfl=4.7.3&#xA;lime=3.7.2&#xA;USE_XYZ&#xA;tools=3.7.2&#xA;no-compilation&#xA;openfl-flash&#xA;web&#xA;USE_LINES&#xA;swf-script-timeout=60&#xA;display" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />
     <option enabledebug="True" />
-    <option additional="-swf-version 11.2&#xA;-debug " />
+    <option additional="--macro openfl._internal.utils.ExtraParams.include()&#xA;--macro lime.Lib.extraParams()&#xA;-swf-version 11.2&#xA;-debug " />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
