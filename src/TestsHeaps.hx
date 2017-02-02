@@ -45,12 +45,12 @@ typedef IntPoint = IPoint;
  * 
  *   - adjust Enum values
  *   - Path* is Polygon* so addPath* is addPolygon*
- *   - methods are upper camelcase
+ *   - methods are mostly Capitalized
  *   - execute() returns the solution and not success status
  *   - no close option in addPath
- *   - ExecuteTree is ExecuteTree
+ *   - executePolyTree() is ExecuteTree()
  *   - polytree.numChildren is polytree.childCount
- *   - ClipperOffset.execute returns the solution
+ *   - ClipperOffset.execute() returns the solution
  */
 
 /**
