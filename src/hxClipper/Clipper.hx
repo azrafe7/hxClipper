@@ -4411,7 +4411,7 @@ class InternalTools
 	/** Empties an array of its contents. */
 	static inline public function clear<T>(array:Array<T>)
 	{
-#if (cs || cpp || php || python)
+#if (cs || cpp || php || python ||eval )
 		array.splice(0, array.length);
 #else
 		untyped array.length = 0;
