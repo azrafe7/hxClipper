@@ -1,0 +1,7 @@
+-cp src
+#-D debug
+#-D USE_BIGINT
+-D USE_XYZ
+-D USE_LINES
+
+hxClipper.Clipper
