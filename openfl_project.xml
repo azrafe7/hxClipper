@@ -18,5 +18,6 @@
 	<!--haxeflag name="-D" value="next" /-->
 	<!--haxeflag name="--no-traces" if="release" /-->
 	<haxelib name="openfl" />
+	<haxelib name="hx3compat" />
 	
 </project>

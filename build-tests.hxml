@@ -5,3 +5,5 @@
 -D USE_XYZ
 -D USE_LINES
 -main Tests
+
+-lib hx3compat
