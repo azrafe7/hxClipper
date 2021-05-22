@@ -79,7 +79,9 @@ typedef CInt = Int64;
 typedef Path = Array<IntPoint>;
 typedef Paths = Array<Array<IntPoint>>;
 
-class DoublePoint 
+@:expose()
+@:native("DoublePoint")
+class DoublePoint
 {
 	public var x:Float;
 	public var y:Float;
@@ -88,19 +90,19 @@ class DoublePoint
 		this.x = x;
 		this.y = y;
 	}
-	
+
 	public function clone() {
 		return new DoublePoint(this.x, this.y);
 	}
-	
+
 	static public function fromDoublePoint(dp:DoublePoint) {
 		return dp.clone();
 	}
-	
+
 	static public function fromIntPoint(ip:IntPoint) {
 		return new DoublePoint(ip.x, ip.y);
 	}
-	
+
 	public function toString():String {
 		return '(x:$x, y:$y)';
 	}
@@ -111,8 +113,10 @@ class DoublePoint
 // PolyTree & PolyNode classes
 //------------------------------------------------------------------------------
 
+@:expose()
+@:native("PolyTree")
 @:allow(hxClipper.ClipperBase)
-class PolyTree extends PolyNode 
+class PolyTree extends PolyNode
 {
 	/*internal*/ var mAllPolys:Array<PolyNode> = new Array<PolyNode>();
 
@@ -120,7 +124,7 @@ class PolyTree extends PolyNode
 	//~PolyTree(){Clear();}
 
 	public function new():Void { super(); }
-	
+
 	public function clear():Void {
 		for (i in 0...mAllPolys.length) {
 			mAllPolys[i] = null;
@@ -144,9 +148,11 @@ class PolyTree extends PolyNode
 
 }
 
+@:expose()
+@:native("PolyNode")
 @:allow(hxClipper.ClipperBase)
 @:allow(hxClipper.ClipperOffset)
-class PolyNode 
+class PolyNode
 {
 	/*internal*/ var mParent:PolyNode;
 	/*internal*/ var mPolygon:Path = new Path();
@@ -156,7 +162,7 @@ class PolyNode
 	/*internal*/ var mChildren:Array<PolyNode> = new Array<PolyNode>();
 
 	public function new() { }
-	
+
 	function isHoleNode():Bool {
 		var result = true;
 		var node:PolyNode = mParent;
@@ -245,7 +251,7 @@ class PolyNode
 		if (a.hi != b.hi) return a.hi.compare(b.hi);
 		else return a.lo.ucompare(b.lo);
 	}
-	
+
 	static public function add(lhs:Int128, rhs:Int128):Int128 {
 		lhs.hi = lhs.hi.add(rhs.hi);
 		lhs.lo = lhs.lo.add(rhs.lo);
@@ -271,8 +277,8 @@ class PolyNode
 		return res;
 	}
 
-	//nb: Constructing two new Int128 objects every time we want to multiply longs  
-	//is slow. So, although calling the Int128Mul method doesn't look as clean, the 
+	//nb: Constructing two new Int128 objects every time we want to multiply longs
+	//is slow. So, although calling the Int128Mul method doesn't look as clean, the
 	//code runs significantly faster than if we'd used the * operator.
 
 	static public function mul(lhs:Int64, rhs:Int64):Int128 {
@@ -303,11 +309,13 @@ class PolyNode
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
-class IntPoint 
+@:expose()
+@:native("IntPoint")
+class IntPoint
 {
 	public var x:CInt;
 	public var y:CInt;
-#if USE_XYZ 
+#if USE_XYZ
 	public var z:CInt;
 
 	public function new(x:CInt = 0, y:CInt = 0, z:CInt = 0) {
@@ -319,17 +327,17 @@ class IntPoint
 	public function clone() {
 		return new IntPoint(this.x, this.y, this.z);
 	}
-	
+
 	public function copyFrom(ip:IntPoint):Void {
 		this.x = ip.x;
 		this.y = ip.y;
 		this.z = ip.z;
 	}
-	
+
 	public function toString():String {
 		return '(x:$x, y:$y, z:$z)';
 	}
-	
+
 	// NOTE: casts?
 	static public function fromFloats(x:Float, y:Float, z:Float = 0) {
 		return new IntPoint(Std.int(x), Std.int(y), Std.int(z));
@@ -342,7 +350,7 @@ class IntPoint
 	static public function fromIntPoint(pt:IntPoint) {
 		return pt.clone();
 	}
-#else 
+#else
 	public function new(x:CInt = 0, y:CInt = 0) {
 		this.x = x;
 		this.y = y;
@@ -351,16 +359,16 @@ class IntPoint
 	public function clone() {
 		return new IntPoint(this.x, this.y);
 	}
-	
+
 	public function toString():String {
 		return '(x:$x, y:$y)';
 	}
-	
+
 	public function copyFrom(ip:IntPoint):Void {
 		this.x = ip.x;
 		this.y = ip.y;
 	}
-	
+
 	static public function fromFloats(x:Float, y:Float) {
 		return new IntPoint(Std.int(x), Std.int(y));
 	}
@@ -377,7 +385,7 @@ class IntPoint
 	public function equals(ip:IntPoint):Bool {
 		return this.x == ip.x && this.y == ip.y;
 	}
-	
+
 	/* NOTE: removed IntPoint ops
 	public static bool operator == (IntPoint a, IntPoint b) {
 		return a.X == b.X && a.Y == b.Y;
@@ -402,7 +410,9 @@ class IntPoint
 
 } // end struct IntPoint
 
-class IntRect 
+@:expose()
+@:native("IntRect")
+class IntRect
 {
 	public var left:CInt;
 	public var top:CInt;
@@ -415,21 +425,25 @@ class IntRect
 		this.right = r;
 		this.bottom = b;
 	}
-	
+
 	public function clone(ir:IntRect):IntRect {
 		return new IntRect(left, top, right, bottom);
 	}
 }
 
+@:expose()
+@:native("ClipType")
 enum ClipType {
-	CT_INTERSECTION; 
-	CT_UNION; 
-	CT_DIFFERENCE; 
+	CT_INTERSECTION;
+	CT_UNION;
+	CT_DIFFERENCE;
 	CT_XOR;
 }
 
+@:expose()
+@:native("PolyType")
 enum PolyType {
-	PT_SUBJECT; 
+	PT_SUBJECT;
 	PT_CLIP;
 }
 
@@ -437,44 +451,50 @@ enum PolyType {
 //EvenOdd & NonZero (GDI, GDI+, XLib, OpenGL, Cairo, AGG, Quartz, SVG, Gr32)
 //Others rules include Positive, Negative and ABS_GTR_EQ_TWO (only in OpenGL)
 //see http://glprogramming.com/red/chapter11.html
+@:expose()
+@:native("PolyFillType")
 enum PolyFillType {
-	PFT_EVEN_ODD; 
-	PFT_NON_ZERO; 
-	PFT_POSITIVE; 
+	PFT_EVEN_ODD;
+	PFT_NON_ZERO;
+	PFT_POSITIVE;
 	PFT_NEGATIVE;
 }
 
+@:expose()
+@:native("JoinType")
 enum JoinType {
-	JT_SQUARE; 
-	JT_ROUND; 
+	JT_SQUARE;
+	JT_ROUND;
 	JT_MITER;
 }
 
+@:expose()
+@:native("EndType")
 enum EndType {
-	ET_CLOSED_POLYGON; 
-	ET_CLOSED_LINE; 
-	ET_OPEN_BUTT; 
-	ET_OPEN_SQUARE; 
+	ET_CLOSED_POLYGON;
+	ET_CLOSED_LINE;
+	ET_OPEN_BUTT;
+	ET_OPEN_SQUARE;
 	ET_OPEN_ROUND;
 }
 
 /*internal*/ private enum EdgeSide {
-	ES_LEFT; 
+	ES_LEFT;
 	ES_RIGHT;
 }
 /*internal*/ private enum Direction {
-	D_RIGHT_TO_LEFT; 
+	D_RIGHT_TO_LEFT;
 	D_LEFT_TO_RIGHT;
 }
 
 /*internal*/ private enum NodeType {
-	NT_ANY; 
-	NT_OPEN; 
+	NT_ANY;
+	NT_OPEN;
 	NT_CLOSED;
 }
 
 @:allow(hxClipper.ClipperBase)
-/*internal*/ private class TEdge 
+/*internal*/ private class TEdge
 {
 	/*internal*/ var bot:IntPoint = new IntPoint();
 	/*internal*/ var curr:IntPoint = new IntPoint(); //current (updated for every new scanbeam)
@@ -494,21 +514,23 @@ enum EndType {
 	/*internal*/ var prevInAEL:TEdge;
 	/*internal*/ var nextInSEL:TEdge;
 	/*internal*/ var prevInSEL:TEdge;
-	
+
 	/*internal*/ function new() { }
-	
+
 	function toString():String {
 		return 'TE(curr:${curr.toString()}, bot:${bot.toString()}, top:${top.toString()}, dx:$dx)';
 	}
 }
 
+@:expose()
+@:native("IntersectNode")
 @:allow(hxClipper.ClipperBase)
-class IntersectNode 
+class IntersectNode
 {
 	/*internal*/ var edge1:TEdge;
 	/*internal*/ var edge2:TEdge;
 	/*internal*/ var pt:IntPoint = new IntPoint();
-	
+
 	/*internal*/ function new() { }
 }
 
@@ -523,22 +545,22 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 }*/
 
 @:allow(hxClipper.ClipperBase)
-/*internal*/ private class LocalMinima 
+/*internal*/ private class LocalMinima
 {
 	/*internal*/ var y:CInt;
 	/*internal*/ var leftBound:TEdge;
 	/*internal*/ var rightBound:TEdge;
 	/*internal*/ var next:LocalMinima;
-	
+
 	/*internal*/ function new() { }
 }
 
 @:allow(hxClipper.ClipperBase)
-/*internal*/ private class Scanbeam 
+/*internal*/ private class Scanbeam
 {
 	/*internal*/ var y:CInt;
 	/*internal*/ var next:Scanbeam;
-	
+
 	/*internal*/ function new() { }
 }
 
@@ -548,14 +570,14 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ var x:CInt;
 	/*internal*/ var next:Maxima;
 	/*internal*/ var prev:Maxima;
-	
+
 	/*internal*/ function new() { }
 }
 
 //OutRec: contains a path in the clipping solution. Edges in the AEL will
 //carry a pointer to an OutRec when they are part of the clipping solution.
 @:allow(hxClipper.ClipperBase)
-/*internal*/ private class OutRec 
+/*internal*/ private class OutRec
 {
 	/*internal*/ var idx:Int;
 	/*internal*/ var isHole:Bool;
@@ -564,50 +586,50 @@ class MyIntersectNodeSort: IComparer < IntersectNode > {
 	/*internal*/ var pts:OutPt;
 	/*internal*/ var bottomPt:OutPt;
 	/*internal*/ var polyNode:PolyNode; //NOTE: check name here
-	
+
 	/*internal*/ function new() { }
 }
 
 @:allow(hxClipper.ClipperBase)
-/*internal*/ private class OutPt 
+/*internal*/ private class OutPt
 {
 	/*internal*/ var idx:Int;
 	/*internal*/ var pt:IntPoint = new IntPoint();
 	/*internal*/ var next:OutPt;
 	/*internal*/ var prev:OutPt;
-	
+
 	/*internal*/ function new() { }
 }
 
 @:allow(hxClipper.ClipperBase)
-/*internal*/ private class Join 
+/*internal*/ private class Join
 {
 	/*internal*/ var outPt1:OutPt;
 	/*internal*/ var outPt2:OutPt;
 	/*internal*/ var offPt:IntPoint = new IntPoint();
-	
+
 	/*internal*/ function new() { }
 }
 
 @:allow(hxClipper.Clipper)
 @:allow(hxClipper.ClipperOffset)
-class ClipperBase 
+class ClipperBase
 {
 	// NOTE: refactor to uppercase
 	inline static var HORIZONTAL:Float = -3.4E+38;
 	inline static var SKIP:Int = -2;
 	inline static var UNASSIGNED:Int = -1;
 	inline static var TOLERANCE:Float = 1.0E-20;
-	
+
 	// NOTE: camelcase
 	/*internal*/ static function nearZero(val:Float):Bool {
 		return (val > -TOLERANCE) && (val < TOLERANCE);
 	}
 
-#if !USE_INT64 
+#if !USE_INT64
 	inline static var LO_RANGE:CInt = 0x7FFF;
 	inline static var HI_RANGE:CInt = 0x7FFF;
-#else 
+#else
 	inline static var LO_RANGE:CInt = 0x3FFFFFFF;
 	inline static var HI_RANGE:CInt = 0x3FFFFFFFFFFFFFFFL;
 #end
@@ -652,13 +674,13 @@ class ClipperBase
 
 	/*internal*/ function pointOnLineSegment(pt:IntPoint, linePt1:IntPoint, linePt2:IntPoint, useFullRange:Bool):Bool {
 	#if USE_INT64
-		if (useFullRange) return ((pt.x == linePt1.x) && (pt.y == linePt1.y)) || ((pt.x == linePt2.x) && (pt.y == linePt2.y)) 
-								 || (((pt.x > linePt1.x) == (pt.x < linePt2.x)) && ((pt.y > linePt1.y) == (pt.y < linePt2.y)) 
+		if (useFullRange) return ((pt.x == linePt1.x) && (pt.y == linePt1.y)) || ((pt.x == linePt2.x) && (pt.y == linePt2.y))
+								 || (((pt.x > linePt1.x) == (pt.x < linePt2.x)) && ((pt.y > linePt1.y) == (pt.y < linePt2.y))
 								 && ((Int128.Int128Mul((pt.x - linePt1.x), (linePt2.y - linePt1.y)) == Int128.Int128Mul((linePt2.x - linePt1.x), (pt.y - linePt1.y)))));
-		else 
+		else
 	#else
-		return ((pt.x == linePt1.x) && (pt.y == linePt1.y)) || ((pt.x == linePt2.x) && (pt.y == linePt2.y)) 
-			   || (((pt.x > linePt1.x) == (pt.x < linePt2.x)) && ((pt.y > linePt1.y) == (pt.y < linePt2.y)) 
+		return ((pt.x == linePt1.x) && (pt.y == linePt1.y)) || ((pt.x == linePt2.x) && (pt.y == linePt2.y))
+			   || (((pt.x > linePt1.x) == (pt.x < linePt2.x)) && ((pt.y > linePt1.y) == (pt.y < linePt2.y))
 			   && ((pt.x - linePt1.x) * (linePt2.y - linePt1.y) == (linePt2.x - linePt1.x) * (pt.y - linePt1.y)));
 	#end
 	}
@@ -677,19 +699,19 @@ class ClipperBase
 
 	/* NOTE: fix these Int128*/
 	/*internal*/ static function slopesEqual(e1:TEdge, e2:TEdge, useFullRange:Bool):Bool {
-	#if USE_INT64	
+	#if USE_INT64
 		if (useFullRange) return Int128.mul(e1.delta.y, e2.delta.x) == Int128.mul(e1.delta.x, e2.delta.y);
 		else
-	#else 
+	#else
 		return /*(cInt)*/(e1.delta.y) * (e2.delta.x) == /*(cInt)*/(e1.delta.x) * (e2.delta.y);
 	#end
 	}
 	//------------------------------------------------------------------------------
 
 	/*internal*/ static function slopesEqual3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, useFullRange:Bool):Bool {
-	#if USE_INT64	
+	#if USE_INT64
 		if (useFullRange) return Int128.Int128Mul(pt1.y - pt2.y, pt2.x - pt3.x) == Int128.Int128Mul(pt1.x - pt2.x, pt2.y - pt3.y);
-		else 
+		else
 	#else
 		return /*(cInt)*/(pt1.y - pt2.y) * (pt2.x - pt3.x) - /*(cInt)*/(pt1.x - pt2.x) * (pt2.y - pt3.y) == 0;
 	#end
@@ -697,9 +719,9 @@ class ClipperBase
 	//------------------------------------------------------------------------------
 
 	/*internal*/ static function slopesEqual4(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, pt4:IntPoint, useFullRange:Bool):Bool {
-	#if USE_INT64	
+	#if USE_INT64
 		if (useFullRange) return Int128.Int128Mul(pt1.y - pt2.y, pt3.x - pt4.x) == Int128.Int128Mul(pt1.x - pt2.x, pt3.y - pt4.y);
-		else 
+		else
 	#else
 		return /*(cInt)*/(pt1.y - pt2.y) * (pt3.x - pt4.x) - /*(cInt)*/(pt1.x - pt2.x) * (pt3.y - pt4.y) == 0;
 	#end
@@ -741,8 +763,9 @@ class ClipperBase
 
 	// NOTE: check ref - changed to return it
 	function rangeTest(pt:IntPoint, /*ref*/ useFullRange:Bool):Bool {
-		if (useFullRange) {
-			if (pt.x > HI_RANGE || pt.y > HI_RANGE || -pt.x > HI_RANGE || -pt.y > HI_RANGE) 
+		//return true;
+        if (useFullRange) {
+			if (pt.x > HI_RANGE || pt.y > HI_RANGE || -pt.x > HI_RANGE || -pt.y > HI_RANGE)
 				throw new ClipperException("Coordinate outside allowed range");
 		} else if (pt.x > LO_RANGE || pt.y > LO_RANGE || -pt.x > LO_RANGE || -pt.y > LO_RANGE) {
 			useFullRange = true;
@@ -839,7 +862,7 @@ class ClipperBase
 		eStart = e;
 		if (leftBoundIsForward) {
 			while (result.top.y == result.next.bot.y && result.next.outIdx != SKIP) result = result.next;
-			
+
 			if (result.dx == HORIZONTAL && result.next.outIdx != SKIP) {
 				//nb: at the top of a bound, horizontals are added to the bound
 				//only when the preceding edge attaches to the horizontal's left vertex
@@ -857,7 +880,7 @@ class ClipperBase
 			result = result.next; //move to the edge just beyond current bound
 		} else {
 			while (result.top.y == result.prev.bot.y && result.prev.outIdx != SKIP) result = result.prev;
-			
+
 			if (result.dx == HORIZONTAL && result.prev.outIdx != SKIP) {
 				horz = result;
 				while (horz.next.dx == HORIZONTAL) horz = horz.next;
@@ -880,7 +903,7 @@ class ClipperBase
 	public function addPath(path:Path, polyType:PolyType, closed:Bool):Bool {
 	#if USE_LINES
 		if (!closed && polyType == PolyType.PT_CLIP) throw new ClipperException("AddPath: Open paths must be subject.");
-	#else 
+	#else
 		if (!closed) throw new ClipperException("AddPath: Open paths have been disabled (define USE_LINES to enable them).");
 	#end
 		//NOTE: why the cast
@@ -923,8 +946,8 @@ class ClipperBase
 				continue;
 			}
 			if (e.prev == e.next) break; //only two vertices
-			else if (closed && ClipperBase.slopesEqual3(e.prev.curr, e.curr, e.next.curr, mUseFullRange) 
-					 && (!preserveCollinear || !pt2IsBetweenPt1AndPt3(e.prev.curr, e.curr, e.next.curr))) 
+			else if (closed && ClipperBase.slopesEqual3(e.prev.curr, e.curr, e.next.curr, mUseFullRange)
+					 && (!preserveCollinear || !pt2IsBetweenPt1AndPt3(e.prev.curr, e.curr, e.next.curr)))
 			{
 				//Collinear edges are allowed for open paths but in closed paths
 				//the default is to merge adjacent collinear edges into a single edge.
@@ -1089,7 +1112,7 @@ class ClipperBase
 	// NOTE: out (r493 to r494)
 	/*internal*/ function popLocalMinima(y:CInt, /*out*/ current:{lm:LocalMinima}):Bool {
 		current.lm = mCurrentLM;
-		
+
         if (mCurrentLM != null && mCurrentLM.y == y)
         {
             mCurrentLM = mCurrentLM.next;
@@ -1107,7 +1130,7 @@ class ClipperBase
 		var tmp = e.top.x;
 		e.top.x = e.bot.x;
 		e.bot.x = tmp;
-	#if USE_XYZ 
+	#if USE_XYZ
 		var tmp = e.top.z;
 		e.top.z = e.bot.z;
 		e.bot.z = tmp;
@@ -1185,7 +1208,7 @@ class ClipperBase
 		}
 	}
 	//------------------------------------------------------------------------------
-	
+
 	// NOTE: changed signature in r494 (from CInt->Void to Out<CInt>->Bool)
 	/*internal*/ function popScanbeam(/*out y:CInt*/):{y:CInt, popped:Bool} {
 		var res = { y:0, popped:false };
@@ -1219,7 +1242,7 @@ class ClipperBase
 		return result;
 	}
 	//------------------------------------------------------------------------------
-	
+
 	/*internal*/ function disposeOutRec(index:Int):Void {
 		var outRec:OutRec = mPolyOuts[index];
 		outRec.pts = null;
@@ -1301,11 +1324,13 @@ class ClipperBase
 		e.prevInAEL = null;
 	}
 	//------------------------------------------------------------------------------
-	
+
 } //end ClipperBase
 
 typedef IntersectNodeComparer = IntersectNode->IntersectNode->Int;
 
+@:expose()
+@:native("ClipOptions")
 @:enum
 abstract ClipOptions(Int) from Int to Int
 {
@@ -1316,8 +1341,10 @@ abstract ClipOptions(Int) from Int to Int
 
 typedef ZFillCallback = /*bot1:*/IntPoint->/*, top1:*/IntPoint->/*, bot2:*/IntPoint->/*, top2:*/IntPoint->/*, ref pt:*/IntPoint->Void/*)*/;
 
+@:expose()
+@:native("Clipper")
 @:allow(hxClipper.ClipperOffset)
-class Clipper extends ClipperBase 
+class Clipper extends ClipperBase
 {
 	//InitOptions that can be passed to the constructor ...
 	//NOTE: check constants and constructor behaviour (maybe turn into enum) - done: see ClipOptions
@@ -1336,7 +1363,7 @@ class Clipper extends ClipperBase
 	var mJoins:Array<Join>;
 	var mGhostJoins:Array<Join>;
 	var mUsingPolyTree:Bool;
-#if USE_XYZ 
+#if USE_XYZ
 	// NOTE: ref and delegate here
 	//public delegate void ZFillCallback(bot1:IntPoint, top1:IntPoint, bot2:IntPoint, top2:IntPoint, /*ref*/ pt:IntPoint);
 	public var zFillFunction:ZFillCallback = null;
@@ -1358,7 +1385,7 @@ class Clipper extends ClipperBase
 		reverseSolution = (ClipOptions.CO_REVERSE_SOLUTION & initOptions) != 0;
 		strictlySimple = (ClipOptions.CO_STRICTLY_SIMPLE & initOptions) != 0;
 		preserveCollinear = (ClipOptions.CO_PRESERVE_COLLINEAR & initOptions) != 0;
-	#if USE_XYZ 
+	#if USE_XYZ
 		zFillFunction = null;
 	#end
 	}
@@ -1370,7 +1397,7 @@ class Clipper extends ClipperBase
 		else if (i < 0) return -1;
 		else return 0;
 	}
-	
+
 	//------------------------------------------------------------------------------
 
 	function insertMaxima(x:CInt):Void {
@@ -1489,12 +1516,12 @@ class Clipper extends ClipperBase
 			reset();
 			mSortedEdges = null;
 			mMaxima = null;
-			
+
 			var botY:CInt, topY:CInt;
 			var popRes = popScanbeam();
 			botY = popRes.y;
 			if (!popRes.popped) return false;
-			
+
 			insertLocalMinimaIntoAEL(botY);
 			while (true) {
 				popRes = popScanbeam();
@@ -1502,7 +1529,7 @@ class Clipper extends ClipperBase
 				if (popRes.popped || localMinimaPending()) {
 					processHorizontals();
 					mGhostJoins.clear();
-					
+
 					if (!processIntersections(topY)) return false;
 					processEdgesAtTopOfScanbeam(topY);
 					botY = topY;
@@ -1567,7 +1594,7 @@ class Clipper extends ClipperBase
 	}
 	//------------------------------------------------------------------------------
 
-#if USE_XYZ 
+#if USE_XYZ
 	// NOTE: ref?
 	/*internal*/ function setZ(/*ref*/ pt:IntPoint, e1:TEdge, e2:TEdge):Void {
 		if (pt.z != 0 || zFillFunction == null) return;
@@ -1592,12 +1619,12 @@ class Clipper extends ClipperBase
 			if (lb == null) {
 				insertEdgeIntoAEL(rb, null);
 				setWindingCount(rb);
-				if (isContributing(rb)) 
+				if (isContributing(rb))
 					op1 = addOutPt(rb, rb.bot);
 			} else if (rb == null) {
 				insertEdgeIntoAEL(lb, null);
 				setWindingCount(lb);
-				if (isContributing(lb)) 
+				if (isContributing(lb))
 					op1 = addOutPt(lb, lb.bot);
 				insertScanbeam(lb.top.y);
 			} else {
@@ -1606,7 +1633,7 @@ class Clipper extends ClipperBase
 				setWindingCount(lb);
 				rb.windCnt = lb.windCnt;
 				rb.windCnt2 = lb.windCnt2;
-				if (isContributing(lb)) 
+				if (isContributing(lb))
 					op1 = addLocalMinPoly(lb, rb, lb.bot);
 				insertScanbeam(lb.top.y);
 			}
@@ -1633,9 +1660,9 @@ class Clipper extends ClipperBase
 				}
 			}
 
-			if (lb.outIdx >= 0 && lb.prevInAEL != null && lb.prevInAEL.curr.x == lb.bot.x && lb.prevInAEL.outIdx >= 0 
-				&& ClipperBase.slopesEqual4(lb.prevInAEL.curr, lb.prevInAEL.top, lb.curr, lb.top, mUseFullRange) 
-				&& lb.windDelta != 0 && lb.prevInAEL.windDelta != 0) 
+			if (lb.outIdx >= 0 && lb.prevInAEL != null && lb.prevInAEL.curr.x == lb.bot.x && lb.prevInAEL.outIdx >= 0
+				&& ClipperBase.slopesEqual4(lb.prevInAEL.curr, lb.prevInAEL.top, lb.curr, lb.top, mUseFullRange)
+				&& lb.windDelta != 0 && lb.prevInAEL.windDelta != 0)
 			{
 				var op2:OutPt = addOutPt(lb.prevInAEL, lb.bot);
 				addJoin(op1, op2, lb.top);
@@ -1643,9 +1670,9 @@ class Clipper extends ClipperBase
 
 			if (lb.nextInAEL != rb) {
 
-				if (rb.outIdx >= 0 && rb.prevInAEL.outIdx >= 0 
-					&& ClipperBase.slopesEqual4(rb.prevInAEL.curr, rb.prevInAEL.top, rb.curr, rb.top, mUseFullRange) 
-					&& rb.windDelta != 0 && rb.prevInAEL.windDelta != 0) 
+				if (rb.outIdx >= 0 && rb.prevInAEL.outIdx >= 0
+					&& ClipperBase.slopesEqual4(rb.prevInAEL.curr, rb.prevInAEL.top, rb.curr, rb.top, mUseFullRange)
+					&& rb.windDelta != 0 && rb.prevInAEL.windDelta != 0)
 				{
 					var op2:OutPt = addOutPt(rb.prevInAEL, rb.bot);
 					addJoin(op1, op2, rb.top);
@@ -1816,7 +1843,7 @@ class Clipper extends ClipperBase
 				//so we're outside the previous polygon ...
 				if (Math.abs(e.windCnt) > 1) {
 					//outside prev poly but still inside another.
-					//when reversing direction of prev poly use the same WC 
+					//when reversing direction of prev poly use the same WC
 					if (e.windDelta * edge.windDelta < 0) edge.windCnt = e.windCnt;
 					//otherwise continue to 'decrease' WC ...
 					else edge.windCnt = e.windCnt + edge.windDelta;
@@ -1974,7 +2001,7 @@ class Clipper extends ClipperBase
 		if (prevE != null && prevE.outIdx >= 0) {
 			var xPrev:CInt = topX(prevE, pt.y);
 			var xE:CInt = topX(e, pt.y);
-			if ((xPrev == xE) && (e.windDelta != 0) && (prevE.windDelta != 0) 
+			if ((xPrev == xE) && (e.windDelta != 0) && (prevE.windDelta != 0)
 				&& ClipperBase.slopesEqual4(new IntPoint(xPrev, pt.y), prevE.top, new IntPoint(xE, pt.y), e.top, mUseFullRange))
 			{
 				var outPt:OutPt = addOutPt(prevE, pt);
@@ -2021,7 +2048,7 @@ class Clipper extends ClipperBase
 
 	function getLastOutPt(e:TEdge):OutPt {
 		var outRec = mPolyOuts[e.outIdx];
-		if (e.side == EdgeSide.ES_LEFT) 
+		if (e.side == EdgeSide.ES_LEFT)
 			return outRec.pts;
 		else
 			return outRec.pts.prev;
@@ -2100,8 +2127,8 @@ class Clipper extends ClipperBase
 		p = btmPt2.next;
 		while ((p.pt.equals(btmPt2.pt)) && (p != btmPt2)) p = p.next;
 		var dx2n:Float = Math.abs(getDx(btmPt2.pt, p.pt));
-		
-		if (Math.max(dx1p, dx1n) == Math.max(dx2p, dx2n) 
+
+		if (Math.max(dx1p, dx1n) == Math.max(dx2p, dx2n)
 			&& Math.min(dx1p, dx1n) == Math.min(dx2p, dx2n))
 		{
 			return areaOfOutPt(btmPt1) > 0; //if otherwise identical use orientation
@@ -2290,7 +2317,7 @@ class Clipper extends ClipperBase
 		var e2Contributing = (e2.outIdx >= 0);
 
 		// NOTE: ref
-	#if USE_XYZ 
+	#if USE_XYZ
 		setZ(/*ref*/ pt, e1, e2);
 	#end
 
@@ -2431,8 +2458,8 @@ class Clipper extends ClipperBase
 				case ClipType.CT_UNION:
 					if (e1Wc2 <= 0 && e2Wc2 <= 0) addLocalMinPoly(e1, e2, pt);
 				case ClipType.CT_DIFFERENCE:
-					if (((e1.polyType == PolyType.PT_CLIP) && (e1Wc2 > 0) && (e2Wc2 > 0)) 
-						|| ((e1.polyType == PolyType.PT_SUBJECT) && (e1Wc2 <= 0) && (e2Wc2 <= 0))) 
+					if (((e1.polyType == PolyType.PT_CLIP) && (e1Wc2 > 0) && (e2Wc2 > 0))
+						|| ((e1.polyType == PolyType.PT_SUBJECT) && (e1Wc2 <= 0) && (e2Wc2 <= 0)))
 					{
 						addLocalMinPoly(e1, e2, pt);
 					}
@@ -2488,7 +2515,7 @@ class Clipper extends ClipperBase
 		var dir:Direction = null;
 		var horzLeft:CInt = 0, horzRight:CInt = 0;
 		var isOpen:Bool = horzEdge.windDelta == 0;
-		
+
 		// NOTE: out
 		var outParams = {/*out*/ dir:dir, /*out*/ left:horzLeft, /*out*/ right:horzRight};
 		getHorzDirection(horzEdge, outParams);
@@ -2537,11 +2564,11 @@ class Clipper extends ClipperBase
 
 				if ((dir == Direction.D_LEFT_TO_RIGHT && e.curr.x > horzRight) ||
 					(dir == Direction.D_RIGHT_TO_LEFT && e.curr.x < horzLeft)) break;
-					
+
 				//Also break if we've got to the end of an intermediate horizontal edge ...
 				//nb: Smaller Dx's are to the right of larger Dx's ABOVE the horizontal.
 				if (e.curr.x == horzEdge.top.x && horzEdge.nextInLML != null && e.dx < horzEdge.nextInLML.dx) break;
-				
+
 				if (horzEdge.outIdx >= 0 && !isOpen) { //note: may be done multiple times
 					op1 = addOutPt(horzEdge, e.curr);
 					var eNextHorz:TEdge = mSortedEdges;
@@ -2554,7 +2581,7 @@ class Clipper extends ClipperBase
 					}
 					addGhostJoin(op1, horzEdge.bot);
 				}
-				
+
 				//OK, so far we're still in range of the horizontal Edge  but make sure
 				//we're at the last of consec. horizontals when matching with eMaxPair
 				if (e == eMaxPair && isLastHorz)
@@ -2563,8 +2590,8 @@ class Clipper extends ClipperBase
 					deleteFromAEL(horzEdge);
 					deleteFromAEL(eMaxPair);
 					return;
-				} 
-				
+				}
+
 				if (dir == Direction.D_LEFT_TO_RIGHT) {
 					var pt = new IntPoint(e.curr.x, horzEdge.curr.y);
 					intersectEdges(horzEdge, e, pt);
@@ -2574,13 +2601,13 @@ class Clipper extends ClipperBase
 				}
 				var eNext:TEdge = getNextInAEL(e, dir);
 				swapPositionsInAEL(horzEdge, e);
-				
+
 				e = eNext;
 			} //end while (e != null)
-			
+
 			//Break out of loop if HorzEdge.NextInLML is not also horizontal ...
 			if (horzEdge.nextInLML == null || !ClipperBase.isHorizontal(horzEdge.nextInLML)) break;
-		  
+
 			// NOTE: ref
 			horzEdge = updateEdgeIntoAEL(/*ref*/ horzEdge);
 			if (horzEdge.outIdx >= 0) addOutPt(horzEdge, horzEdge.bot);
@@ -2589,7 +2616,7 @@ class Clipper extends ClipperBase
 			dir = outParams.dir;
 			horzLeft = outParams.left;
 			horzRight = outParams.right;
-			
+
 		} //end for (;;)
 
         if (horzEdge.outIdx >= 0 && op1 == null) {
@@ -2611,20 +2638,20 @@ class Clipper extends ClipperBase
 		if (horzEdge.nextInLML != null) {
 			if (horzEdge.outIdx >= 0) {
 				var op1:OutPt = addOutPt(horzEdge, horzEdge.top);
-				
+
 				// NOTE: ref
 				horzEdge = updateEdgeIntoAEL(/*ref*/ horzEdge);
 				if (horzEdge.windDelta == 0) return;
 				//nb: HorzEdge is no longer horizontal here
 				var ePrev:TEdge = horzEdge.prevInAEL;
 				var eNext:TEdge = horzEdge.nextInAEL;
-				if (ePrev != null && ePrev.curr.x == horzEdge.bot.x && ePrev.curr.y == horzEdge.bot.y && ePrev.windDelta != 0 
-					&& (ePrev.outIdx >= 0 && ePrev.curr.y > ePrev.top.y && ClipperBase.slopesEqual(horzEdge, ePrev, mUseFullRange))) 
+				if (ePrev != null && ePrev.curr.x == horzEdge.bot.x && ePrev.curr.y == horzEdge.bot.y && ePrev.windDelta != 0
+					&& (ePrev.outIdx >= 0 && ePrev.curr.y > ePrev.top.y && ClipperBase.slopesEqual(horzEdge, ePrev, mUseFullRange)))
 				{
 					var op2:OutPt = addOutPt(ePrev, horzEdge.bot);
 					addJoin(op1, op2, horzEdge.top);
-				} else if (eNext != null && eNext.curr.x == horzEdge.bot.x && eNext.curr.y == horzEdge.bot.y && eNext.windDelta != 0 
-						   && eNext.outIdx >= 0 && eNext.curr.y > eNext.top.y && ClipperBase.slopesEqual(horzEdge, eNext, mUseFullRange)) 
+				} else if (eNext != null && eNext.curr.x == horzEdge.bot.x && eNext.curr.y == horzEdge.bot.y && eNext.windDelta != 0
+						   && eNext.outIdx >= 0 && eNext.curr.y > eNext.top.y && ClipperBase.slopesEqual(horzEdge, eNext, mUseFullRange))
 				{
 					var op2:OutPt = addOutPt(eNext, horzEdge.bot);
 					addJoin(op1, op2, horzEdge.top);
@@ -2664,7 +2691,7 @@ class Clipper extends ClipperBase
 			return e.next;
 		else if ((e.prev.top.equals(e.top)) && e.prev.nextInLML == null)
 			return e.prev;
-		else 
+		else
 			return null;
 	}
 	//------------------------------------------------------------------------------
@@ -2672,8 +2699,8 @@ class Clipper extends ClipperBase
 	/*internal*/ function getMaximaPairEx(e:TEdge):TEdge {
 		//as above but returns null if MaxPair isn't in AEL (unless it's horizontal)
 		var result:TEdge = getMaximaPair(e);
-		if (result == null || result.outIdx == ClipperBase.SKIP 
-			|| ((result.nextInAEL == result.prevInAEL) && !ClipperBase.isHorizontal(result))) 
+		if (result == null || result.outIdx == ClipperBase.SKIP
+			|| ((result.nextInAEL == result.prevInAEL) && !ClipperBase.isHorizontal(result)))
 		{
 			return null;
 		}
@@ -2787,7 +2814,7 @@ class Clipper extends ClipperBase
 			var iNode:IntersectNode = mIntersectList[i];
 			intersectEdges(iNode.edge1, iNode.edge2, iNode.pt);
 			swapPositionsInAEL(iNode.edge1, iNode.edge2);
-			
+
 		}
 		mIntersectList.clear();
 	}
@@ -2810,7 +2837,7 @@ class Clipper extends ClipperBase
 		// NOTE: check this ip and the out ip
 		//ip = new IntPoint();
 		var b1:Float, b2:Float;
-		//nb: with very large coordinate values, it's possible for SlopesEqual() to 
+		//nb: with very large coordinate values, it's possible for SlopesEqual() to
 		//return false but for the edge.Dx value be equal due to double precision rounding.
 		if (edge1.dx == edge2.dx) {
 			ip.y = edge1.curr.y;
@@ -2893,14 +2920,14 @@ class Clipper extends ClipperBase
 				//make sure both edges have a vertex here ...
 				if (strictlySimple) {
 					var ePrev:TEdge = e.prevInAEL;
-					if ((e.outIdx >= 0) && (e.windDelta != 0) && ePrev != null && (ePrev.outIdx >= 0) 
-						&& (ePrev.curr.x == e.curr.x) && (ePrev.windDelta != 0)) 
+					if ((e.outIdx >= 0) && (e.windDelta != 0) && ePrev != null && (ePrev.outIdx >= 0)
+						&& (ePrev.curr.x == e.curr.x) && (ePrev.windDelta != 0))
 					{
 						// NOTE: I foresee a compiler error here
 						var ip = e.curr.clone();
-					#if USE_XYZ 
+					#if USE_XYZ
 						setZ(/*ref*/ ip, ePrev, e);
-					#end 
+					#end
 						var op:OutPt = addOutPt(ePrev, ip);
 						var op2:OutPt = addOutPt(e, ip);
 						addJoin(op, op2, ip); //StrictlySimple (type-3) join
@@ -2927,17 +2954,17 @@ class Clipper extends ClipperBase
 				//if output polygons share an edge, they'll need joining later ...
 				var ePrev:TEdge = e.prevInAEL;
 				var eNext:TEdge = e.nextInAEL;
-				if (ePrev != null && ePrev.curr.x == e.bot.x && ePrev.curr.y == e.bot.y && op != null && ePrev.outIdx >= 0 
-					&& ePrev.curr.y > ePrev.top.y 
-					&& ClipperBase.slopesEqual4(e.curr, e.top, ePrev.curr, ePrev.top, mUseFullRange) 
-					&& (e.windDelta != 0) && (ePrev.windDelta != 0)) 
+				if (ePrev != null && ePrev.curr.x == e.bot.x && ePrev.curr.y == e.bot.y && op != null && ePrev.outIdx >= 0
+					&& ePrev.curr.y > ePrev.top.y
+					&& ClipperBase.slopesEqual4(e.curr, e.top, ePrev.curr, ePrev.top, mUseFullRange)
+					&& (e.windDelta != 0) && (ePrev.windDelta != 0))
 				{
 					var op2:OutPt = addOutPt(ePrev, e.bot);
 					addJoin(op, op2, e.top);
-				} else if (eNext != null && eNext.curr.x == e.bot.x && eNext.curr.y == e.bot.y && op != null && eNext.outIdx >= 0 
-						   && eNext.curr.y > eNext.top.y 
-						   && ClipperBase.slopesEqual4(e.curr, e.top, eNext.curr, eNext.top, mUseFullRange) 
-						   && (e.windDelta != 0) && (eNext.windDelta != 0)) 
+				} else if (eNext != null && eNext.curr.x == e.bot.x && eNext.curr.y == e.bot.y && op != null && eNext.outIdx >= 0
+						   && eNext.curr.y > eNext.top.y
+						   && ClipperBase.slopesEqual4(e.curr, e.top, eNext.curr, eNext.top, mUseFullRange)
+						   && (e.windDelta != 0) && (eNext.windDelta != 0))
 				{
 					var op2:OutPt = addOutPt(eNext, e.bot);
 					addJoin(op, op2, e.top);
@@ -3010,7 +3037,7 @@ class Clipper extends ClipperBase
 			result++;
 			p = p.next;
 		} while (p != pts);
-		
+
 		return result;
 	}
 	//------------------------------------------------------------------------------
@@ -3099,8 +3126,8 @@ class Clipper extends ClipperBase
 				return;
 			}
 			//test for duplicate points and collinear edges ...
-			if ((pp.pt.equals(pp.next.pt)) || (pp.pt.equals(pp.prev.pt)) || (ClipperBase.slopesEqual3(pp.prev.pt, pp.pt, pp.next.pt, mUseFullRange) 
-				&& (!preserveCol || !pt2IsBetweenPt1AndPt3(pp.prev.pt, pp.pt, pp.next.pt)))) 
+			if ((pp.pt.equals(pp.next.pt)) || (pp.pt.equals(pp.prev.pt)) || (ClipperBase.slopesEqual3(pp.prev.pt, pp.pt, pp.next.pt, mUseFullRange)
+				&& (!preserveCol || !pt2IsBetweenPt1AndPt3(pp.prev.pt, pp.pt, pp.next.pt))))
 			{
 				lastOK = null;
 				pp.prev.next = pp.next;
@@ -3171,7 +3198,7 @@ class Clipper extends ClipperBase
 		//otherwise make sure we're AT or LEFT of Pt. (Likewise with Op2b.)
 		if (dir1 == Direction.D_LEFT_TO_RIGHT) {
 			while (op1.next.pt.x <= pt.x && op1.next.pt.x >= op1.pt.x && op1.next.pt.y == pt.y) op1 = op1.next;
-			
+
 			if (discardLeft && (op1.pt.x != pt.x)) op1 = op1.next;
 			op1b = dupOutPt(op1, !discardLeft);
 			if (!op1b.pt.equals(pt)) {
@@ -3181,7 +3208,7 @@ class Clipper extends ClipperBase
 			}
 		} else {
 			while (op1.next.pt.x >= pt.x && op1.next.pt.x <= op1.pt.x && op1.next.pt.y == pt.y) op1 = op1.next;
-			
+
 			if (!discardLeft && (op1.pt.x != pt.x)) op1 = op1.next;
 			op1b = dupOutPt(op1, discardLeft);
 			if (!op1b.pt.equals(pt)) {
@@ -3193,7 +3220,7 @@ class Clipper extends ClipperBase
 
 		if (dir2 == Direction.D_LEFT_TO_RIGHT) {
 			while (op2.next.pt.x <= pt.x && op2.next.pt.x >= op2.pt.x && op2.next.pt.y == pt.y) op2 = op2.next;
-			
+
 			if (discardLeft && (op2.pt.x != pt.x)) op2 = op2.next;
 			op2b = dupOutPt(op2, !discardLeft);
 			if (!op2b.pt.equals(pt)) {
@@ -3203,7 +3230,7 @@ class Clipper extends ClipperBase
 			}
 		} else {
 			while (op2.next.pt.x >= pt.x && op2.next.pt.x <= op2.pt.x && op2.next.pt.y == pt.y) op2 = op2.next;
-			
+
 			if (!discardLeft && (op2.pt.x != pt.x)) op2 = op2.next;
 			op2b = dupOutPt(op2, discardLeft);
 			if (!op2b.pt.equals(pt)) {
@@ -3374,7 +3401,7 @@ class Clipper extends ClipperBase
 	//http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.88.5498&rep=rep1&type=pdf
 	static public function pointInPolygon(pt:IntPoint, path:Path):Int {
 		//returns 0 if false, +1 if true, -1 if pt ON polygon boundary
-		
+
 		var result:Int = 0, cnt:Int = path.length;
 		if (cnt < 3) return 0;
 		var ip:IntPoint = path[0].clone();
@@ -3485,10 +3512,10 @@ class Clipper extends ClipperBase
 		//(including nil) to see if they've become inner to the new inner polygon ...
 		var orfl:OutRec = outerOutRec.firstLeft;
 		for (outRec in mPolyOuts) {
-			if (outRec.pts == null || outRec == outerOutRec || outRec == innerOutRec) 
+			if (outRec.pts == null || outRec == outerOutRec || outRec == innerOutRec)
 				continue;
 			var firstLeft:OutRec = parseFirstLeft(outRec.firstLeft);
-			if (firstLeft != orfl && firstLeft != innerOutRec && firstLeft != outerOutRec) 
+			if (firstLeft != orfl && firstLeft != innerOutRec && firstLeft != outerOutRec)
 				continue;
 			if (poly2ContainsPoly1(outRec.pts, innerOutRec.pts))
 				outRec.firstLeft = innerOutRec;
@@ -3504,7 +3531,7 @@ class Clipper extends ClipperBase
 		//same as FixupFirstLefts1 but doesn't call Poly2ContainsPoly1()
 		for (outRec in mPolyOuts) {
 			var firstLeft:OutRec = parseFirstLeft(outRec.firstLeft);
-			if (outRec.pts != null && firstLeft == oldOutRec) 
+			if (outRec.pts != null && firstLeft == oldOutRec)
 				outRec.firstLeft = newOutRec;
 		}
 	}
@@ -3675,7 +3702,7 @@ class Clipper extends ClipperBase
 		return areaOfOutPt(outRec.pts);
 	}
 	//------------------------------------------------------------------------------
-	
+
 	function areaOfOutPt(op:OutPt):Float {
 		var opFirst:OutPt = op;
 		if (op == null) return 0;
@@ -3741,9 +3768,9 @@ class Clipper extends ClipperBase
 	//---------------------------------------------------------------------------
 
 	static function slopesNearCollinear(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, distSqrd:Float):Bool {
-		//this function is more accurate when the point that's GEOMETRICALLY 
-		//between the other 2 points is the one that's tested for distance.  
-		//nb: with 'spikes', either pt1 or pt3 is geometrically between the other pts                    
+		//this function is more accurate when the point that's GEOMETRICALLY
+		//between the other 2 points is the one that's tested for distance.
+		//nb: with 'spikes', either pt1 or pt3 is geometrically between the other pts
 		if (Math.abs(pt1.x - pt2.x) > Math.abs(pt1.y - pt2.y)) {
 			if ((pt1.x > pt2.x) == (pt1.x < pt3.x)) return distanceFromLineSqrd(pt1, pt2, pt3) < distSqrd;
 			else if ((pt2.x > pt1.x) == (pt2.x < pt3.x)) return distanceFromLineSqrd(pt2, pt1, pt3) < distSqrd;
@@ -3774,8 +3801,8 @@ class Clipper extends ClipperBase
 	//------------------------------------------------------------------------------
 
 	static function cleanPolygon(path:Path, distance:Float = 1.415):Path {
-		//distance = proximity in units/pixels below which vertices will be stripped. 
-		//Default ~= sqrt(2) so when adjacent vertices or semi-adjacent vertices have 
+		//distance = proximity in units/pixels below which vertices will be stripped.
+		//Default ~= sqrt(2) so when adjacent vertices or semi-adjacent vertices have
 		//both x & y coords within 1 unit, then the second vertex will be stripped.
 
 		var cnt:Int = path.length;
@@ -3949,7 +3976,9 @@ class Clipper extends ClipperBase
 
 } //end Clipper
 
-class ClipperOffset 
+@:expose()
+@:native("ClipperOffset")
+class ClipperOffset
 {
 	var mDestPolys:Paths;
 	var mSrcPoly:Path;
@@ -4015,7 +4044,7 @@ class ClipperOffset
 				j++;
 				newNode.mPolygon.push(path[i]);
 				if (path[i].y > newNode.mPolygon[k].y
-					|| (path[i].y == newNode.mPolygon[k].y && path[i].x < newNode.mPolygon[k].x)) 
+					|| (path[i].y == newNode.mPolygon[k].y && path[i].x < newNode.mPolygon[k].x))
 				{
 					k = j;
 				}
@@ -4051,8 +4080,8 @@ class ClipperOffset
 		if (mLowest.x >= 0 && !Clipper.orientation(mPolyNodes.children[Std.int(mLowest.x)].mPolygon)) {
 			for (i in 0...mPolyNodes.numChildren) {
 				var node:PolyNode = mPolyNodes.children[i];
-				if (node.mEndtype == EndType.ET_CLOSED_POLYGON || (node.mEndtype == EndType.ET_CLOSED_LINE 
-					&& Clipper.orientation(node.mPolygon))) 
+				if (node.mEndtype == EndType.ET_CLOSED_POLYGON || (node.mEndtype == EndType.ET_CLOSED_LINE
+					&& Clipper.orientation(node.mPolygon)))
 				{
 					node.mPolygon.reverse();
 				}
@@ -4259,7 +4288,7 @@ class ClipperOffset
 		}
 	}
 	//------------------------------------------------------------------------------
-	
+
 	// NOTE: ref
 	public function executePaths(/*ref*/ solution:Paths, delta:Float):Void {
 		solution.clear();
@@ -4337,7 +4366,7 @@ class ClipperOffset
 				mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mNormals[k].x * mDelta), round(mSrcPoly[j].y + mNormals[k].y * mDelta)));
 				return k;
 			}
-			//else angle ==> 180 degrees   
+			//else angle ==> 180 degrees
 		} else if (mSinA > 1.0) mSinA = 1.0;
 		else if (mSinA < -1.0) mSinA = -1.0;
 
@@ -4392,20 +4421,24 @@ class ClipperOffset
 	//------------------------------------------------------------------------------
 }
 
+@:expose()
+@:native("ClipperException")
 class ClipperException
 {
 	var desc:String;
-	
+
 	public function new(description:String) {
 		this.desc = description;
 	}
-	
+
 	public function toString():String {
 		return desc;
 	}
 }
 //------------------------------------------------------------------------------
 
+@:expose()
+@:native("InternalTools")
 class InternalTools
 {
 	/** Empties an array of its contents. */
@@ -4417,7 +4450,7 @@ class InternalTools
 		untyped array.length = 0;
 #end
 	}
-	
+
 	static inline public function xor(a:Bool, b:Bool):Bool
 	{
 		return (a && !b) || (b && !a);
@@ -4427,14 +4460,14 @@ class InternalTools
 
 abstract Ref<T>(haxe.ds.Vector<T>) {
   public var value(get, set):T;
-  
+
   inline function new() this = new haxe.ds.Vector(1);
-  
+
   @:to inline function get_value():T return this[0];
   inline function set_value(param:T) return this[0] = param;
-  
+
   public function toString():String return '@[' + Std.string(value)+']';
-  
+
   @:noUsing @:from static inline public function to<A>(v:A):Ref<A> {
     var ret = new Ref();
     ret.value = v;
