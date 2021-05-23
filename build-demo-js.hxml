@@ -1,6 +1,7 @@
 -cp src
 -js bin/js/SuiDemo.js
 -resource GuiDemo/aust.bin@australia
+-lib thx.stream:0.5.0
 -lib sui
 #-lib hxBitcoin
 #-D debug
