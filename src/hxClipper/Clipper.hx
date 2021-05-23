@@ -103,6 +103,7 @@ class DoublePoint
     return new DoublePoint(ip.x, ip.y);
   }
 
+  #if (python) @:native("__repr__") #end
   public function toString():String {
     return '(x:$x, y:$y)';
   }
@@ -334,6 +335,7 @@ class IntPoint
     this.z = ip.z;
   }
 
+  #if (python) @:native("__repr__") #end
   public function toString():String {
     return '(x:$x, y:$y, z:$z)';
   }
@@ -360,6 +362,7 @@ class IntPoint
     return new IntPoint(this.x, this.y);
   }
 
+  #if (python) @:native("__repr__") #end
   public function toString():String {
     return '(x:$x, y:$y)';
   }
@@ -517,6 +520,7 @@ enum EndType {
 
   /*internal*/ function new() { }
 
+  #if (python) @:native("__repr__") #end
   function toString():String {
     return 'TE(curr:${curr.toString()}, bot:${bot.toString()}, top:${top.toString()}, dx:$dx)';
   }
@@ -4431,6 +4435,7 @@ class ClipperException
     this.desc = description;
   }
 
+  #if (python) @:native("__repr__") #end
   public function toString():String {
     return desc;
   }
@@ -4466,6 +4471,7 @@ abstract Ref<T>(haxe.ds.Vector<T>) {
   @:to inline function get_value():T return this[0];
   inline function set_value(param:T) return this[0] = param;
 
+  #if (python) @:native("__repr__") #end
   public function toString():String return '@[' + Std.string(value)+']';
 
   @:noUsing @:from static inline public function to<A>(v:A):Ref<A> {
