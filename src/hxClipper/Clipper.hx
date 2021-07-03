@@ -1117,12 +1117,12 @@ class ClipperBase
   /*internal*/ function popLocalMinima(y:CInt, /*out*/ current:{lm:LocalMinima}):Bool {
     current.lm = mCurrentLM;
 
-        if (mCurrentLM != null && mCurrentLM.y == y)
-        {
-            mCurrentLM = mCurrentLM.next;
-            return true;
-        }
-        return false;
+    if (mCurrentLM != null && mCurrentLM.y == y)
+    {
+      mCurrentLM = mCurrentLM.next;
+      return true;
+    }
+    return false;
   }
   //------------------------------------------------------------------------------
 
@@ -1220,17 +1220,17 @@ class ClipperBase
     {
       return res;
     }
-        res.y = mScanbeam.y;
-        mScanbeam = mScanbeam.next;
+    res.y = mScanbeam.y;
+    mScanbeam = mScanbeam.next;
     res.popped = true;
     return res;
   }
   //------------------------------------------------------------------------------
 
-    /*internal*/ function localMinimaPending():Bool {
-        return (mCurrentLM != null);
-    }
-    //------------------------------------------------------------------------------
+  /*internal*/ function localMinimaPending():Bool {
+    return (mCurrentLM != null);
+  }
+  //------------------------------------------------------------------------------
 
   /*internal*/ function createOutRec():OutRec {
     var result = new OutRec();
@@ -2200,7 +2200,7 @@ class Clipper extends ClipperBase
   function getOutRec(idx:Int):OutRec {
     var outrec:OutRec = mPolyOuts[idx];
     while (outrec != mPolyOuts[outrec.idx])
-    outrec = mPolyOuts[outrec.idx];
+      outrec = mPolyOuts[outrec.idx];
     return outrec;
   }
   //------------------------------------------------------------------------------
@@ -2532,18 +2532,18 @@ class Clipper extends ClipperBase
     if (eLastHorz.nextInLML == null) eMaxPair = getMaximaPair(eLastHorz);
 
     var currMax = mMaxima;
-        if (currMax != null) {
-            //get the first maxima in range (X) ...
-            if (dir == Direction.D_LEFT_TO_RIGHT) {
+    if (currMax != null) {
+      //get the first maxima in range (X) ...
+      if (dir == Direction.D_LEFT_TO_RIGHT) {
         while (currMax != null && currMax.x <= horzEdge.bot.x) currMax = currMax.next;
         if (currMax != null && currMax.x >= eLastHorz.top.x) currMax = null;
-            } else {
+      } else {
         while (currMax.next != null && currMax.next.x < horzEdge.bot.x) currMax = currMax.next;
         if (currMax.x <= eLastHorz.top.x) currMax = null;
-            }
-        }
+      }
+    }
 
-        var op1:OutPt = null;
+    var op1:OutPt = null;
     while (true) {  //loop through consec. horizontal edges
       var isLastHorz = (horzEdge == eLastHorz);
       var e:TEdge = getNextInAEL(horzEdge, dir);
@@ -2627,21 +2627,21 @@ class Clipper extends ClipperBase
 
     } //end for (;;)
 
-        if (horzEdge.outIdx >= 0 && op1 == null) {
-            op1 = getLastOutPt(horzEdge);
-            var eNextHorz:TEdge = mSortedEdges;
-            while (eNextHorz != null) {
-                if (eNextHorz.outIdx >= 0 &&
-          horzSegmentsOverlap(horzEdge.bot.x,
-          horzEdge.top.x, eNextHorz.bot.x, eNextHorz.top.x))
-                {
-                    var op2:OutPt = getLastOutPt(eNextHorz);
-                    addJoin(op2, op1, eNextHorz.top);
-                }
-                eNextHorz = eNextHorz.nextInSEL;
+    if (horzEdge.outIdx >= 0 && op1 == null) {
+        op1 = getLastOutPt(horzEdge);
+        var eNextHorz:TEdge = mSortedEdges;
+        while (eNextHorz != null) {
+            if (eNextHorz.outIdx >= 0 &&
+      horzSegmentsOverlap(horzEdge.bot.x,
+      horzEdge.top.x, eNextHorz.bot.x, eNextHorz.top.x))
+            {
+                var op2:OutPt = getLastOutPt(eNextHorz);
+                addJoin(op2, op1, eNextHorz.top);
             }
-            addGhostJoin(op1, horzEdge.top);
+            eNextHorz = eNextHorz.nextInSEL;
         }
+        addGhostJoin(op1, horzEdge.top);
+    }
 
     if (horzEdge.nextInLML != null) {
       if (horzEdge.outIdx >= 0) {
