@@ -1,10 +1,10 @@
 ﻿/*******************************************************************************
 *                                                                              *
 * Author    :  Angus Johnson                                                   *
-* Version   :  6.4.1 (r498)                                                    *
-* Date      :  5 December 2016                                                 *
+* Version   :  6.4.2 (r512)                                                    *
+* Date      :  27 February 2017                                                 *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2010-2015                                         *
+* Copyright :  Angus Johnson 2010-2017                                         *
 *                                                                              *
 * License:                                                                     *
 * Use, modification & distribution is subject to Boost Software License Ver 1. *
@@ -35,7 +35,7 @@
 
 /*
  * CS -> HX notes:
- *     [~] should be up to r498 (tests relative to sandbox from r479)
+ *     [~] should be up to r512 (tests relative to sandbox from r479)
  *     [x] move some statics from ClipperBase to Clipper
  *     [ ] find a way to fix Int128 and Slopes...
  *     [x] fix multi declarations
@@ -2002,7 +2002,7 @@ class Clipper extends ClipperBase
       else prevE = e.prevInAEL;
     }
 
-    if (prevE != null && prevE.outIdx >= 0) {
+    if (prevE != null && prevE.outIdx >= 0 && prevE.top.y < pt.y && e.top.y < pt.y) {
       var xPrev:CInt = topX(prevE, pt.y);
       var xE:CInt = topX(e, pt.y);
       if ((xPrev == xE) && (e.windDelta != 0) && (prevE.windDelta != 0)
@@ -2574,6 +2574,10 @@ class Clipper extends ClipperBase
         if (e.curr.x == horzEdge.top.x && horzEdge.nextInLML != null && e.dx < horzEdge.nextInLML.dx) break;
 
         if (horzEdge.outIdx >= 0 && !isOpen) { //note: may be done multiple times
+        #if USE_XYZ
+          if (dir == Direction.D_LEFT_TO_RIGHT) setZ(/*ref*/ e.curr, horzEdge, e);
+          else setZ(/*ref*/ e.curr, e, horzEdge);
+        #end
           op1 = addOutPt(horzEdge, e.curr);
           var eNextHorz:TEdge = mSortedEdges;
           while (eNextHorz != null) {
@@ -2918,6 +2922,11 @@ class Clipper extends ClipperBase
         } else {
           e.curr.x = topX(e, topY);
           e.curr.y = topY;
+        #if USE_XYZ
+          if (e.top.y == topY) e.curr.z = e.top.z;
+          else if (e.bot.y == topY) e.curr.z = e.bot.z;
+          else e.curr.z = 0;
+        #end
         }
 
         //When StrictlySimple and 'e' is being touched by another edge, then
