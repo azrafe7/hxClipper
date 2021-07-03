@@ -641,9 +641,9 @@ class ClipperBase
   /*internal*/ var mMinimaList:LocalMinima;
   /*internal*/ var mCurrentLM:LocalMinima;
   /*internal*/ var mEdges:Array<Array<TEdge>> = new Array<Array<TEdge>>();
-    /*internal*/ var mScanbeam:Scanbeam;
-    /*internal*/ var mPolyOuts:Array<OutRec>;
-    /*internal*/ var mActiveEdges:TEdge;
+  /*internal*/ var mScanbeam:Scanbeam;
+  /*internal*/ var mPolyOuts:Array<OutRec>;
+  /*internal*/ var mActiveEdges:TEdge;
   /*internal*/ var mUseFullRange:Bool;
   /*internal*/ var mHasOpenPaths:Bool;
 
@@ -768,7 +768,7 @@ class ClipperBase
   // NOTE: check ref - changed to return it
   function rangeTest(pt:IntPoint, /*ref*/ useFullRange:Bool):Bool {
     //return true;
-        if (useFullRange) {
+    if (useFullRange) {
       if (pt.x > HI_RANGE || pt.y > HI_RANGE || -pt.x > HI_RANGE || -pt.y > HI_RANGE)
         throw new ClipperException("Coordinate outside allowed range");
     } else if (pt.x > LO_RANGE || pt.y > LO_RANGE || -pt.x > LO_RANGE || -pt.y > LO_RANGE) {
