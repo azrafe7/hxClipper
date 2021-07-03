@@ -793,8 +793,10 @@ class ClipperBase
   function rangeTest(pt:IntPoint, /*ref*/ useFullRange:Bool):Bool {
     //return true;  // to skip the range test
     if (useFullRange) {
+    #if (!CLIPPER_NO_EXCEPTIONS)
       if (pt.x > HI_RANGE || pt.y > HI_RANGE || -pt.x > HI_RANGE || -pt.y > HI_RANGE)
         throw new ClipperException("Coordinate outside allowed range");
+    #end
     } else if (pt.x > LO_RANGE || pt.y > LO_RANGE || -pt.x > LO_RANGE || -pt.y > LO_RANGE) {
       useFullRange = true;
       rangeTest(pt, /*ref*/ useFullRange);
@@ -929,11 +931,13 @@ class ClipperBase
 
 
   public function addPath(path:Path, polyType:PolyType, closed:Bool):Bool {
+#if (!CLIPPER_NO_EXCEPTIONS)
   #if USE_LINES
     if (!closed && polyType == PolyType.PT_CLIP) throw new ClipperException("AddPath: Open paths must be subject.");
   #else
     if (!closed) throw new ClipperException("AddPath: Open paths have been disabled (define USE_LINES to enable them).");
   #end
+#end
     //NOTE: why the cast
     var highI = /*(int)*/ path.length - 1;
     if (closed) while (highI > 0 && (path[highI].equals(path[0]))) --highI;
@@ -1282,7 +1286,9 @@ class ClipperBase
 
   // NOTE: ref (updated to return the modified edge)
   /*internal*/ function updateEdgeIntoAEL(/*ref*/ e:TEdge):TEdge {
+  #if (!CLIPPER_NO_EXCEPTIONS)
     if (e.nextInLML == null) throw new ClipperException("UpdateEdgeIntoAEL: invalid call");
+  #end
     var aelPrev:TEdge = e.prevInAEL;
     var aelNext:TEdge = e.nextInAEL;
     e.nextInLML.outIdx = e.outIdx;
@@ -1463,7 +1469,9 @@ class Clipper extends ClipperBase
 
   public function executePaths(clipType:ClipType, solution:Paths, subjFillType:PolyFillType, clipFillType:PolyFillType):Bool {
     if (mExecuteLocked) return false;
+  #if (!CLIPPER_NO_EXCEPTIONS)
     if (mHasOpenPaths) throw new ClipperException("Error: PolyTree struct is needed for open path clipping.");
+  #end
 
     mExecuteLocked = true;
     solution.clear();
@@ -1519,9 +1527,12 @@ class Clipper extends ClipperBase
       return executePaths(clipType, solution, PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_EVEN_ODD);
     } else if (Std.is(solution, PolyTree)) {
       return executePolyTree(clipType, solution, PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_EVEN_ODD);
-    } else {
-      throw new ClipperException("`solution` must be either a Paths or a PolyTree");
     }
+  #if (!CLIPPER_NO_EXCEPTIONS)
+    else throw new ClipperException("`solution` must be either a Paths or a PolyTree");
+  #else
+    return false;
+  #end
   }
   //------------------------------------------------------------------------------
 
@@ -2759,11 +2770,14 @@ class Clipper extends ClipperBase
         processIntersectList();
       }
       else return false;
-    } catch (e:Dynamic) {
+    }
+  #if (!CLIPPER_NO_EXCEPTIONS)
+    catch (e:Dynamic) {
       mSortedEdges = null;
       mIntersectList.clear();
       throw new ClipperException("ProcessIntersections error");
     }
+  #end
     mSortedEdges = null;
     return true;
   }
@@ -3064,7 +3078,9 @@ class Clipper extends ClipperBase
       deleteFromAEL(eMaxPair);
     }
   #end
+  #if (!CLIPPER_NO_EXCEPTIONS)
     else throw new ClipperException("DoMaxima error");
+  #end
   }
   //------------------------------------------------------------------------------
 
@@ -4337,9 +4353,10 @@ class ClipperOffset
       return executePaths(solution, delta);
     } else if (Std.is(solution, PolyTree)) {
       return executePolyTree(solution, delta);
-    } else {
-      throw new ClipperException("`solution` must be either a Paths or a PolyTree");
     }
+  #if (!CLIPPER_NO_EXCEPTIONS)
+    else throw new ClipperException("`solution` must be either a Paths or a PolyTree");
+  #end
   }
   //------------------------------------------------------------------------------
 
