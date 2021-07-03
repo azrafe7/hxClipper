@@ -1,7 +1,8 @@
 -cp src
-#-lib hxBitcoin
 #-D debug
-#-D USE_BIGINT
+#-D CLIPPER_INLINE
+#-D CLIPPER_NO_EXCEPTIONS
+#-D USE_INT64
 -D USE_XYZ
 -D USE_LINES
 -main Tests

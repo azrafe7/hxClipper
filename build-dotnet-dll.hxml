@@ -1,5 +1,13 @@
 -cp src
+#-D debug
+#-D CLIPPER_INLINE
+#-D CLIPPER_NO_EXCEPTIONS
+#-D USE_INT64
+-D USE_XYZ
+-D USE_LINES
+
 -D dll
 -cs bin/haxecs_clipper
 -D net-ver=40
+
 hxClipper.Clipper

@@ -3,9 +3,10 @@
 -resource GuiDemo/aust.bin@australia
 -lib thx.stream:0.5.0
 -lib sui
-#-lib hxBitcoin
 #-D debug
-#-D USE_BIGINT
+#-D CLIPPER_INLINE
+#-D CLIPPER_NO_EXCEPTIONS
+#-D USE_INT64
 -D USE_XYZ
 -D USE_LINES
 -main SuiDemoJS

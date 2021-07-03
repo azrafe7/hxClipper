@@ -4,7 +4,7 @@
 * Version   :  6.4.2 (r512)                                                    *
 * Date      :  27 February 2017                                                 *
 * Website   :  http://www.angusj.com                                           *
-* Copyright :  Angus Johnson 2010-2017                                         *
+* Copyright :  Angus Johnson 2010-2021                                         *
 *                                                                              *
 * License:                                                                     *
 * Use, modification & distribution is subject to Boost Software License Ver 1. *
