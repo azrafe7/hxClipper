@@ -767,7 +767,7 @@ class ClipperBase
 
   // NOTE: check ref - changed to return it
   function rangeTest(pt:IntPoint, /*ref*/ useFullRange:Bool):Bool {
-    //return true;
+    //return true;  // to skip the range test
     if (useFullRange) {
       if (pt.x > HI_RANGE || pt.y > HI_RANGE || -pt.x > HI_RANGE || -pt.y > HI_RANGE)
         throw new ClipperException("Coordinate outside allowed range");
