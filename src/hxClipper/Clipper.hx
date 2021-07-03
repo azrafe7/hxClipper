@@ -4444,7 +4444,6 @@ class ClipperException
     this.desc = description;
   }
 
-  #if (python) @:native("__repr__") #end
   public function toString():String {
     return desc;
   }
