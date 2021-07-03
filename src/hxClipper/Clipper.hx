@@ -91,14 +91,17 @@ class DoublePoint
     this.y = y;
   }
 
+  #if (CLIPPER_INLINE) inline #end
   public function clone() {
     return new DoublePoint(this.x, this.y);
   }
 
+  #if (CLIPPER_INLINE) inline #end
   static public function fromDoublePoint(dp:DoublePoint) {
     return dp.clone();
   }
 
+  #if (CLIPPER_INLINE) inline #end
   static public function fromIntPoint(ip:IntPoint) {
     return new DoublePoint(ip.x, ip.y);
   }
@@ -134,12 +137,14 @@ class PolyTree extends PolyNode
     mChildren.clear();
   }
 
+  #if (CLIPPER_INLINE) inline #end
   public function getFirst():PolyNode {
     if (mChildren.length > 0) return mChildren[0];
     else return null;
   }
 
   public var total(get, never):Int;
+  #if (CLIPPER_INLINE) inline #end
   function get_total():Int {
     var result = mAllPolys.length;
     //with negative offsets, ignore the hidden outer polygon ...
@@ -175,11 +180,13 @@ class PolyNode
   }
 
   public var numChildren(get, never):Int;
+  #if (CLIPPER_INLINE) inline #end
   function get_numChildren():Int {
     return mChildren.length;
   }
 
   public var contour(get, never):Path;
+  #if (CLIPPER_INLINE) inline #end
   function get_contour():Path {
     return mPolygon;
   }
@@ -203,16 +210,19 @@ class PolyNode
   }
 
   public var children(get, never):Array<PolyNode>;
+  #if (CLIPPER_INLINE) inline #end
   function get_children():Array<PolyNode> {
     return mChildren;
   }
 
   public var parent(get, null):PolyNode;
+  #if (CLIPPER_INLINE) inline #end
   public function get_parent():PolyNode {
     return mParent;
   }
 
   public var isHole(get, never):Bool;
+  #if (CLIPPER_INLINE) inline #end
   function get_isHole():Bool {
     return isHoleNode();
   }
@@ -325,10 +335,12 @@ class IntPoint
     this.z = z;
   }
 
+  #if (CLIPPER_INLINE) inline #end
   public function clone() {
     return new IntPoint(this.x, this.y, this.z);
   }
 
+  #if (CLIPPER_INLINE) inline #end
   public function copyFrom(ip:IntPoint):Void {
     this.x = ip.x;
     this.y = ip.y;
@@ -345,10 +357,12 @@ class IntPoint
     return new IntPoint(Std.int(x), Std.int(y), Std.int(z));
   }
 
+  #if (CLIPPER_INLINE) inline #end
   static public function fromDoublePoint(dp:DoublePoint) {
     return fromFloats(dp.x, dp.y, 0);
   }
 
+  #if (CLIPPER_INLINE) inline #end
   static public function fromIntPoint(pt:IntPoint) {
     return pt.clone();
   }
@@ -358,6 +372,7 @@ class IntPoint
     this.y = y;
   }
 
+  #if (CLIPPER_INLINE) inline #end
   public function clone() {
     return new IntPoint(this.x, this.y);
   }
@@ -367,6 +382,7 @@ class IntPoint
     return '(x:$x, y:$y)';
   }
 
+  #if (CLIPPER_INLINE) inline #end
   public function copyFrom(ip:IntPoint):Void {
     this.x = ip.x;
     this.y = ip.y;
@@ -376,15 +392,18 @@ class IntPoint
     return new IntPoint(Std.int(x), Std.int(y));
   }
 
+  #if (CLIPPER_INLINE) inline #end
   static public function fromDoublePoint(dp:DoublePoint) {
     return fromFloats(dp.x, dp.y);
   }
 
+  #if (CLIPPER_INLINE) inline #end
   static public function fromIntPoint(pt:IntPoint) {
     return pt.clone();
   }
 #end
 
+  #if (CLIPPER_INLINE) inline #end
   public function equals(ip:IntPoint):Bool {
     return this.x == ip.x && this.y == ip.y;
   }
@@ -429,6 +448,7 @@ class IntRect
     this.bottom = b;
   }
 
+  #if (CLIPPER_INLINE) inline #end
   public function clone(ir:IntRect):IntRect {
     return new IntRect(left, top, right, bottom);
   }
@@ -661,6 +681,7 @@ class ClipperBase
   }*/
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   /*internal*/ static function isHorizontal(e:TEdge):Bool {
     return e.delta.y == 0;
   }
@@ -702,6 +723,7 @@ class ClipperBase
   //------------------------------------------------------------------------------
 
   /* NOTE: fix these Int128*/
+  #if (CLIPPER_INLINE) inline #end
   /*internal*/ static function slopesEqual(e1:TEdge, e2:TEdge, useFullRange:Bool):Bool {
   #if USE_INT64
     if (useFullRange) return Int128.mul(e1.delta.y, e2.delta.x) == Int128.mul(e1.delta.x, e2.delta.y);
@@ -712,6 +734,7 @@ class ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   /*internal*/ static function slopesEqual3(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, useFullRange:Bool):Bool {
   #if USE_INT64
     if (useFullRange) return Int128.Int128Mul(pt1.y - pt2.y, pt2.x - pt3.x) == Int128.Int128Mul(pt1.x - pt2.x, pt2.y - pt3.y);
@@ -722,6 +745,7 @@ class ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   /*internal*/ static function slopesEqual4(pt1:IntPoint, pt2:IntPoint, pt3:IntPoint, pt4:IntPoint, useFullRange:Bool):Bool {
   #if USE_INT64
     if (useFullRange) return Int128.Int128Mul(pt1.y - pt2.y, pt3.x - pt4.x) == Int128.Int128Mul(pt1.x - pt2.x, pt3.y - pt4.y);
@@ -769,8 +793,10 @@ class ClipperBase
   function rangeTest(pt:IntPoint, /*ref*/ useFullRange:Bool):Bool {
     //return true;  // to skip the range test
     if (useFullRange) {
+    #if (!CLIPPER_NO_EXCEPTIONS)
       if (pt.x > HI_RANGE || pt.y > HI_RANGE || -pt.x > HI_RANGE || -pt.y > HI_RANGE)
         throw new ClipperException("Coordinate outside allowed range");
+    #end
     } else if (pt.x > LO_RANGE || pt.y > LO_RANGE || -pt.x > LO_RANGE || -pt.y > LO_RANGE) {
       useFullRange = true;
       rangeTest(pt, /*ref*/ useFullRange);
@@ -905,11 +931,13 @@ class ClipperBase
 
 
   public function addPath(path:Path, polyType:PolyType, closed:Bool):Bool {
+#if (!CLIPPER_NO_EXCEPTIONS)
   #if USE_LINES
     if (!closed && polyType == PolyType.PT_CLIP) throw new ClipperException("AddPath: Open paths must be subject.");
   #else
     if (!closed) throw new ClipperException("AddPath: Open paths have been disabled (define USE_LINES to enable them).");
   #end
+#end
     //NOTE: why the cast
     var highI = /*(int)*/ path.length - 1;
     if (closed) while (highI > 0 && (path[highI].equals(path[0]))) --highI;
@@ -1227,6 +1255,7 @@ class ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   /*internal*/ function localMinimaPending():Bool {
     return (mCurrentLM != null);
   }
@@ -1257,7 +1286,9 @@ class ClipperBase
 
   // NOTE: ref (updated to return the modified edge)
   /*internal*/ function updateEdgeIntoAEL(/*ref*/ e:TEdge):TEdge {
+  #if (!CLIPPER_NO_EXCEPTIONS)
     if (e.nextInLML == null) throw new ClipperException("UpdateEdgeIntoAEL: invalid call");
+  #end
     var aelPrev:TEdge = e.prevInAEL;
     var aelNext:TEdge = e.nextInAEL;
     e.nextInLML.outIdx = e.outIdx;
@@ -1438,7 +1469,9 @@ class Clipper extends ClipperBase
 
   public function executePaths(clipType:ClipType, solution:Paths, subjFillType:PolyFillType, clipFillType:PolyFillType):Bool {
     if (mExecuteLocked) return false;
+  #if (!CLIPPER_NO_EXCEPTIONS)
     if (mHasOpenPaths) throw new ClipperException("Error: PolyTree struct is needed for open path clipping.");
+  #end
 
     mExecuteLocked = true;
     solution.clear();
@@ -1494,9 +1527,12 @@ class Clipper extends ClipperBase
       return executePaths(clipType, solution, PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_EVEN_ODD);
     } else if (Std.is(solution, PolyTree)) {
       return executePolyTree(clipType, solution, PolyFillType.PFT_EVEN_ODD, PolyFillType.PFT_EVEN_ODD);
-    } else {
-      throw new ClipperException("`solution` must be either a Paths or a PolyTree");
     }
+  #if (!CLIPPER_NO_EXCEPTIONS)
+    else throw new ClipperException("`solution` must be either a Paths or a PolyTree");
+  #else
+    return false;
+  #end
   }
   //------------------------------------------------------------------------------
 
@@ -1725,12 +1761,14 @@ class Clipper extends ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   function isEvenOddFillType(edge:TEdge):Bool {
     if (edge.polyType == PolyType.PT_SUBJECT) return mSubjFillType == PolyFillType.PFT_EVEN_ODD;
     else return mClipFillType == PolyFillType.PFT_EVEN_ODD;
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   function isEvenOddAltFillType(edge:TEdge):Bool {
     if (edge.polyType == PolyType.PT_SUBJECT) return mClipFillType == PolyFillType.PFT_EVEN_ODD;
     else return mSubjFillType == PolyFillType.PFT_EVEN_ODD;
@@ -2050,6 +2088,7 @@ class Clipper extends ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   function getLastOutPt(e:TEdge):OutPt {
     var outRec = mPolyOuts[e.outIdx];
     if (e.side == EdgeSide.ES_LEFT)
@@ -2299,6 +2338,7 @@ class Clipper extends ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   static function swapSides(edge1:TEdge, edge2:TEdge):Void {
     var side:EdgeSide = edge1.side;
     edge1.side = edge2.side;
@@ -2306,6 +2346,7 @@ class Clipper extends ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   static function swapPolyIndexes(edge1:TEdge, edge2:TEdge):Void {
     var outIdx:Int = edge1.outIdx;
     edge1.outIdx = edge2.outIdx;
@@ -2673,21 +2714,25 @@ class Clipper extends ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   function getNextInAEL(e:TEdge, direction:Direction):TEdge {
     return direction == Direction.D_LEFT_TO_RIGHT ? e.nextInAEL : e.prevInAEL;
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   function isMinima(e:TEdge):Bool {
     return e != null && (e.prev.nextInLML != e) && (e.next.nextInLML != e);
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   function isMaxima(e:TEdge, y:Float):Bool {
     return (e != null && e.top.y == y && e.nextInLML == null);
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   function isIntermediate(e:TEdge, y:Float):Bool {
     return (e.top.y == y && e.nextInLML != null);
   }
@@ -2725,11 +2770,14 @@ class Clipper extends ClipperBase
         processIntersectList();
       }
       else return false;
-    } catch (e:Dynamic) {
+    }
+  #if (!CLIPPER_NO_EXCEPTIONS)
+    catch (e:Dynamic) {
       mSortedEdges = null;
       mIntersectList.clear();
       throw new ClipperException("ProcessIntersections error");
     }
+  #end
     mSortedEdges = null;
     return true;
   }
@@ -2779,11 +2827,13 @@ class Clipper extends ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   function edgesAdjacent(inode:IntersectNode):Bool {
     return (inode.edge1.nextInSEL == inode.edge2) || (inode.edge1.prevInSEL == inode.edge2);
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   static function intersectNodeSort(node1:IntersectNode, node2:IntersectNode):Int {
     //the following typecast is safe because the differences in Pt.Y will
     //be limited to the height of the scanbeam.
@@ -2828,12 +2878,14 @@ class Clipper extends ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   /*internal*/ static function round(value:Float):CInt {
     // NOTE: check how to cast
     return value < 0 ? /*(cInt)*/Std.int(value - 0.5) : /*(cInt)*/Std.int(value + 0.5);
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   static function topX(edge:TEdge, currentY:CInt):CInt {
     if (currentY == edge.top.y) return edge.top.x;
     return edge.bot.x + round(edge.dx * (currentY - edge.bot.y));
@@ -3026,7 +3078,9 @@ class Clipper extends ClipperBase
       deleteFromAEL(eMaxPair);
     }
   #end
+  #if (!CLIPPER_NO_EXCEPTIONS)
     else throw new ClipperException("DoMaxima error");
+  #end
   }
   //------------------------------------------------------------------------------
 
@@ -3037,6 +3091,7 @@ class Clipper extends ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   static public function orientation(poly:Path):Bool {
     return area(poly) >= 0;
   }
@@ -3711,6 +3766,7 @@ class Clipper extends ClipperBase
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   function areaOfOutRec(outRec:OutRec):Float {
     return areaOfOutPt(outRec.pts);
   }
@@ -4030,6 +4086,7 @@ class ClipperOffset
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   /*internal*/ static function round(value:Float):CInt {
     // NOTE: check how to cast (this is already defined in Clipper)
     //return value < 0 ? /*(cInt)*/Std.int(value - 0.5) : /*(cInt)*/Std.int(value + 0.5);
@@ -4296,9 +4353,10 @@ class ClipperOffset
       return executePaths(solution, delta);
     } else if (Std.is(solution, PolyTree)) {
       return executePolyTree(solution, delta);
-    } else {
-      throw new ClipperException("`solution` must be either a Paths or a PolyTree");
     }
+  #if (!CLIPPER_NO_EXCEPTIONS)
+    else throw new ClipperException("`solution` must be either a Paths or a PolyTree");
+  #end
   }
   //------------------------------------------------------------------------------
 
@@ -4404,6 +4462,7 @@ class ClipperOffset
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   /*internal*/ function doSquare(j:Int, k:Int):Void {
     var dx:Float = Math.tan(Math.atan2(mSinA, mNormals[k].x * mNormals[j].x + mNormals[k].y * mNormals[j].y) / 4);
     mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + mDelta * (mNormals[k].x - mNormals[k].y * dx)), round(mSrcPoly[j].y + mDelta * (mNormals[k].y + mNormals[k].x * dx))));
@@ -4411,12 +4470,14 @@ class ClipperOffset
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   /*internal*/ function doMiter(j:Int, k:Int, r:Float):Void {
     var q:Float = mDelta / r;
     mDestPoly.push(new IntPoint(round(mSrcPoly[j].x + (mNormals[k].x + mNormals[j].x) * q), round(mSrcPoly[j].y + (mNormals[k].y + mNormals[j].y) * q)));
   }
   //------------------------------------------------------------------------------
 
+  #if (CLIPPER_INLINE) inline #end
   /*internal*/ function doRound(j:Int, k:Int):Void {
     var a:Float = Math.atan2(mSinA, mNormals[k].x * mNormals[j].x + mNormals[k].y * mNormals[j].y);
     // NOTE: cast
